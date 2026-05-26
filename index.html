@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mk40 — Live scoretavle</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>mk40 — Kongerigernes Kamp</h1>
+        <div id="status-bar">
+            <span id="last-updated">Forbinder...</span>
+        </div>
+    </header>
+
+    <main>
+        <div id="scoreboard-container">
+            <!-- Scoretavle injectes her af app.js -->
+            <div class="loading">Henter data...</div>
+        </div>
+    </main>
+
+    <footer>
+        <small>Polling hvert 5. sek · <span id="connection-state">●</span></small>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

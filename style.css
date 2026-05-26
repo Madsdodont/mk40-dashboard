@@ -1,0 +1,149 @@
+/* mk40-dashboard — skeleton styling
+ * Bevidst minimal. Design-pass kommer senere — denne version skal bare være læsbar på TV.
+ * Variables-block låser farver/spacing til ét sted så de kan rebrandes hurtigt.
+ */
+
+:root {
+    --bg: #0e0f13;
+    --surface: #1a1c22;
+    --surface-elevated: #242730;
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --border: #2f323b;
+    --accent: #fbbf24;
+
+    /* Hold-farver (matcher DimTeam.team_color) */
+    --team-rød: #dc2626;
+    --team-blå: #2563eb;
+    --team-grøn: #16a34a;
+    --team-gul: #eab308;
+    --team-sortHvid: #71717a;
+
+    --font-display: 'Helvetica Neue', Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+    letter-spacing: 0.05em;
+}
+
+#status-bar {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+main {
+    flex: 1;
+    padding: 2rem;
+    overflow: auto;
+}
+
+#scoreboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.loading, .empty-state, .error-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-secondary);
+    font-size: 1.25rem;
+}
+
+.error-state {
+    color: var(--team-rød);
+}
+
+table.scoreboard {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--surface);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+table.scoreboard th,
+table.scoreboard td {
+    padding: 1rem 1.25rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+}
+
+table.scoreboard thead th {
+    background: var(--surface-elevated);
+    font-size: 1.125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+table.scoreboard thead th.team-header {
+    font-weight: 600;
+    border-left: 4px solid currentColor;
+}
+
+table.scoreboard tbody th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+table.scoreboard tbody td {
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+}
+
+table.scoreboard tbody tr:last-child td,
+table.scoreboard tbody tr:last-child th {
+    border-bottom: none;
+}
+
+tr.total-row {
+    background: var(--surface-elevated);
+    font-weight: 700;
+}
+
+tr.total-row td {
+    font-size: 1.75rem !important;
+    color: var(--accent);
+}
+
+footer {
+    padding: 1rem 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+#connection-state.ok { color: var(--team-grøn); }
+#connection-state.error { color: var(--team-rød); }
+
+/* Hold-farve hooks — sættes via data-attribut i app.js */
+[data-team-color="rød"]       { color: var(--team-rød); }
+[data-team-color="blå"]       { color: var(--team-blå); }
+[data-team-color="grøn"]      { color: var(--team-grøn); }
+[data-team-color="gul"]       { color: var(--team-gul); }
+[data-team-color="sort/hvid"] { color: var(--team-sortHvid); }

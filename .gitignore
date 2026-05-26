@@ -1,0 +1,26 @@
+# Secrets
+.env
+.env.local
+.env.*.local
+*.key
+*-secret*
+config.js
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Node (hvis vi senere tilføjer build-tooling)
+node_modules/
+npm-debug.log*
+
+# Local server caches
+.cache/
+
+# Supabase CLI (hvis vi senere bruger det lokalt)
+supabase/.branches/
+supabase/.temp/
