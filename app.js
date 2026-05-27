@@ -1,27 +1,28 @@
-// mk40-dashboard frontend (skeleton)
+// mk40-dashboard frontend
+// Design system: see DESIGN.md
 // Stateless per ADR build-constraint #1: hver render-cycle henter fuld state fra Supabase.
-// localStorage-snapshot fallback (constraint #2) tilføjes i senere session.
-//
-// Polling 5s per ADR-3. Real-time push (WebSocket/Realtime) bevidst droppet.
+// Score-change detection holdt i memory (forrige matrix → diff) for at trigge delight-animation.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
 const POLL_INTERVAL_MS = 5000;
 
-// === Supabase client init =====================================================
+// ===== Supabase client init ==================================================
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// === DOM refs =================================================================
+// ===== DOM refs ==============================================================
 const scoreboardContainer = document.getElementById("scoreboard-container");
 const lastUpdatedEl = document.getElementById("last-updated");
 const connectionStateEl = document.getElementById("connection-state");
 
-// === Data fetch ===============================================================
-/**
- * Henter teams, discipliner, og scores i parallel.
- * Returnerer { teams, disciplines, scores } eller kaster fejl.
- */
+// ===== Score-change detection state ==========================================
+// matrix[team_key][discipline_key] = points (number) | undefined
+// Holdes på tværs af polls så vi kan diffe.
+let previousMatrix = null;
+let previousTotals = null;
+
+// ===== Data fetch ============================================================
 async function fetchAll() {
     const [teamsRes, disciplinesRes, scoresRes] = await Promise.all([
         supabase.from("DimTeam").select("*").order("team_key"),
@@ -40,19 +41,19 @@ async function fetchAll() {
     };
 }
 
-// === Score-aggregering ========================================================
+// ===== Score aggregation =====================================================
 /**
- * Bygger lookup {team_key: {discipline_key: points}} for fast O(1) celle-lookup.
- * Hvis flere is_final-rows per (team x disciplin), tages den seneste (fallback per ADR).
+ * matrix[team_key][discipline_key] = points (newest is_final wins on duplicate).
  */
 function buildScoreMatrix(scores) {
     const matrix = {};
+    const timestamps = {};
     for (const row of scores) {
-        if (!matrix[row.team_key]) matrix[row.team_key] = {};
-        const existing = matrix[row.team_key][row.discipline_key];
-        // Hvis duplikat: behold den seneste (højere score_timestamp vinder)
-        if (!existing || new Date(row.score_timestamp) > new Date(existing.score_timestamp)) {
-            matrix[row.team_key][row.discipline_key] = row;
+        if (!matrix[row.team_key]) { matrix[row.team_key] = {}; timestamps[row.team_key] = {}; }
+        const existingTs = timestamps[row.team_key][row.discipline_key];
+        if (!existingTs || new Date(row.score_timestamp) > new Date(existingTs)) {
+            matrix[row.team_key][row.discipline_key] = row.points;
+            timestamps[row.team_key][row.discipline_key] = row.score_timestamp;
         }
     }
     return matrix;
@@ -62,66 +63,104 @@ function totalForTeam(teamKey, disciplines, matrix) {
     let total = 0;
     for (const disc of disciplines) {
         const cell = matrix[teamKey]?.[disc.discipline_key];
-        if (cell) total += cell.points;
+        if (typeof cell === "number") total += cell;
     }
     return total;
 }
 
-// === Rendering ================================================================
-function renderEmpty() {
-    scoreboardContainer.innerHTML = `
-        <div class="empty-state">
-            <p>Ingen scores endnu.</p>
-            <p><small>Tabellerne er tomme. Festen er ikke startet eller seed.sql er ikke kørt.</small></p>
-        </div>
-    `;
+/**
+ * Returnerer Set af "teamKey:disciplineKey"-strings hvor cellen ændrede sig.
+ */
+function diffMatrix(prev, next) {
+    const changed = new Set();
+    if (!prev) return changed; // første render — ingen change
+    for (const teamKey of Object.keys(next)) {
+        for (const discKey of Object.keys(next[teamKey])) {
+            if (prev[teamKey]?.[discKey] !== next[teamKey][discKey]) {
+                changed.add(`${teamKey}:${discKey}`);
+            }
+        }
+    }
+    return changed;
 }
 
-function renderError(err) {
-    scoreboardContainer.innerHTML = `
-        <div class="error-state">
-            <p>Kunne ikke hente data</p>
-            <p><small>${escapeHtml(err.message)}</small></p>
-        </div>
-    `;
+function diffTotals(prev, next) {
+    const changed = new Set();
+    if (!prev) return changed;
+    for (const teamKey of Object.keys(next)) {
+        if (prev[teamKey] !== next[teamKey]) changed.add(teamKey);
+    }
+    return changed;
+}
+
+// ===== Rendering =============================================================
+
+function renderState(message, isError = false) {
+    scoreboardContainer.innerHTML = `<div class="state-message${isError ? " error" : ""}">${escapeHtml(message)}</div>`;
 }
 
 function renderScoreboard({ teams, disciplines, scores }) {
     if (teams.length === 0 && disciplines.length === 0 && scores.length === 0) {
-        renderEmpty();
+        renderState("Ingen scores endnu");
+        previousMatrix = null;
+        previousTotals = null;
         return;
     }
 
     const matrix = buildScoreMatrix(scores);
+    const changedCells = diffMatrix(previousMatrix, matrix);
 
-    let html = '<table class="scoreboard"><thead><tr><th>Disciplin</th>';
+    const totals = {};
     for (const team of teams) {
-        html += `<th class="team-header" data-team-color="${escapeAttr(team.team_color)}">${escapeHtml(team.team_name)}</th>`;
+        totals[team.team_key] = totalForTeam(team.team_key, disciplines, matrix);
+    }
+    const changedTotals = diffTotals(previousTotals, totals);
+
+    let html = '<table class="scoreboard"><thead><tr>';
+    html += '<th class="discipline-header">Disciplin</th>';
+    for (const team of teams) {
+        const colorAttr = escapeAttr(team.team_color);
+        html += `<th class="team-header" data-team-color="${colorAttr}" style="--team-color: var(--team-${cssVarSafe(team.team_color)})">${escapeHtml(team.team_name)}</th>`;
     }
     html += "</tr></thead><tbody>";
 
     for (const disc of disciplines) {
-        html += `<tr><th>${escapeHtml(disc.discipline_name)} <small>/${disc.max_points}</small></th>`;
+        html += `<tr><th class="discipline-cell">${escapeHtml(disc.discipline_name)}<span class="max-points">/${disc.max_points}</span></th>`;
         for (const team of teams) {
             const cell = matrix[team.team_key]?.[disc.discipline_key];
-            const display = cell ? cell.points : "—";
-            html += `<td>${display}</td>`;
+            const cellKey = `${team.team_key}:${disc.discipline_key}`;
+            const isChanged = changedCells.has(cellKey);
+            const isEmpty = typeof cell !== "number";
+            const display = isEmpty ? "—" : cell;
+            const colorVar = `var(--team-${cssVarSafe(team.team_color)})`;
+            const pulseStyle = isChanged ? ` style="--team-pulse-color: color-mix(in oklch, ${colorVar} 22%, transparent)"` : "";
+            const changedAttr = isChanged ? ` data-changed="true"` : "";
+            const emptyClass = isEmpty ? " empty" : "";
+            html += `<td class="score-cell${emptyClass}"${changedAttr}${pulseStyle}>${display}</td>`;
         }
         html += "</tr>";
     }
 
-    // Total-række
-    html += '<tr class="total-row"><th>Total</th>';
+    // Total row
+    html += '<tr class="total-row"><th class="discipline-cell">Total</th>';
     for (const team of teams) {
-        const total = totalForTeam(team.team_key, disciplines, matrix);
-        html += `<td data-team-color="${escapeAttr(team.team_color)}">${total}</td>`;
+        const total = totals[team.team_key];
+        const isChanged = changedTotals.has(team.team_key);
+        const colorVar = `var(--team-${cssVarSafe(team.team_color)})`;
+        const pulseStyle = isChanged ? ` style="--team-pulse-color: color-mix(in oklch, ${colorVar} 18%, transparent)"` : "";
+        const changedAttr = isChanged ? ` data-changed="true"` : "";
+        html += `<td class="score-cell${changedAttr ? "" : ""}"${changedAttr}${pulseStyle}>${total}</td>`;
     }
     html += "</tr></tbody></table>";
 
     scoreboardContainer.innerHTML = html;
+
+    previousMatrix = matrix;
+    previousTotals = totals;
 }
 
-// === HTML escape (defensive — notes-feltet kommer fra DB med fri tekst) ======
+// ===== Helpers ===============================================================
+
 function escapeHtml(str) {
     if (str == null) return "";
     return String(str)
@@ -132,15 +171,20 @@ function escapeHtml(str) {
         .replace(/'/g, "&#039;");
 }
 
-function escapeAttr(str) {
-    return escapeHtml(str);
+function escapeAttr(str) { return escapeHtml(str); }
+
+// CSS-variable-name-safe slug fra "sort/hvid" → "sortHvid", "blå" → "blå" (CSS understøtter unicode).
+function cssVarSafe(name) {
+    return String(name).replace(/\//g, "").replace(/\s+/g, "");
 }
 
-// === Status-bar ===============================================================
+// ===== Status bar ============================================================
+
 function setConnectionOk() {
     connectionStateEl.textContent = "●";
     connectionStateEl.className = "ok";
-    lastUpdatedEl.textContent = `Opdateret ${new Date().toLocaleTimeString("da-DK")}`;
+    const time = new Date().toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    lastUpdatedEl.textContent = `Opdateret ${time}`;
 }
 
 function setConnectionError() {
@@ -149,7 +193,8 @@ function setConnectionError() {
     lastUpdatedEl.textContent = "Forbindelse afbrudt";
 }
 
-// === Main poll loop ===========================================================
+// ===== Main poll loop ========================================================
+
 async function pollOnce() {
     try {
         const data = await fetchAll();
@@ -157,11 +202,12 @@ async function pollOnce() {
         setConnectionOk();
     } catch (err) {
         console.error("Poll error:", err);
-        renderError(err);
+        renderState(`Kunne ikke hente data — ${err.message}`, true);
         setConnectionError();
+        previousMatrix = null;
+        previousTotals = null;
     }
 }
 
-// Initial load + repeat polling
 pollOnce();
 setInterval(pollOnce, POLL_INTERVAL_MS);

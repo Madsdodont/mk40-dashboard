@@ -20,6 +20,12 @@ npm-debug.log*
 # Local server caches
 .cache/
 
+# Skills installed via `npx skills add` (dev-tooling, not part of deployed artifact)
+.agents/
+.skills/
+skills-lock.json
+.impeccable/
+
 # Supabase CLI (hvis vi senere bruger det lokalt)
 supabase/.branches/
 supabase/.temp/

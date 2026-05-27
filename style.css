@@ -1,149 +1,328 @@
-/* mk40-dashboard — skeleton styling
- * Bevidst minimal. Design-pass kommer senere — denne version skal bare være læsbar på TV.
- * Variables-block låser farver/spacing til ét sted så de kan rebrandes hurtigt.
+/* mk40-dashboard — Kongerigernes Kamp
+ * Design system: see DESIGN.md
+ * Creative North Star: "The Olympic Hall Scoreboard"
+ *
+ * Tokens live as CSS custom properties in :root.
+ * Hold-farver er placeholders indtil bandana-foto sampling.
  */
 
 :root {
-    --bg: #0e0f13;
-    --surface: #1a1c22;
-    --surface-elevated: #242730;
-    --text-primary: #f3f4f6;
-    --text-secondary: #9ca3af;
-    --border: #2f323b;
-    --accent: #fbbf24;
+    /* ===== Canvas (deep ink, OKLCH-tinted toward warm/burgundy) ===== */
+    --ink-deep:        oklch(18% 0.015 30);
+    --ink-elevated:    oklch(22% 0.018 30);
+    --ink-border:      oklch(30% 0.020 30);
 
-    /* Hold-farver (matcher DimTeam.team_color) */
-    --team-rød: #dc2626;
-    --team-blå: #2563eb;
-    --team-grøn: #16a34a;
-    --team-gul: #eab308;
-    --team-sortHvid: #71717a;
+    /* ===== Foreground (cream-tinted) ===== */
+    --bone:            oklch(94% 0.010 60);
+    --bone-muted:      oklch(78% 0.012 60);
 
-    --font-display: 'Helvetica Neue', Arial, sans-serif;
+    /* ===== Ceremonial accent (leader-row only) ===== */
+    --gold-ceremonial: oklch(78% 0.16 85);
+
+    /* ===== Hold-farver — PLACEHOLDERS (swappes med sampled values fra bandana-foto) ===== */
+    --team-rød:        oklch(55% 0.22 25);
+    --team-blå:        oklch(48% 0.20 245);
+    --team-grøn:       oklch(50% 0.15 145);
+    --team-gul:        oklch(80% 0.16 90);
+    --team-sortHvid:   oklch(60% 0.005 60);
+
+    /* ===== Typography stacks ===== */
+    --font-display:    "Fraunces", "Source Serif Pro", Georgia, serif;
+    --font-label:      "Inter", system-ui, -apple-system, sans-serif;
+    --font-numeric:    "JetBrains Mono", "Berkeley Mono", ui-monospace, monospace;
+
+    /* ===== Motion ===== */
+    --ease-out:        cubic-bezier(0.23, 1, 0.32, 1);
+    --dur-change:      240ms;
+    --dur-pulse:       600ms;
 }
 
-* { box-sizing: border-box; }
+/* ===== Reset (minimal) =================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { font-size: 16px; }
+
+@media (min-width: 1600px) { html { font-size: 18px; } }
+@media (min-width: 2200px) { html { font-size: 20px; } }
 
 body {
     margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--text-primary);
-    font-family: var(--font-display);
+    background: var(--ink-deep);
+    color: var(--bone);
+    font-family: var(--font-label);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }
 
+/* ===== Page header ======================================================= */
+
 header {
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2.5rem;
+    background: var(--ink-deep);
+    border-bottom: 1px solid var(--ink-border);
     display: flex;
     justify-content: space-between;
     align-items: baseline;
+    gap: 2rem;
+    flex-wrap: wrap;
 }
 
 header h1 {
     margin: 0;
-    font-size: 2rem;
-    letter-spacing: 0.05em;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4.5vw, 3.75rem);
+    font-weight: 700;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    color: var(--bone);
 }
 
 #status-bar {
-    color: var(--text-secondary);
+    color: var(--bone-muted);
     font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
 }
+
+/* ===== Main ============================================================== */
 
 main {
     flex: 1;
-    padding: 2rem;
+    padding: 2.5rem;
     overflow: auto;
 }
 
 #scoreboard-container {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
 }
 
-.loading, .empty-state, .error-state {
+/* ===== State messages (loading / empty / error) ========================== */
+
+.state-message {
     text-align: center;
     padding: 4rem 2rem;
-    color: var(--text-secondary);
-    font-size: 1.25rem;
+    color: var(--bone-muted);
+    font-family: var(--font-label);
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
-.error-state {
-    color: var(--team-rød);
-}
+.state-message.error { color: var(--team-rød); }
+
+/* ===== Scoreboard ======================================================== */
 
 table.scoreboard {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    background: var(--surface);
-    border-radius: 12px;
-    overflow: hidden;
+    background: var(--ink-deep);
+    /* The No-Border-Radius rule — monument-kant, ikke SaaS. */
+    border-radius: 0;
 }
 
-table.scoreboard th,
-table.scoreboard td {
-    padding: 1rem 1.25rem;
-    text-align: center;
-    border-bottom: 1px solid var(--border);
-}
+/* --- Header row ---------- */
 
 table.scoreboard thead th {
-    background: var(--surface-elevated);
-    font-size: 1.125rem;
+    background: var(--ink-elevated);
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+    vertical-align: bottom;
+    border-bottom: 1px solid var(--ink-border);
+}
+
+table.scoreboard thead th.discipline-header {
+    text-align: left;
+    font-family: var(--font-label);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.10em;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    color: var(--bone-muted);
 }
 
 table.scoreboard thead th.team-header {
+    font-family: var(--font-display);
+    font-size: clamp(1.125rem, 1.5vw, 1.625rem);
     font-weight: 600;
-    border-left: 4px solid currentColor;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: var(--bone);
+    position: relative;
 }
 
+/* Hold-farve pillar foran navnet (4px width, ikke side-stripe ban). */
+table.scoreboard thead th.team-header::before {
+    content: "";
+    display: block;
+    width: 60%;
+    height: 4px;
+    background: var(--team-color);
+    margin: 0 auto 0.75rem auto;
+}
+
+/* SortHvid får striped pattern i stedet for flad farve. */
+table.scoreboard thead th.team-header[data-team-color="sortHvid"]::before {
+    background: repeating-linear-gradient(
+        45deg,
+        var(--bone) 0,
+        var(--bone) 6px,
+        var(--ink-deep) 6px,
+        var(--ink-deep) 12px
+    );
+}
+
+/* --- Body rows ----------- */
+
+table.scoreboard tbody td,
 table.scoreboard tbody th {
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid var(--ink-border);
+}
+
+table.scoreboard tbody th.discipline-cell {
     text-align: left;
-    font-weight: 500;
-    color: var(--text-secondary);
+    font-family: var(--font-label);
     font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bone-muted);
+    width: 22%;
 }
 
-table.scoreboard tbody td {
-    font-size: 1.5rem;
+table.scoreboard tbody th.discipline-cell .max-points {
+    color: var(--ink-border);
+    font-weight: 500;
+    margin-left: 0.5rem;
+    font-size: 0.85em;
+}
+
+table.scoreboard tbody td.score-cell {
+    font-family: var(--font-numeric);
+    font-size: clamp(1.75rem, 3vw, 2.75rem);
+    font-weight: 600;
+    color: var(--bone);
     font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    line-height: 1;
 }
 
-table.scoreboard tbody tr:last-child td,
-table.scoreboard tbody tr:last-child th {
+table.scoreboard tbody td.score-cell.empty {
+    color: var(--ink-border);
+    font-weight: 500;
+}
+
+/* --- Total row ----------- */
+
+table.scoreboard tbody tr.total-row td,
+table.scoreboard tbody tr.total-row th {
+    background: var(--ink-elevated);
+    padding: 1.75rem 1.5rem;
     border-bottom: none;
+    border-top: 1px solid var(--ink-border);
 }
 
-tr.total-row {
-    background: var(--surface-elevated);
+table.scoreboard tbody tr.total-row th.discipline-cell {
+    color: var(--bone);
     font-weight: 700;
 }
 
-tr.total-row td {
-    font-size: 1.75rem !important;
-    color: var(--accent);
+table.scoreboard tbody tr.total-row td.score-cell {
+    font-size: clamp(2.25rem, 4vw, 3.5rem);
+    font-weight: 700;
+    color: var(--gold-ceremonial);
 }
+
+/* Last row uden border-bottom så monument-kant er ren. */
+table.scoreboard tbody tr:last-child td,
+table.scoreboard tbody tr:last-child th { border-bottom: none; }
+
+/* ===== Score-change delight (the only animation) ========================= */
+
+@keyframes scoreCellChange {
+    0% {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes scoreCellPulse {
+    0% { background-color: var(--team-pulse-color, transparent); }
+    100% { background-color: transparent; }
+}
+
+td.score-cell[data-changed="true"] {
+    animation:
+        scoreCellChange var(--dur-change) var(--ease-out),
+        scoreCellPulse var(--dur-pulse) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    td.score-cell[data-changed="true"] {
+        animation: scoreCellChange var(--dur-change) ease;
+    }
+    @keyframes scoreCellChange {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+}
+
+/* ===== Footer ============================================================ */
 
 footer {
-    padding: 1rem 2rem;
-    border-top: 1px solid var(--border);
-    color: var(--text-secondary);
-    font-size: 0.875rem;
+    padding: 1rem 2.5rem;
+    background: var(--ink-deep);
+    border-top: 1px solid var(--ink-border);
+    color: var(--bone-muted);
+    font-family: var(--font-label);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
 }
 
-#connection-state.ok { color: var(--team-grøn); }
+#connection-state {
+    font-size: 0.875rem;
+    line-height: 1;
+}
+
+#connection-state.ok    { color: var(--gold-ceremonial); }
 #connection-state.error { color: var(--team-rød); }
 
-/* Hold-farve hooks — sættes via data-attribut i app.js */
-[data-team-color="rød"]       { color: var(--team-rød); }
-[data-team-color="blå"]       { color: var(--team-blå); }
-[data-team-color="grøn"]      { color: var(--team-grøn); }
-[data-team-color="gul"]       { color: var(--team-gul); }
-[data-team-color="sort/hvid"] { color: var(--team-sortHvid); }
+/* ===== Mobile breakpoint (hand-skala, ikke broadcast-skala) ============== */
+
+@media (max-width: 720px) {
+    header { padding: 1rem 1.25rem; }
+    header h1 { font-size: 1.625rem; }
+    main { padding: 1rem; }
+
+    table.scoreboard thead th { padding: 0.75rem 0.5rem; }
+    table.scoreboard thead th.team-header { font-size: 0.875rem; }
+    table.scoreboard thead th.team-header::before { width: 80%; height: 3px; margin-bottom: 0.5rem; }
+
+    table.scoreboard tbody td,
+    table.scoreboard tbody th { padding: 0.75rem 0.5rem; }
+
+    table.scoreboard tbody th.discipline-cell { font-size: 0.75rem; width: 28%; }
+    table.scoreboard tbody td.score-cell { font-size: 1.25rem; }
+    table.scoreboard tbody tr.total-row td.score-cell { font-size: 1.625rem; }
+
+    footer { padding: 0.75rem 1.25rem; font-size: 0.6875rem; }
+}
