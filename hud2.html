@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mk40 — HUD v2 prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,600;1,9..144,700&family=Inter:wght@500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap">
+    <style>
+        :root {
+            --ink-deep:        oklch(10% 0.012 30);
+            --ink-card:        oklch(15% 0.014 30);
+            --ink-elevated:    oklch(18% 0.016 30);
+            --ink-border:      oklch(28% 0.018 30);
+            --ink-border-soft: oklch(22% 0.016 30);
+            --bone:            oklch(95% 0.008 60);
+            --bone-muted:      oklch(68% 0.012 60);
+            --bone-dim:        oklch(45% 0.010 60);
+            --gold-ceremonial: oklch(78% 0.16 85);
+            --live-red:        oklch(60% 0.22 25);
+            --team-rød:        oklch(58% 0.22 25);
+            --team-blå:        oklch(58% 0.20 245);
+            --team-grøn:       oklch(58% 0.16 145);
+            --team-gul:        oklch(82% 0.16 90);
+            --team-sortHvid:   oklch(85% 0.005 60); /* HUD-fix: lys så den ses på dark */
+            --font-display:    "Fraunces", Georgia, serif;
+            --font-label:      "Inter", system-ui, sans-serif;
+            --font-numeric:    "JetBrains Mono", ui-monospace, monospace;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            background: var(--ink-deep); color: var(--bone);
+            font-family: var(--font-label); min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            display: flex; flex-direction: column;
+        }
+
+        /* ===== Proto nav ===== */
+        .proto-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+            background: oklch(7% 0.008 30 / 0.85); backdrop-filter: blur(8px);
+            padding: 0.5rem 1.5rem; display: flex; gap: 0.5rem;
+            font-family: var(--font-label); font-size: 0.75rem;
+            font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+        }
+        .proto-nav a {
+            color: var(--bone-muted); text-decoration: none; padding: 0.25rem 0.75rem;
+            border: 1px solid transparent;
+        }
+        .proto-nav a.current { color: var(--gold-ceremonial); border-color: var(--gold-ceremonial); }
+        .proto-nav a:hover { color: var(--bone); }
+
+        /* ===== Layout shell ===== */
+        .shell {
+            margin-top: 2.25rem;
+            padding: 1.25rem;
+            display: grid;
+            gap: 1.25rem;
+            grid-template-rows: auto auto 1fr auto;
+            max-width: 2400px;
+            margin-left: auto; margin-right: auto;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* ===== Top banner ===== */
+        .top-banner {
+            background: var(--ink-card);
+            border: 1px solid var(--ink-border-soft);
+            display: grid;
+            grid-template-columns: 1.7fr repeat(4, 1fr) auto;
+            min-height: 96px;
+            overflow: hidden;
+        }
+
+        .event-block {
+            padding: 0.875rem 1rem;
+            display: flex; flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            border-right: 1px solid var(--ink-border-soft);
+            min-width: 0;
+        }
+        .event-block:last-of-type { border-right: 1px solid var(--ink-border-soft); }
+        .event-block.empty {
+            background: var(--ink-card);
+            opacity: 0.4;
+        }
+        .event-block.empty .ev-team { color: var(--bone-dim); }
+
+        .event-block.hero {
+            background: linear-gradient(135deg,
+                color-mix(in oklch, var(--team-color) 32%, var(--ink-card)) 0%,
+                var(--ink-card) 72%);
+            padding: 1rem 1.25rem;
+        }
+
+        .event-block .ev-team-tag {
+            position: absolute; top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--team-color);
+        }
+        .event-block.hero .ev-team-tag { width: 6px; }
+        .event-block.empty .ev-team-tag { background: var(--ink-border); }
+
+        .event-block .ev-meta {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 700; letter-spacing: 0.12em;
+            color: var(--bone-dim); text-transform: uppercase;
+        }
+        .event-block.hero .ev-meta {
+            font-size: 0.75rem;
+            color: var(--bone-muted);
+        }
+
+        .event-block .ev-team {
+            font-family: var(--font-display); font-weight: 700;
+            font-size: clamp(0.875rem, 1vw, 1.0625rem);
+            line-height: 1.05; color: var(--bone);
+            letter-spacing: -0.01em;
+            margin-top: 0.4rem;
+        }
+        .event-block.hero .ev-team {
+            font-weight: 900;
+            font-size: clamp(1.125rem, 1.4vw, 1.5rem);
+            color: var(--bone);
+        }
+
+        .event-block .ev-discipline {
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 600; letter-spacing: 0.1em;
+            color: var(--bone-muted); text-transform: uppercase;
+            margin-top: 0.1rem;
+        }
+        .event-block.hero .ev-discipline {
+            color: var(--bone-muted);
+            font-size: 0.75rem;
+        }
+
+        .event-block .ev-points {
+            font-family: var(--font-numeric); font-weight: 800;
+            font-size: clamp(1.25rem, 1.7vw, 1.75rem);
+            color: var(--bone); line-height: 1;
+            font-variant-numeric: tabular-nums;
+            align-self: flex-end;
+        }
+        .event-block.hero .ev-points {
+            font-size: clamp(2rem, 3.2vw, 3.25rem);
+            color: var(--bone);
+        }
+        .event-block.hero .ev-points::before {
+            content: "+"; opacity: 0.5; font-weight: 700;
+        }
+        .event-block .ev-points::before {
+            content: "+"; opacity: 0.5; font-weight: 700;
+        }
+
+        .banner-clock-block {
+            padding: 0.875rem 1.25rem;
+            display: flex; flex-direction: column;
+            justify-content: space-between; align-items: flex-end;
+            background: var(--ink-elevated);
+            min-width: 120px;
+        }
+        .live-pill {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: var(--live-red); color: var(--bone);
+            padding: 0.25rem 0.6rem;
+            font-family: var(--font-label); font-weight: 800;
+            letter-spacing: 0.12em; font-size: 0.6875rem;
+        }
+        .live-pill::before {
+            content: ""; width: 6px; height: 6px; border-radius: 50%;
+            background: var(--bone);
+            animation: pulse 1.8s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .banner-clock {
+            font-family: var(--font-numeric); font-weight: 700;
+            color: var(--bone); font-variant-numeric: tabular-nums;
+            font-size: 1.5rem; line-height: 1;
+        }
+        .banner-date {
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 600; letter-spacing: 0.12em;
+            color: var(--bone-dim); text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        /* ===== Hold cards row ===== */
+        .cards-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+        }
+
+        .hold-card {
+            background: var(--ink-card);
+            border: 1px solid var(--ink-border-soft);
+            border-top: 5px solid var(--team-color);
+            padding: 1.125rem 1.25rem;
+            display: flex; flex-direction: column;
+            position: relative;
+            min-height: 280px;
+        }
+        .hold-card.leader {
+            box-shadow: inset 0 0 0 1px var(--gold-ceremonial);
+            border-top-color: var(--gold-ceremonial);
+        }
+        .hold-card.leader::after {
+            content: "#1"; position: absolute; top: 0.875rem; right: 1rem;
+            font-family: var(--font-display); font-weight: 900;
+            font-size: 1.25rem; color: var(--gold-ceremonial); line-height: 1;
+        }
+        .hold-card .rank {
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 700; letter-spacing: 0.15em;
+            color: var(--bone-dim); text-transform: uppercase;
+        }
+        .hold-card.leader .rank { display: none; }
+
+        .hold-card .name {
+            font-family: var(--font-display); font-weight: 700;
+            font-size: clamp(1rem, 1.25vw, 1.375rem);
+            line-height: 1.0; color: var(--bone);
+            letter-spacing: -0.015em;
+            margin-top: 0.25rem;
+            text-wrap: balance;
+        }
+
+        .hold-card .motto {
+            font-family: var(--font-display); font-style: italic;
+            font-weight: 600;
+            font-size: 0.8125rem;
+            color: var(--bone-muted); line-height: 1.3;
+            margin-top: 0.4rem;
+            min-height: 2.1em;
+        }
+
+        .hold-card .total-block {
+            margin-top: auto;
+            padding-top: 1rem;
+        }
+        .hold-card .total-label {
+            font-family: var(--font-label); font-size: 0.625rem;
+            font-weight: 700; letter-spacing: 0.2em;
+            color: var(--bone-dim); text-transform: uppercase;
+        }
+        .hold-card .total {
+            font-family: var(--font-numeric); font-weight: 800;
+            font-size: clamp(2.75rem, 4.5vw, 4.5rem);
+            color: var(--bone); line-height: 0.95;
+            margin-top: 0.15rem;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+        }
+        .hold-card.leader .total { color: var(--gold-ceremonial); }
+
+        .hold-card .radar-thumb-row {
+            margin-top: 0.875rem;
+            padding-top: 0.75rem;
+            border-top: 1px dotted var(--ink-border-soft);
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .hold-card .radar-thumb { width: 56px; height: 56px; flex-shrink: 0; }
+        .hold-card .radar-thumb .axis { stroke: var(--ink-border); stroke-width: 1; }
+        .hold-card .radar-thumb .ring { stroke: var(--ink-border); stroke-width: 1; fill: none; opacity: 0.6; }
+        .hold-card .radar-thumb .polygon {
+            fill: var(--team-color); fill-opacity: 0.4;
+            stroke: var(--team-color); stroke-width: 1.5;
+            stroke-linejoin: round;
+        }
+        .hold-card .radar-meta {
+            font-family: var(--font-label); font-size: 0.625rem;
+            font-weight: 700; letter-spacing: 0.15em;
+            color: var(--bone-dim); text-transform: uppercase;
+            line-height: 1.35;
+        }
+        .hold-card .radar-meta strong {
+            display: block;
+            font-family: var(--font-numeric); font-weight: 700;
+            font-size: 0.875rem; color: var(--bone-muted);
+            letter-spacing: 0.05em;
+            margin-top: 0.15rem;
+        }
+
+        /* ===== Mid row: bump + seneste ===== */
+        .mid-row {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 1.25rem;
+            min-height: 320px;
+        }
+
+        .panel {
+            background: var(--ink-card);
+            border: 1px solid var(--ink-border-soft);
+            padding: 1.25rem 1.5rem;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: baseline;
+            margin-bottom: 0.875rem;
+            flex-shrink: 0;
+        }
+        .panel-header .title {
+            font-family: var(--font-display); font-weight: 700;
+            font-size: 1.25rem; letter-spacing: -0.01em;
+            color: var(--bone);
+        }
+        .panel-header .sub {
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 700; letter-spacing: 0.15em;
+            color: var(--bone-dim); text-transform: uppercase;
+        }
+
+        /* Bump chart fix: bounded height + preserve aspect */
+        .bump-wrap {
+            flex: 1;
+            min-height: 240px;
+            max-height: 420px;
+            position: relative;
+        }
+        .bump-svg {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+        }
+        .bump-svg .axis-line {
+            stroke: var(--ink-border-soft); stroke-width: 1; stroke-dasharray: 2 5;
+        }
+        .bump-svg .rank-label {
+            font-family: var(--font-numeric); font-size: 12px;
+            font-weight: 700; fill: var(--bone-dim);
+            letter-spacing: 0.05em;
+        }
+        .bump-svg .team-line {
+            stroke-width: 3; fill: none;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+        .bump-svg .team-end-dot {
+            stroke: var(--ink-card); stroke-width: 2.5;
+        }
+        .bump-svg .team-end-label {
+            font-family: var(--font-display); font-weight: 700;
+            font-size: 14px; letter-spacing: -0.01em;
+        }
+        .bump-empty {
+            display: flex; align-items: center; justify-content: center;
+            height: 100%;
+            color: var(--bone-dim);
+            font-family: var(--font-label); font-size: 0.75rem;
+            font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+        }
+
+        /* ===== Seneste resultat hero card ===== */
+        .latest-result {
+            display: flex; flex-direction: column;
+            background: var(--ink-card);
+            border: 1px solid var(--ink-border-soft);
+            position: relative;
+            overflow: hidden;
+        }
+        .latest-result::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0;
+            height: 8px; background: var(--team-color);
+        }
+        .latest-result.has-event {
+            background: linear-gradient(180deg,
+                color-mix(in oklch, var(--team-color) 22%, var(--ink-card)) 0%,
+                var(--ink-card) 45%);
+        }
+
+        .latest-result .lr-header {
+            padding: 1.25rem 1.5rem 0.5rem 1.5rem;
+            display: flex; justify-content: space-between; align-items: baseline;
+        }
+        .latest-result .lr-label {
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 700; letter-spacing: 0.18em;
+            color: var(--bone-muted); text-transform: uppercase;
+        }
+        .latest-result .lr-time {
+            font-family: var(--font-numeric); font-weight: 600;
+            font-size: 0.75rem; color: var(--bone-dim);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.05em;
+        }
+
+        .latest-result .lr-body {
+            padding: 0.5rem 1.5rem 1.5rem 1.5rem;
+            display: flex; flex-direction: column;
+            flex: 1;
+        }
+        .latest-result .lr-team {
+            font-family: var(--font-display); font-weight: 900;
+            font-size: clamp(1.5rem, 2vw, 2rem);
+            line-height: 1.0; color: var(--bone);
+            letter-spacing: -0.02em;
+            margin-bottom: 0.25rem;
+            text-wrap: balance;
+        }
+        .latest-result .lr-discipline {
+            font-family: var(--font-label); font-size: 0.875rem;
+            font-weight: 700; letter-spacing: 0.15em;
+            color: var(--bone-muted); text-transform: uppercase;
+        }
+        .latest-result .lr-points {
+            font-family: var(--font-display); font-weight: 900;
+            font-size: clamp(4.5rem, 8vw, 8rem);
+            line-height: 0.9;
+            color: var(--bone);
+            letter-spacing: -0.05em;
+            margin-top: auto; margin-bottom: 0.5rem;
+            font-variant-numeric: tabular-nums;
+        }
+        .latest-result .lr-points::before {
+            content: "+"; opacity: 0.55; font-weight: 700;
+            font-size: 0.55em;
+            vertical-align: top;
+            margin-right: 0.05em;
+        }
+        .latest-result .lr-context {
+            font-family: var(--font-label); font-size: 0.8125rem;
+            font-weight: 600; letter-spacing: 0.08em;
+            color: var(--bone-muted); text-transform: uppercase;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--ink-border-soft);
+            display: flex; justify-content: space-between; align-items: baseline;
+        }
+        .latest-result .lr-context strong {
+            font-family: var(--font-numeric); font-weight: 800;
+            color: var(--bone); font-size: 1rem;
+            letter-spacing: 0.02em;
+        }
+        .latest-result .lr-context strong.up { color: var(--team-grøn); }
+        .latest-result .lr-context strong.down { color: var(--live-red); }
+        .latest-result .lr-context strong.lead { color: var(--gold-ceremonial); }
+
+        .latest-result.empty .lr-body { justify-content: center; align-items: center; }
+        .latest-result.empty .lr-empty-msg {
+            color: var(--bone-dim);
+            font-family: var(--font-label); font-size: 0.875rem;
+            font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+            text-align: center;
+        }
+
+        /* ===== Disciplin strip ===== */
+        .disc-strip {
+            background: var(--ink-card);
+            border: 1px solid var(--ink-border-soft);
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            overflow: hidden;
+        }
+        .disc-pill {
+            padding: 0.875rem 1.25rem;
+            border-right: 1px solid var(--ink-border-soft);
+            display: flex; flex-direction: column;
+            gap: 0.2rem;
+            min-width: 0;
+        }
+        .disc-pill:last-child { border-right: none; }
+        .disc-pill .label {
+            font-family: var(--font-label); font-size: 0.75rem;
+            font-weight: 700; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--bone-muted);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .disc-pill[data-status="done"] .label { color: var(--gold-ceremonial); }
+        .disc-pill[data-status="done"] .label::before { content: "✓"; font-weight: 900; }
+        .disc-pill[data-status="pending"] .label::before { content: "○"; opacity: 0.6; }
+        .disc-pill .meta {
+            font-family: var(--font-numeric); font-size: 0.75rem;
+            font-weight: 700; color: var(--bone-dim);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.04em;
+        }
+        .disc-pill .meta .leader-name {
+            font-family: var(--font-display); font-weight: 700;
+            font-style: italic; color: var(--bone-muted);
+            letter-spacing: 0;
+            margin-left: 0.25rem;
+        }
+
+        /* ===== Mobile breakpoint ===== */
+        @media (max-width: 1100px) {
+            .shell { padding: 0.875rem; gap: 0.875rem; }
+            .top-banner { grid-template-columns: 1fr; min-height: 0; }
+            .event-block { border-right: none; border-bottom: 1px solid var(--ink-border-soft); }
+            .event-block.empty { display: none; }
+            .banner-clock-block { flex-direction: row; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; }
+            .banner-date { margin-bottom: 0; }
+            .cards-row { grid-template-columns: repeat(2, 1fr); }
+            .hold-card { min-height: 220px; }
+            .mid-row { grid-template-columns: 1fr; }
+            .disc-strip { grid-template-columns: 1fr 1fr; }
+            .disc-pill { border-right: none; border-bottom: 1px solid var(--ink-border-soft); }
+        }
+        @media (max-width: 540px) {
+            .cards-row { grid-template-columns: 1fr; }
+        }
+
+        .state-message {
+            grid-column: 1 / -1;
+            text-align: center; padding: 2rem 1rem;
+            color: var(--bone-muted);
+            font-family: var(--font-label); letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-size: 0.75rem; font-weight: 700;
+        }
+        .state-message.error { color: var(--live-red); }
+    </style>
+</head>
+<body>
+    <nav class="proto-nav">
+        <a href="./">Table (boring)</a>
+        <a href="./cards.html">A · Cards</a>
+        <a href="./bars.html">B · Bars</a>
+        <a href="./cinema.html">C · Cinematic</a>
+        <a href="./hud.html">D · HUD</a>
+        <a href="./hud2.html" class="current">E · HUD v2</a>
+    </nav>
+
+    <div class="shell">
+        <div class="top-banner" id="top-banner">
+            <div class="state-message">Henter data…</div>
+        </div>
+
+        <div class="cards-row" id="cards-row"></div>
+
+        <div class="mid-row">
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="title">Placering gennem aftenen</span>
+                    <span class="sub">Rank · Bump</span>
+                </div>
+                <div class="bump-wrap">
+                    <svg class="bump-svg" id="bump-svg" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet"></svg>
+                </div>
+            </div>
+
+            <div class="latest-result empty" id="latest-result">
+                <div class="lr-header">
+                    <span class="lr-label">Seneste resultat</span>
+                    <span class="lr-time" id="lr-time"></span>
+                </div>
+                <div class="lr-body" id="lr-body">
+                    <div class="lr-empty-msg">Venter på første score</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="disc-strip" id="disc-strip"></div>
+    </div>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const $ = id => document.getElementById(id);
+        const banner = $("top-banner");
+        const cardsRow = $("cards-row");
+        const bumpSvg = $("bump-svg");
+        const latestRes = $("latest-result");
+        const discStrip = $("disc-strip");
+
+        function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
+        function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c])); }
+        function teamColorVar(team) { return `var(--team-${cssVarSafe(team.team_color)})`; }
+
+        async function fetchAll() {
+            const [t, d, s] = await Promise.all([
+                supabase.from("DimTeam").select("*").order("team_key"),
+                supabase.from("DimDiscipline").select("*").order("discipline_key"),
+                supabase.from("FactScore").select("*").eq("is_final", true),
+            ]);
+            if (t.error || d.error || s.error) throw new Error(t.error?.message || d.error?.message || s.error?.message);
+            return { teams: t.data, disciplines: d.data, scores: s.data };
+        }
+
+        function render({ teams, disciplines, scores }) {
+            const matrix = {};
+            for (const r of scores) {
+                if (!matrix[r.team_key]) matrix[r.team_key] = {};
+                matrix[r.team_key][r.discipline_key] = r.points;
+            }
+            const totals = teams.map(t => ({
+                team: t,
+                total: disciplines.reduce((a, d) => a + (matrix[t.team_key]?.[d.discipline_key] ?? 0), 0),
+            }));
+            const sortedByTotal = [...totals].sort((a, b) => b.total - a.total);
+            const leaderKey = sortedByTotal[0]?.team.team_key;
+            const leaderTotal = sortedByTotal[0]?.total ?? 0;
+            const rankByKey = Object.fromEntries(sortedByTotal.map((x, i) => [x.team.team_key, i + 1]));
+
+            renderBanner(scores, teams, disciplines, leaderTotal);
+            renderCards(totals, matrix, disciplines, leaderKey, rankByKey);
+            renderBump(teams, scores);
+            renderLatest(scores, teams, disciplines, totals, leaderKey, leaderTotal, rankByKey);
+            renderDiscStrip(disciplines, teams, matrix);
+        }
+
+        // ===== Top banner — 5 statiske event-blocks ===========================
+        function renderBanner(scores, teams, disciplines, leaderTotal) {
+            const sortedDesc = [...scores].sort((a, b) => new Date(b.score_timestamp) - new Date(a.score_timestamp));
+            const top5 = sortedDesc.slice(0, 5);
+
+            // Pad to 5 with empty
+            while (top5.length < 5) top5.push(null);
+
+            const eventsHtml = top5.map((s, idx) => {
+                if (!s) {
+                    return `
+                        <div class="event-block empty">
+                            <span class="ev-team-tag"></span>
+                            <div>
+                                <div class="ev-meta"><span>—</span></div>
+                                <div class="ev-team">—</div>
+                                <div class="ev-discipline">Venter</div>
+                            </div>
+                            <div class="ev-points">0</div>
+                        </div>
+                    `;
+                }
+                const team = teams.find(t => t.team_key === s.team_key);
+                const disc = disciplines.find(d => d.discipline_key === s.discipline_key);
+                const isHero = idx === 0;
+                const time = new Date(s.score_timestamp).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+                return `
+                    <div class="event-block${isHero ? " hero" : ""}" style="--team-color: ${teamColorVar(team)}">
+                        <span class="ev-team-tag"></span>
+                        <div>
+                            <div class="ev-meta">
+                                <span>${isHero ? "Seneste" : `–${idx + 1}`}</span>
+                                <span>·</span>
+                                <span>${time}</span>
+                            </div>
+                            <div class="ev-team">${esc(team?.team_name ?? "—")}</div>
+                            <div class="ev-discipline">${esc(disc?.discipline_name ?? "—")}</div>
+                        </div>
+                        <div class="ev-points">${s.points}</div>
+                    </div>
+                `;
+            }).join("");
+
+            const now = new Date();
+            const clockTime = now.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+            const dateStr = now.toLocaleDateString("da-DK", { day: "numeric", month: "short" }).toUpperCase();
+
+            banner.innerHTML = eventsHtml + `
+                <div class="banner-clock-block">
+                    <div>
+                        <span class="live-pill">LIVE</span>
+                    </div>
+                    <div>
+                        <div class="banner-date">${esc(dateStr)}</div>
+                        <div class="banner-clock">${clockTime}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== Hold cards (5 i række) ========================================
+        function renderCards(totals, matrix, disciplines, leaderKey, rankByKey) {
+            cardsRow.innerHTML = totals.map(x => {
+                const isLeader = x.team.team_key === leaderKey;
+                const rank = rankByKey[x.team.team_key];
+                const teamScores = matrix[x.team.team_key] ?? {};
+                const filledDiscs = disciplines.filter(d => typeof teamScores[d.discipline_key] === "number").length;
+                return `
+                    <div class="hold-card${isLeader ? " leader" : ""}" style="--team-color: ${teamColorVar(x.team)}">
+                        <div class="rank">#${rank}</div>
+                        <div class="name">${esc(x.team.team_name)}</div>
+                        <div class="motto">${esc(x.team.team_motto || "")}</div>
+                        <div class="total-block">
+                            <div class="total-label">Total</div>
+                            <div class="total">${x.total}</div>
+                        </div>
+                        <div class="radar-thumb-row">
+                            ${renderRadarThumb(teamScores, disciplines)}
+                            <div class="radar-meta">
+                                Disciplin-spread<strong>${filledDiscs}/${disciplines.length} kørt</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function renderRadarThumb(teamScores, disciplines) {
+            const size = 56;
+            const cx = size / 2, cy = size / 2;
+            const maxR = size / 2 - 6;
+            const N = disciplines.length;
+            if (N < 3) return "";
+
+            let axes = "";
+            for (let i = 0; i < N; i++) {
+                const ang = (i / N) * 2 * Math.PI - Math.PI / 2;
+                axes += `<line class="axis" x1="${cx}" y1="${cy}" x2="${(cx + maxR * Math.cos(ang)).toFixed(2)}" y2="${(cy + maxR * Math.sin(ang)).toFixed(2)}"/>`;
+            }
+
+            let rings = "";
+            for (const frac of [0.5, 1.0]) {
+                const pts = [];
+                for (let i = 0; i <= N; i++) {
+                    const ang = (i / N) * 2 * Math.PI - Math.PI / 2;
+                    const r = maxR * frac;
+                    pts.push(`${(cx + r * Math.cos(ang)).toFixed(2)},${(cy + r * Math.sin(ang)).toFixed(2)}`);
+                }
+                rings += `<polyline class="ring" points="${pts.join(" ")}"/>`;
+            }
+
+            const polyPts = disciplines.map((d, i) => {
+                const ang = (i / N) * 2 * Math.PI - Math.PI / 2;
+                const pts = teamScores[d.discipline_key];
+                const pct = typeof pts === "number" ? Math.min(pts / d.max_points, 1) : 0;
+                const r = maxR * pct;
+                return `${(cx + r * Math.cos(ang)).toFixed(2)},${(cy + r * Math.sin(ang)).toFixed(2)}`;
+            }).join(" ");
+
+            return `<svg class="radar-thumb" viewBox="0 0 ${size} ${size}">${axes}${rings}<polygon class="polygon" points="${polyPts}"/></svg>`;
+        }
+
+        // ===== Bump chart — fixed aspect, skip cluster ========================
+        function renderBump(teams, scores) {
+            const W = 600, H = 300;
+            const padL = 26, padR = 92, padT = 14, padB = 18;
+            const plotW = W - padL - padR;
+            const plotH = H - padT - padB;
+
+            const sortedAsc = [...scores].sort((a, b) => new Date(a.score_timestamp) - new Date(b.score_timestamp));
+            const running = Object.fromEntries(teams.map(t => [t.team_key, 0]));
+            const snapshots = []; // Skip event 0 cluster — start from after first score
+            for (const s of sortedAsc) {
+                running[s.team_key] = (running[s.team_key] ?? 0) + s.points;
+                snapshots.push(computeRanks(running, teams));
+            }
+
+            if (snapshots.length < 2) {
+                bumpSvg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" class="rank-label" fill="oklch(45% 0.010 60)">Venter på første scores</text>`;
+                return;
+            }
+
+            const N = snapshots.length;
+            const numTeams = teams.length;
+            const xStep = N > 1 ? plotW / (N - 1) : 0;
+            const yStep = numTeams > 1 ? plotH / (numTeams - 1) : 0;
+
+            let svg = "";
+            for (let r = 1; r <= numTeams; r++) {
+                const y = padT + (r - 1) * yStep;
+                svg += `<line class="axis-line" x1="${padL}" y1="${y.toFixed(1)}" x2="${(padL + plotW).toFixed(1)}" y2="${y.toFixed(1)}"/>`;
+                svg += `<text class="rank-label" x="${(padL - 6).toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="end">#${r}</text>`;
+            }
+
+            for (const team of teams) {
+                const colorVar = teamColorVar(team);
+                const points = snapshots.map((snap, i) => {
+                    const rank = snap[team.team_key];
+                    const x = padL + i * xStep;
+                    const y = padT + (rank - 1) * yStep;
+                    return `${x.toFixed(1)},${y.toFixed(1)}`;
+                }).join(" ");
+                svg += `<polyline class="team-line" stroke="${colorVar}" points="${points}"/>`;
+
+                const last = snapshots[snapshots.length - 1];
+                const lastRank = last[team.team_key];
+                const ex = padL + (N - 1) * xStep;
+                const ey = padT + (lastRank - 1) * yStep;
+                svg += `<circle class="team-end-dot" cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="5" fill="${colorVar}"/>`;
+                const shortName = team.team_name.split(" ").slice(-1)[0];
+                svg += `<text class="team-end-label" x="${(ex + 11).toFixed(1)}" y="${(ey + 5).toFixed(1)}" fill="${colorVar}">${esc(shortName)}</text>`;
+            }
+
+            bumpSvg.innerHTML = svg;
+        }
+
+        function computeRanks(running, teams) {
+            const entries = teams.map(t => [t.team_key, running[t.team_key] ?? 0]);
+            entries.sort((a, b) => b[1] - a[1] || a[0] - b[0]);
+            const ranks = {};
+            entries.forEach(([key], i) => { ranks[key] = i + 1; });
+            return ranks;
+        }
+
+        // ===== Seneste resultat hero card ====================================
+        function renderLatest(scores, teams, disciplines, totals, leaderKey, leaderTotal, rankByKey) {
+            const sortedDesc = [...scores].sort((a, b) => new Date(b.score_timestamp) - new Date(a.score_timestamp));
+            const latest = sortedDesc[0];
+
+            if (!latest) {
+                latestRes.className = "latest-result empty";
+                latestRes.style.removeProperty("--team-color");
+                $("lr-time").textContent = "";
+                $("lr-body").innerHTML = `<div class="lr-empty-msg">Venter på første score</div>`;
+                return;
+            }
+
+            const team = teams.find(t => t.team_key === latest.team_key);
+            const disc = disciplines.find(d => d.discipline_key === latest.discipline_key);
+            const teamTotal = totals.find(x => x.team.team_key === latest.team_key)?.total ?? 0;
+            const isLeader = latest.team_key === leaderKey;
+            const rank = rankByKey[latest.team_key];
+
+            const time = new Date(latest.score_timestamp).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+            $("lr-time").textContent = time;
+
+            let contextHtml;
+            if (isLeader) {
+                contextHtml = `<span>Position</span><strong class="lead">#${rank} · Fører med ${teamTotal} pt</strong>`;
+            } else {
+                const delta = teamTotal - leaderTotal; // negative
+                const cls = delta < 0 ? "down" : "up";
+                contextHtml = `<span>Vs. leder</span><strong class="${cls}">${delta} pt · #${rank}</strong>`;
+            }
+
+            latestRes.className = "latest-result has-event" + (isLeader ? " leader" : "");
+            latestRes.style.setProperty("--team-color", teamColorVar(team));
+            $("lr-body").innerHTML = `
+                <div>
+                    <div class="lr-team">${esc(team?.team_name ?? "—")}</div>
+                    <div class="lr-discipline">${esc(disc?.discipline_name ?? "—")} <span style="opacity:0.6;margin-left:0.5rem">/${disc?.max_points ?? "?"}</span></div>
+                </div>
+                <div class="lr-points">${latest.points}</div>
+                <div class="lr-context">${contextHtml}</div>
+            `;
+        }
+
+        // ===== Disciplin strip (bottom) ======================================
+        function renderDiscStrip(disciplines, teams, matrix) {
+            discStrip.innerHTML = disciplines.map(d => {
+                const hasAny = teams.some(t => typeof matrix[t.team_key]?.[d.discipline_key] === "number");
+                const status = hasAny ? "done" : "pending";
+                let topScore = -1, topTeam = null;
+                for (const t of teams) {
+                    const pts = matrix[t.team_key]?.[d.discipline_key];
+                    if (typeof pts === "number" && pts > topScore) { topScore = pts; topTeam = t; }
+                }
+                const meta = hasAny
+                    ? `${topScore}/${d.max_points} <span class="leader-name">${esc(topTeam?.team_name ?? "")}</span>`
+                    : `Kommer · /${d.max_points}`;
+                return `
+                    <div class="disc-pill" data-status="${status}">
+                        <span class="label">${esc(d.discipline_name)}</span>
+                        <span class="meta">${meta}</span>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        async function poll() {
+            try { render(await fetchAll()); }
+            catch (e) {
+                banner.innerHTML = `<div class="state-message error">${esc(e.message)}</div>`;
+            }
+        }
+        poll(); setInterval(poll, 5000);
+    </script>
+</body>
+</html>
