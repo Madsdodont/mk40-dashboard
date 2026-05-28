@@ -18,12 +18,13 @@
             --bone-muted:      oklch(68% 0.012 60);
             --bone-dim:        oklch(45% 0.010 60);
             --gold-ceremonial: oklch(78% 0.16 85);
+            --gold-soft:       oklch(70% 0.14 85);
             --live-red:        oklch(60% 0.22 25);
             --team-rød:        oklch(58% 0.22 25);
             --team-blå:        oklch(58% 0.20 245);
             --team-grøn:       oklch(58% 0.16 145);
             --team-gul:        oklch(82% 0.16 90);
-            --team-sortHvid:   oklch(85% 0.005 60); /* HUD-fix: lys så den ses på dark */
+            --team-sortHvid:   oklch(85% 0.005 60);
             --font-display:    "Fraunces", Georgia, serif;
             --font-label:      "Inter", system-ui, sans-serif;
             --font-numeric:    "JetBrains Mono", ui-monospace, monospace;
@@ -52,17 +53,17 @@
         .proto-nav a.current { color: var(--gold-ceremonial); border-color: var(--gold-ceremonial); }
         .proto-nav a:hover { color: var(--bone); }
 
-        /* ===== Layout shell ===== */
+        /* ===== Layout shell — vertical lock 15/45/25/15 ===== */
         .shell {
             margin-top: 2.25rem;
-            padding: 1.25rem;
+            min-height: calc(100vh - 2.25rem);
+            padding: 1rem;
             display: grid;
-            gap: 1.25rem;
-            grid-template-rows: auto auto 1fr auto;
+            grid-template-rows: 15fr 45fr 25fr 15fr;
+            gap: 1rem;
             max-width: 2400px;
             margin-left: auto; margin-right: auto;
             width: 100%;
-            flex: 1;
         }
 
         /* ===== Top banner ===== */
@@ -71,8 +72,8 @@
             border: 1px solid var(--ink-border-soft);
             display: grid;
             grid-template-columns: 1.7fr repeat(4, 1fr) auto;
-            min-height: 96px;
             overflow: hidden;
+            min-height: 0;
         }
 
         .event-block {
@@ -84,10 +85,7 @@
             min-width: 0;
         }
         .event-block:last-of-type { border-right: 1px solid var(--ink-border-soft); }
-        .event-block.empty {
-            background: var(--ink-card);
-            opacity: 0.4;
-        }
+        .event-block.empty { opacity: 0.4; }
         .event-block.empty .ev-team { color: var(--bone-dim); }
 
         .event-block.hero {
@@ -111,22 +109,17 @@
             font-weight: 700; letter-spacing: 0.12em;
             color: var(--bone-dim); text-transform: uppercase;
         }
-        .event-block.hero .ev-meta {
-            font-size: 0.75rem;
-            color: var(--bone-muted);
-        }
+        .event-block.hero .ev-meta { font-size: 0.75rem; color: var(--bone-muted); }
 
         .event-block .ev-team {
             font-family: var(--font-display); font-weight: 700;
             font-size: clamp(0.875rem, 1vw, 1.0625rem);
             line-height: 1.05; color: var(--bone);
-            letter-spacing: -0.01em;
-            margin-top: 0.4rem;
+            letter-spacing: -0.01em; margin-top: 0.4rem;
         }
         .event-block.hero .ev-team {
             font-weight: 900;
-            font-size: clamp(1.125rem, 1.4vw, 1.5rem);
-            color: var(--bone);
+            font-size: clamp(1.125rem, 1.4vw, 1.625rem);
         }
 
         .event-block .ev-discipline {
@@ -135,28 +128,16 @@
             color: var(--bone-muted); text-transform: uppercase;
             margin-top: 0.1rem;
         }
-        .event-block.hero .ev-discipline {
-            color: var(--bone-muted);
-            font-size: 0.75rem;
-        }
+        .event-block.hero .ev-discipline { font-size: 0.75rem; }
 
         .event-block .ev-points {
             font-family: var(--font-numeric); font-weight: 800;
-            font-size: clamp(1.25rem, 1.7vw, 1.75rem);
+            font-size: clamp(1.25rem, 1.7vw, 1.875rem);
             color: var(--bone); line-height: 1;
-            font-variant-numeric: tabular-nums;
-            align-self: flex-end;
+            font-variant-numeric: tabular-nums; align-self: flex-end;
         }
-        .event-block.hero .ev-points {
-            font-size: clamp(2rem, 3.2vw, 3.25rem);
-            color: var(--bone);
-        }
-        .event-block.hero .ev-points::before {
-            content: "+"; opacity: 0.5; font-weight: 700;
-        }
-        .event-block .ev-points::before {
-            content: "+"; opacity: 0.5; font-weight: 700;
-        }
+        .event-block.hero .ev-points { font-size: clamp(2rem, 3.2vw, 3.5rem); }
+        .event-block .ev-points::before { content: "+"; opacity: 0.5; font-weight: 700; }
 
         .banner-clock-block {
             padding: 0.875rem 1.25rem;
@@ -174,8 +155,7 @@
         }
         .live-pill::before {
             content: ""; width: 6px; height: 6px; border-radius: 50%;
-            background: var(--bone);
-            animation: pulse 1.8s ease-in-out infinite;
+            background: var(--bone); animation: pulse 1.8s ease-in-out infinite;
         }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
@@ -191,59 +171,78 @@
             margin-bottom: 0.25rem;
         }
 
-        /* ===== Hold cards row ===== */
+        /* ===== Hold cards row — BIG ===== */
         .cards-row {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 1rem;
+            min-height: 0;
         }
 
         .hold-card {
             background: var(--ink-card);
             border: 1px solid var(--ink-border-soft);
-            border-top: 5px solid var(--team-color);
-            padding: 1.125rem 1.25rem;
-            display: flex; flex-direction: column;
+            border-top: 6px solid var(--team-color);
+            padding: 1.5rem 1.5rem 1.25rem 1.5rem;
+            display: grid;
+            grid-template-rows: auto auto 1fr auto;
+            gap: 0;
             position: relative;
-            min-height: 280px;
+            min-height: 0;
+            overflow: hidden;
         }
+
         .hold-card.leader {
-            box-shadow: inset 0 0 0 1px var(--gold-ceremonial);
+            background: linear-gradient(180deg,
+                color-mix(in oklch, var(--gold-ceremonial) 8%, var(--ink-card)) 0%,
+                var(--ink-card) 50%);
+            border-color: var(--gold-ceremonial);
             border-top-color: var(--gold-ceremonial);
+            border-top-width: 8px;
         }
-        .hold-card.leader::after {
-            content: "#1"; position: absolute; top: 0.875rem; right: 1rem;
-            font-family: var(--font-display); font-weight: 900;
-            font-size: 1.25rem; color: var(--gold-ceremonial); line-height: 1;
-        }
-        .hold-card .rank {
+
+        .hold-card .badge-row {
+            display: flex; justify-content: space-between; align-items: baseline;
             font-family: var(--font-label); font-size: 0.6875rem;
-            font-weight: 700; letter-spacing: 0.15em;
-            color: var(--bone-dim); text-transform: uppercase;
+            font-weight: 800; letter-spacing: 0.18em;
+            text-transform: uppercase; color: var(--bone-dim);
         }
-        .hold-card.leader .rank { display: none; }
+        .hold-card.leader .badge-row {
+            color: var(--gold-ceremonial);
+        }
+        .hold-card.leader .badge-row .lead-badge {
+            background: var(--gold-ceremonial);
+            color: var(--ink-deep);
+            padding: 0.25rem 0.6rem;
+            font-weight: 900;
+        }
 
         .hold-card .name {
             font-family: var(--font-display); font-weight: 700;
-            font-size: clamp(1rem, 1.25vw, 1.375rem);
+            font-size: clamp(1.125rem, 1.4vw, 1.625rem);
             line-height: 1.0; color: var(--bone);
-            letter-spacing: -0.015em;
-            margin-top: 0.25rem;
+            letter-spacing: -0.02em; margin-top: 0.5rem;
             text-wrap: balance;
+        }
+        .hold-card.leader .name {
+            font-weight: 900;
+            font-size: clamp(1.25rem, 1.7vw, 2rem);
         }
 
         .hold-card .motto {
             font-family: var(--font-display); font-style: italic;
-            font-weight: 600;
-            font-size: 0.8125rem;
+            font-weight: 600; font-size: 0.875rem;
             color: var(--bone-muted); line-height: 1.3;
-            margin-top: 0.4rem;
-            min-height: 2.1em;
+            margin-top: 0.5rem; min-height: 2.2em;
+        }
+        .hold-card.leader .motto {
+            color: var(--bone);
+            opacity: 0.85;
         }
 
         .hold-card .total-block {
-            margin-top: auto;
-            padding-top: 1rem;
+            align-self: end;
+            margin-top: 1rem;
         }
         .hold-card .total-label {
             font-family: var(--font-label); font-size: 0.625rem;
@@ -252,48 +251,65 @@
         }
         .hold-card .total {
             font-family: var(--font-numeric); font-weight: 800;
-            font-size: clamp(2.75rem, 4.5vw, 4.5rem);
-            color: var(--bone); line-height: 0.95;
+            font-size: clamp(3.5rem, 6vw, 6.5rem);
+            color: var(--bone); line-height: 0.9;
             margin-top: 0.15rem;
             font-variant-numeric: tabular-nums;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.03em;
         }
-        .hold-card.leader .total { color: var(--gold-ceremonial); }
+        .hold-card.leader .total {
+            color: var(--gold-ceremonial);
+            font-weight: 800;
+        }
 
-        .hold-card .radar-thumb-row {
-            margin-top: 0.875rem;
-            padding-top: 0.75rem;
-            border-top: 1px dotted var(--ink-border-soft);
-            display: flex; align-items: center; gap: 0.75rem;
+        .hold-card .radar-row {
+            margin-top: 1.25rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--ink-border-soft);
+            display: flex; align-items: center; gap: 1rem;
         }
-        .hold-card .radar-thumb { width: 56px; height: 56px; flex-shrink: 0; }
-        .hold-card .radar-thumb .axis { stroke: var(--ink-border); stroke-width: 1; }
-        .hold-card .radar-thumb .ring { stroke: var(--ink-border); stroke-width: 1; fill: none; opacity: 0.6; }
-        .hold-card .radar-thumb .polygon {
-            fill: var(--team-color); fill-opacity: 0.4;
-            stroke: var(--team-color); stroke-width: 1.5;
+        .hold-card.leader .radar-row { border-top-color: color-mix(in oklch, var(--gold-ceremonial) 30%, transparent); }
+
+        .hold-card .radar { width: 120px; height: 120px; flex-shrink: 0; }
+        .hold-card .radar .axis { stroke: var(--ink-border); stroke-width: 1; }
+        .hold-card .radar .ring { stroke: var(--ink-border); stroke-width: 1; fill: none; opacity: 0.55; }
+        .hold-card .radar .polygon {
+            fill: var(--team-color); fill-opacity: 0.42;
+            stroke: var(--team-color); stroke-width: 2;
             stroke-linejoin: round;
         }
+        .hold-card.leader .radar .polygon {
+            fill: var(--gold-ceremonial); fill-opacity: 0.32;
+            stroke: var(--gold-ceremonial);
+        }
+        .hold-card .radar .axis-label {
+            font-family: var(--font-label); font-size: 7px;
+            font-weight: 700; letter-spacing: 0.06em;
+            fill: var(--bone-dim); text-transform: uppercase;
+        }
+
         .hold-card .radar-meta {
-            font-family: var(--font-label); font-size: 0.625rem;
+            font-family: var(--font-label); font-size: 0.6875rem;
             font-weight: 700; letter-spacing: 0.15em;
             color: var(--bone-dim); text-transform: uppercase;
             line-height: 1.35;
+            min-width: 0;
         }
         .hold-card .radar-meta strong {
             display: block;
             font-family: var(--font-numeric); font-weight: 700;
-            font-size: 0.875rem; color: var(--bone-muted);
-            letter-spacing: 0.05em;
+            font-size: 1rem; color: var(--bone-muted);
+            letter-spacing: 0.04em;
             margin-top: 0.15rem;
         }
+        .hold-card.leader .radar-meta strong { color: var(--bone); }
 
-        /* ===== Mid row: bump + seneste ===== */
+        /* ===== Mid row: bump (1.4fr) + seneste+AI (1fr) ===== */
         .mid-row {
             display: grid;
-            grid-template-columns: 1.6fr 1fr;
-            gap: 1.25rem;
-            min-height: 320px;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 1rem;
+            min-height: 0;
         }
 
         .panel {
@@ -302,6 +318,7 @@
             padding: 1.25rem 1.5rem;
             display: flex; flex-direction: column;
             overflow: hidden;
+            min-height: 0;
         }
 
         .panel-header {
@@ -320,17 +337,12 @@
             color: var(--bone-dim); text-transform: uppercase;
         }
 
-        /* Bump chart fix: bounded height + preserve aspect */
+        /* Bump chart container — fills mid-row vertically */
         .bump-wrap {
-            flex: 1;
-            min-height: 240px;
-            max-height: 420px;
+            flex: 1; min-height: 0;
             position: relative;
         }
-        .bump-svg {
-            position: absolute; inset: 0;
-            width: 100%; height: 100%;
-        }
+        .bump-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
         .bump-svg .axis-line {
             stroke: var(--ink-border-soft); stroke-width: 1; stroke-dasharray: 2 5;
         }
@@ -343,110 +355,137 @@
             stroke-width: 3; fill: none;
             stroke-linecap: round; stroke-linejoin: round;
         }
-        .bump-svg .team-end-dot {
-            stroke: var(--ink-card); stroke-width: 2.5;
-        }
+        .bump-svg .team-end-dot { stroke: var(--ink-card); stroke-width: 2.5; }
         .bump-svg .team-end-label {
             font-family: var(--font-display); font-weight: 700;
             font-size: 14px; letter-spacing: -0.01em;
         }
-        .bump-empty {
-            display: flex; align-items: center; justify-content: center;
-            height: 100%;
-            color: var(--bone-dim);
-            font-family: var(--font-label); font-size: 0.75rem;
-            font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
-        }
 
-        /* ===== Seneste resultat hero card ===== */
-        .latest-result {
-            display: flex; flex-direction: column;
+        /* ===== Seneste + AI commentary panel ===== */
+        .latest-panel {
+            display: grid;
+            grid-template-rows: auto auto 1fr auto;
+            gap: 0;
             background: var(--ink-card);
             border: 1px solid var(--ink-border-soft);
             position: relative;
             overflow: hidden;
+            min-height: 0;
         }
-        .latest-result::before {
+        .latest-panel::before {
             content: ""; position: absolute; top: 0; left: 0; right: 0;
-            height: 8px; background: var(--team-color);
+            height: 6px; background: var(--team-color);
         }
-        .latest-result.has-event {
+        .latest-panel.has-event {
             background: linear-gradient(180deg,
-                color-mix(in oklch, var(--team-color) 22%, var(--ink-card)) 0%,
-                var(--ink-card) 45%);
+                color-mix(in oklch, var(--team-color) 18%, var(--ink-card)) 0%,
+                var(--ink-card) 40%);
         }
 
-        .latest-result .lr-header {
-            padding: 1.25rem 1.5rem 0.5rem 1.5rem;
+        .latest-panel .lp-header {
+            padding: 1rem 1.5rem 0.5rem 1.5rem;
             display: flex; justify-content: space-between; align-items: baseline;
         }
-        .latest-result .lr-label {
+        .latest-panel .lp-label {
             font-family: var(--font-label); font-size: 0.6875rem;
-            font-weight: 700; letter-spacing: 0.18em;
+            font-weight: 800; letter-spacing: 0.2em;
             color: var(--bone-muted); text-transform: uppercase;
         }
-        .latest-result .lr-time {
+        .latest-panel .lp-time {
             font-family: var(--font-numeric); font-weight: 600;
             font-size: 0.75rem; color: var(--bone-dim);
-            font-variant-numeric: tabular-nums;
-            letter-spacing: 0.05em;
+            font-variant-numeric: tabular-nums; letter-spacing: 0.05em;
         }
 
-        .latest-result .lr-body {
-            padding: 0.5rem 1.5rem 1.5rem 1.5rem;
-            display: flex; flex-direction: column;
-            flex: 1;
+        .latest-panel .lp-hero {
+            padding: 0.25rem 1.5rem 0 1.5rem;
+            display: flex; align-items: baseline; gap: 1.25rem;
         }
-        .latest-result .lr-team {
+        .latest-panel .lp-points {
             font-family: var(--font-display); font-weight: 900;
-            font-size: clamp(1.5rem, 2vw, 2rem);
-            line-height: 1.0; color: var(--bone);
-            letter-spacing: -0.02em;
-            margin-bottom: 0.25rem;
-            text-wrap: balance;
-        }
-        .latest-result .lr-discipline {
-            font-family: var(--font-label); font-size: 0.875rem;
-            font-weight: 700; letter-spacing: 0.15em;
-            color: var(--bone-muted); text-transform: uppercase;
-        }
-        .latest-result .lr-points {
-            font-family: var(--font-display); font-weight: 900;
-            font-size: clamp(4.5rem, 8vw, 8rem);
+            font-size: clamp(3.5rem, 6vw, 5.5rem);
             line-height: 0.9;
             color: var(--bone);
-            letter-spacing: -0.05em;
-            margin-top: auto; margin-bottom: 0.5rem;
+            letter-spacing: -0.04em;
             font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
         }
-        .latest-result .lr-points::before {
+        .latest-panel .lp-points::before {
             content: "+"; opacity: 0.55; font-weight: 700;
-            font-size: 0.55em;
-            vertical-align: top;
+            font-size: 0.55em; vertical-align: top;
             margin-right: 0.05em;
         }
-        .latest-result .lr-context {
+        .latest-panel .lp-event-meta {
+            display: flex; flex-direction: column;
+            min-width: 0;
+        }
+        .latest-panel .lp-team {
+            font-family: var(--font-display); font-weight: 900;
+            font-size: clamp(1.25rem, 1.6vw, 1.875rem);
+            line-height: 1.0; color: var(--bone);
+            letter-spacing: -0.02em; text-wrap: balance;
+        }
+        .latest-panel .lp-discipline {
             font-family: var(--font-label); font-size: 0.8125rem;
-            font-weight: 600; letter-spacing: 0.08em;
+            font-weight: 700; letter-spacing: 0.15em;
             color: var(--bone-muted); text-transform: uppercase;
-            padding-top: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .latest-panel .lp-commentary {
+            padding: 1rem 1.5rem 0.5rem 1.5rem;
+            font-family: var(--font-display); font-style: italic;
+            font-weight: 600;
+            font-size: clamp(0.95rem, 1.1vw, 1.25rem);
+            line-height: 1.35;
+            color: var(--bone);
+            text-wrap: balance;
+            align-self: end;
+        }
+        .latest-panel .lp-commentary::before {
+            content: "“"; font-size: 1.5em; line-height: 0;
+            vertical-align: -0.25em; color: var(--bone-muted);
+            margin-right: 0.15em;
+        }
+        .latest-panel .lp-commentary::after {
+            content: "”"; font-size: 1.5em; line-height: 0;
+            vertical-align: -0.25em; color: var(--bone-muted);
+            margin-left: 0.1em;
+        }
+        .latest-panel .lp-commentary-tag {
+            display: block;
+            margin-top: 0.4rem;
+            font-family: var(--font-label); font-style: normal;
+            font-size: 0.625rem; font-weight: 700;
+            letter-spacing: 0.18em; text-transform: uppercase;
+            color: var(--bone-dim);
+        }
+
+        .latest-panel .lp-context {
+            padding: 0.75rem 1.5rem 1rem 1.5rem;
+            font-family: var(--font-label); font-size: 0.75rem;
+            font-weight: 700; letter-spacing: 0.12em;
+            color: var(--bone-muted); text-transform: uppercase;
             border-top: 1px solid var(--ink-border-soft);
             display: flex; justify-content: space-between; align-items: baseline;
         }
-        .latest-result .lr-context strong {
+        .latest-panel .lp-context strong {
             font-family: var(--font-numeric); font-weight: 800;
-            color: var(--bone); font-size: 1rem;
-            letter-spacing: 0.02em;
+            color: var(--bone); font-size: 0.9375rem;
+            letter-spacing: 0.04em;
         }
-        .latest-result .lr-context strong.up { color: var(--team-grøn); }
-        .latest-result .lr-context strong.down { color: var(--live-red); }
-        .latest-result .lr-context strong.lead { color: var(--gold-ceremonial); }
+        .latest-panel .lp-context strong.lead { color: var(--gold-ceremonial); }
+        .latest-panel .lp-context strong.behind { color: var(--bone-muted); }
 
-        .latest-result.empty .lr-body { justify-content: center; align-items: center; }
-        .latest-result.empty .lr-empty-msg {
+        .latest-panel.empty .lp-hero,
+        .latest-panel.empty .lp-commentary { display: none; }
+        .latest-panel.empty .lp-empty {
+            grid-row: 2 / 4;
+            padding: 2rem 1.5rem;
+            display: flex; align-items: center; justify-content: center;
             color: var(--bone-dim);
             font-family: var(--font-label); font-size: 0.875rem;
-            font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+            font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
             text-align: center;
         }
 
@@ -457,51 +496,79 @@
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             overflow: hidden;
+            min-height: 0;
         }
         .disc-pill {
-            padding: 0.875rem 1.25rem;
+            padding: 1.125rem 1.5rem;
             border-right: 1px solid var(--ink-border-soft);
             display: flex; flex-direction: column;
-            gap: 0.2rem;
+            justify-content: center;
+            gap: 0.35rem;
             min-width: 0;
         }
         .disc-pill:last-child { border-right: none; }
         .disc-pill .label {
-            font-family: var(--font-label); font-size: 0.75rem;
-            font-weight: 700; letter-spacing: 0.12em;
+            font-family: var(--font-label); font-size: 0.875rem;
+            font-weight: 800; letter-spacing: 0.12em;
             text-transform: uppercase; color: var(--bone-muted);
             display: flex; align-items: center; gap: 0.5rem;
         }
         .disc-pill[data-status="done"] .label { color: var(--gold-ceremonial); }
-        .disc-pill[data-status="done"] .label::before { content: "✓"; font-weight: 900; }
+        .disc-pill[data-status="done"] .label::before { content: "✓"; font-weight: 900; font-size: 0.875rem; }
         .disc-pill[data-status="pending"] .label::before { content: "○"; opacity: 0.6; }
         .disc-pill .meta {
-            font-family: var(--font-numeric); font-size: 0.75rem;
+            font-family: var(--font-numeric); font-size: 0.8125rem;
             font-weight: 700; color: var(--bone-dim);
-            font-variant-numeric: tabular-nums;
-            letter-spacing: 0.04em;
+            font-variant-numeric: tabular-nums; letter-spacing: 0.04em;
         }
         .disc-pill .meta .leader-name {
             font-family: var(--font-display); font-weight: 700;
             font-style: italic; color: var(--bone-muted);
-            letter-spacing: 0;
-            margin-left: 0.25rem;
+            letter-spacing: 0; margin-left: 0.25rem;
         }
 
-        /* ===== Mobile breakpoint ===== */
+        /* ===== Responsive breakpoints ===== */
+
+        /* Tablets landscape & smaller desktop */
+        @media (max-width: 1500px) {
+            .hold-card .radar { width: 96px; height: 96px; }
+            .hold-card .total { font-size: clamp(3rem, 5vw, 5.5rem); }
+            .hold-card .name { font-size: clamp(1rem, 1.2vw, 1.375rem); }
+        }
+
+        /* Smaller tablet — drop to 3-up cards */
+        @media (max-width: 1300px) {
+            .cards-row { grid-template-columns: repeat(3, 1fr); }
+            .hold-card:nth-child(4), .hold-card:nth-child(5) {
+                grid-column: span 1;
+            }
+            .hold-card { min-height: 280px; }
+            .hold-card .radar { width: 88px; height: 88px; }
+        }
+
+        /* Phones & narrow */
         @media (max-width: 1100px) {
-            .shell { padding: 0.875rem; gap: 0.875rem; }
-            .top-banner { grid-template-columns: 1fr; min-height: 0; }
+            .shell {
+                padding: 0.75rem;
+                grid-template-rows: auto auto auto auto;
+            }
+            .top-banner { grid-template-columns: 1fr; }
             .event-block { border-right: none; border-bottom: 1px solid var(--ink-border-soft); }
             .event-block.empty { display: none; }
-            .banner-clock-block { flex-direction: row; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; }
+            .banner-clock-block { flex-direction: row; align-items: center; padding: 0.6rem 1rem; }
             .banner-date { margin-bottom: 0; }
             .cards-row { grid-template-columns: repeat(2, 1fr); }
-            .hold-card { min-height: 220px; }
+            .hold-card { min-height: 240px; }
+            .hold-card .radar { width: 80px; height: 80px; }
+            .hold-card .total { font-size: clamp(2.5rem, 8vw, 4rem); }
             .mid-row { grid-template-columns: 1fr; }
+            .bump-wrap { min-height: 280px; }
+            .latest-panel .lp-hero { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .latest-panel .lp-points { font-size: 3rem; }
             .disc-strip { grid-template-columns: 1fr 1fr; }
-            .disc-pill { border-right: none; border-bottom: 1px solid var(--ink-border-soft); }
+            .disc-pill { border-right: none; border-bottom: 1px solid var(--ink-border-soft); padding: 0.75rem 1rem; }
         }
+
         @media (max-width: 540px) {
             .cards-row { grid-template-columns: 1fr; }
         }
@@ -540,19 +607,17 @@
                     <span class="title">Placering gennem aftenen</span>
                     <span class="sub">Rank · Bump</span>
                 </div>
-                <div class="bump-wrap">
-                    <svg class="bump-svg" id="bump-svg" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet"></svg>
+                <div class="bump-wrap" id="bump-wrap">
+                    <svg class="bump-svg" id="bump-svg" preserveAspectRatio="none"></svg>
                 </div>
             </div>
 
-            <div class="latest-result empty" id="latest-result">
-                <div class="lr-header">
-                    <span class="lr-label">Seneste resultat</span>
-                    <span class="lr-time" id="lr-time"></span>
+            <div class="latest-panel empty" id="latest-panel">
+                <div class="lp-header">
+                    <span class="lp-label">Seneste resultat</span>
+                    <span class="lp-time" id="lp-time"></span>
                 </div>
-                <div class="lr-body" id="lr-body">
-                    <div class="lr-empty-msg">Venter på første score</div>
-                </div>
+                <div class="lp-empty" id="lp-empty">Venter på første score</div>
             </div>
         </div>
 
@@ -568,12 +633,16 @@
         const banner = $("top-banner");
         const cardsRow = $("cards-row");
         const bumpSvg = $("bump-svg");
-        const latestRes = $("latest-result");
+        const bumpWrap = $("bump-wrap");
+        const latestPanel = $("latest-panel");
         const discStrip = $("disc-strip");
 
         function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
         function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c])); }
         function teamColorVar(team) { return `var(--team-${cssVarSafe(team.team_color)})`; }
+        function shortName(name) { return String(name).split(" ").slice(-1)[0]; }
+
+        let lastData = null;
 
         async function fetchAll() {
             const [t, d, s] = await Promise.all([
@@ -585,7 +654,9 @@
             return { teams: t.data, disciplines: d.data, scores: s.data };
         }
 
-        function render({ teams, disciplines, scores }) {
+        function render(data) {
+            lastData = data;
+            const { teams, disciplines, scores } = data;
             const matrix = {};
             for (const r of scores) {
                 if (!matrix[r.team_key]) matrix[r.team_key] = {};
@@ -597,37 +668,26 @@
             }));
             const sortedByTotal = [...totals].sort((a, b) => b.total - a.total);
             const leaderKey = sortedByTotal[0]?.team.team_key;
+            const leaderTeam = sortedByTotal[0]?.team;
             const leaderTotal = sortedByTotal[0]?.total ?? 0;
             const rankByKey = Object.fromEntries(sortedByTotal.map((x, i) => [x.team.team_key, i + 1]));
 
-            renderBanner(scores, teams, disciplines, leaderTotal);
+            renderBanner(scores, teams, disciplines);
             renderCards(totals, matrix, disciplines, leaderKey, rankByKey);
             renderBump(teams, scores);
-            renderLatest(scores, teams, disciplines, totals, leaderKey, leaderTotal, rankByKey);
+            renderLatest(scores, teams, disciplines, totals, leaderKey, leaderTeam, leaderTotal, rankByKey);
             renderDiscStrip(disciplines, teams, matrix);
         }
 
-        // ===== Top banner — 5 statiske event-blocks ===========================
-        function renderBanner(scores, teams, disciplines, leaderTotal) {
+        // ===== Banner =========================================================
+        function renderBanner(scores, teams, disciplines) {
             const sortedDesc = [...scores].sort((a, b) => new Date(b.score_timestamp) - new Date(a.score_timestamp));
             const top5 = sortedDesc.slice(0, 5);
-
-            // Pad to 5 with empty
             while (top5.length < 5) top5.push(null);
 
             const eventsHtml = top5.map((s, idx) => {
                 if (!s) {
-                    return `
-                        <div class="event-block empty">
-                            <span class="ev-team-tag"></span>
-                            <div>
-                                <div class="ev-meta"><span>—</span></div>
-                                <div class="ev-team">—</div>
-                                <div class="ev-discipline">Venter</div>
-                            </div>
-                            <div class="ev-points">0</div>
-                        </div>
-                    `;
+                    return `<div class="event-block empty"><span class="ev-team-tag"></span><div><div class="ev-meta"><span>—</span></div><div class="ev-team">—</div><div class="ev-discipline">Venter</div></div><div class="ev-points">0</div></div>`;
                 }
                 const team = teams.find(t => t.team_key === s.team_key);
                 const disc = disciplines.find(d => d.discipline_key === s.discipline_key);
@@ -637,11 +697,7 @@
                     <div class="event-block${isHero ? " hero" : ""}" style="--team-color: ${teamColorVar(team)}">
                         <span class="ev-team-tag"></span>
                         <div>
-                            <div class="ev-meta">
-                                <span>${isHero ? "Seneste" : `–${idx + 1}`}</span>
-                                <span>·</span>
-                                <span>${time}</span>
-                            </div>
+                            <div class="ev-meta"><span>${isHero ? "Seneste" : "–" + (idx + 1)}</span><span>·</span><span>${time}</span></div>
                             <div class="ev-team">${esc(team?.team_name ?? "—")}</div>
                             <div class="ev-discipline">${esc(disc?.discipline_name ?? "—")}</div>
                         </div>
@@ -656,9 +712,7 @@
 
             banner.innerHTML = eventsHtml + `
                 <div class="banner-clock-block">
-                    <div>
-                        <span class="live-pill">LIVE</span>
-                    </div>
+                    <div><span class="live-pill">LIVE</span></div>
                     <div>
                         <div class="banner-date">${esc(dateStr)}</div>
                         <div class="banner-clock">${clockTime}</div>
@@ -667,24 +721,26 @@
             `;
         }
 
-        // ===== Hold cards (5 i række) ========================================
+        // ===== Hold cards =====================================================
         function renderCards(totals, matrix, disciplines, leaderKey, rankByKey) {
             cardsRow.innerHTML = totals.map(x => {
                 const isLeader = x.team.team_key === leaderKey;
                 const rank = rankByKey[x.team.team_key];
                 const teamScores = matrix[x.team.team_key] ?? {};
                 const filledDiscs = disciplines.filter(d => typeof teamScores[d.discipline_key] === "number").length;
+                const badgeLeft = isLeader ? `<span class="lead-badge">FØRER</span>` : `<span>#${rank}</span>`;
+                const badgeRight = isLeader ? `` : `<span>${shortName(x.team.team_name)}</span>`;
                 return `
                     <div class="hold-card${isLeader ? " leader" : ""}" style="--team-color: ${teamColorVar(x.team)}">
-                        <div class="rank">#${rank}</div>
+                        <div class="badge-row">${badgeLeft}${badgeRight}</div>
                         <div class="name">${esc(x.team.team_name)}</div>
                         <div class="motto">${esc(x.team.team_motto || "")}</div>
                         <div class="total-block">
                             <div class="total-label">Total</div>
                             <div class="total">${x.total}</div>
                         </div>
-                        <div class="radar-thumb-row">
-                            ${renderRadarThumb(teamScores, disciplines)}
+                        <div class="radar-row">
+                            ${renderRadar(teamScores, disciplines, 120)}
                             <div class="radar-meta">
                                 Disciplin-spread<strong>${filledDiscs}/${disciplines.length} kørt</strong>
                             </div>
@@ -694,10 +750,9 @@
             }).join("");
         }
 
-        function renderRadarThumb(teamScores, disciplines) {
-            const size = 56;
+        function renderRadar(teamScores, disciplines, size) {
             const cx = size / 2, cy = size / 2;
-            const maxR = size / 2 - 6;
+            const maxR = size / 2 - 8;
             const N = disciplines.length;
             if (N < 3) return "";
 
@@ -726,19 +781,24 @@
                 return `${(cx + r * Math.cos(ang)).toFixed(2)},${(cy + r * Math.sin(ang)).toFixed(2)}`;
             }).join(" ");
 
-            return `<svg class="radar-thumb" viewBox="0 0 ${size} ${size}">${axes}${rings}<polygon class="polygon" points="${polyPts}"/></svg>`;
+            return `<svg class="radar" viewBox="0 0 ${size} ${size}">${axes}${rings}<polygon class="polygon" points="${polyPts}"/></svg>`;
         }
 
-        // ===== Bump chart — fixed aspect, skip cluster ========================
+        // ===== Bump chart — dynamic viewBox sized to container ===============
         function renderBump(teams, scores) {
-            const W = 600, H = 300;
-            const padL = 26, padR = 92, padT = 14, padB = 18;
+            const W = bumpWrap.clientWidth;
+            const H = bumpWrap.clientHeight;
+            if (W < 50 || H < 50) return; // not yet sized
+
+            bumpSvg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+            const padL = 32, padR = 100, padT = 16, padB = 20;
             const plotW = W - padL - padR;
             const plotH = H - padT - padB;
 
             const sortedAsc = [...scores].sort((a, b) => new Date(a.score_timestamp) - new Date(b.score_timestamp));
             const running = Object.fromEntries(teams.map(t => [t.team_key, 0]));
-            const snapshots = []; // Skip event 0 cluster — start from after first score
+            const snapshots = [];
             for (const s of sortedAsc) {
                 running[s.team_key] = (running[s.team_key] ?? 0) + s.points;
                 snapshots.push(computeRanks(running, teams));
@@ -758,7 +818,7 @@
             for (let r = 1; r <= numTeams; r++) {
                 const y = padT + (r - 1) * yStep;
                 svg += `<line class="axis-line" x1="${padL}" y1="${y.toFixed(1)}" x2="${(padL + plotW).toFixed(1)}" y2="${y.toFixed(1)}"/>`;
-                svg += `<text class="rank-label" x="${(padL - 6).toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="end">#${r}</text>`;
+                svg += `<text class="rank-label" x="${(padL - 8).toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="end">#${r}</text>`;
             }
 
             for (const team of teams) {
@@ -776,8 +836,7 @@
                 const ex = padL + (N - 1) * xStep;
                 const ey = padT + (lastRank - 1) * yStep;
                 svg += `<circle class="team-end-dot" cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="5" fill="${colorVar}"/>`;
-                const shortName = team.team_name.split(" ").slice(-1)[0];
-                svg += `<text class="team-end-label" x="${(ex + 11).toFixed(1)}" y="${(ey + 5).toFixed(1)}" fill="${colorVar}">${esc(shortName)}</text>`;
+                svg += `<text class="team-end-label" x="${(ex + 11).toFixed(1)}" y="${(ey + 5).toFixed(1)}" fill="${colorVar}">${esc(shortName(team.team_name))}</text>`;
             }
 
             bumpSvg.innerHTML = svg;
@@ -791,16 +850,19 @@
             return ranks;
         }
 
-        // ===== Seneste resultat hero card ====================================
-        function renderLatest(scores, teams, disciplines, totals, leaderKey, leaderTotal, rankByKey) {
+        // ===== Seneste resultat + AI commentary ===============================
+        function renderLatest(scores, teams, disciplines, totals, leaderKey, leaderTeam, leaderTotal, rankByKey) {
             const sortedDesc = [...scores].sort((a, b) => new Date(b.score_timestamp) - new Date(a.score_timestamp));
             const latest = sortedDesc[0];
 
             if (!latest) {
-                latestRes.className = "latest-result empty";
-                latestRes.style.removeProperty("--team-color");
-                $("lr-time").textContent = "";
-                $("lr-body").innerHTML = `<div class="lr-empty-msg">Venter på første score</div>`;
+                latestPanel.className = "latest-panel empty";
+                latestPanel.style.removeProperty("--team-color");
+                $("lp-time").textContent = "";
+                latestPanel.innerHTML = `
+                    <div class="lp-header"><span class="lp-label">Seneste resultat</span><span class="lp-time"></span></div>
+                    <div class="lp-empty">Venter på første score</div>
+                `;
                 return;
             }
 
@@ -809,32 +871,66 @@
             const teamTotal = totals.find(x => x.team.team_key === latest.team_key)?.total ?? 0;
             const isLeader = latest.team_key === leaderKey;
             const rank = rankByKey[latest.team_key];
-
             const time = new Date(latest.score_timestamp).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
-            $("lr-time").textContent = time;
 
+            // Context line
             let contextHtml;
             if (isLeader) {
-                contextHtml = `<span>Position</span><strong class="lead">#${rank} · Fører med ${teamTotal} pt</strong>`;
+                contextHtml = `<span>Position</span><strong class="lead">#1 · Fører med ${teamTotal} pt</strong>`;
             } else {
-                const delta = teamTotal - leaderTotal; // negative
-                const cls = delta < 0 ? "down" : "up";
-                contextHtml = `<span>Vs. leder</span><strong class="${cls}">${delta} pt · #${rank}</strong>`;
+                const gap = leaderTotal - teamTotal;
+                contextHtml = `<span>Vs. ${esc(shortName(leaderTeam?.team_name ?? ""))}</span><strong class="behind">#${rank} · ${gap} pt bagud</strong>`;
             }
 
-            latestRes.className = "latest-result has-event" + (isLeader ? " leader" : "");
-            latestRes.style.setProperty("--team-color", teamColorVar(team));
-            $("lr-body").innerHTML = `
-                <div>
-                    <div class="lr-team">${esc(team?.team_name ?? "—")}</div>
-                    <div class="lr-discipline">${esc(disc?.discipline_name ?? "—")} <span style="opacity:0.6;margin-left:0.5rem">/${disc?.max_points ?? "?"}</span></div>
+            // Mock AI commentary (placeholder for dashboard-011 LLM-calls)
+            const commentary = mockCommentary(team, disc, latest.points, teamTotal, isLeader, leaderTeam, leaderTotal);
+
+            latestPanel.className = "latest-panel has-event" + (isLeader ? " leader" : "");
+            latestPanel.style.setProperty("--team-color", teamColorVar(team));
+            latestPanel.innerHTML = `
+                <div class="lp-header">
+                    <span class="lp-label">Seneste resultat</span>
+                    <span class="lp-time" id="lp-time">${esc(time)}</span>
                 </div>
-                <div class="lr-points">${latest.points}</div>
-                <div class="lr-context">${contextHtml}</div>
+                <div class="lp-hero">
+                    <div class="lp-points">${latest.points}</div>
+                    <div class="lp-event-meta">
+                        <div class="lp-team">${esc(team?.team_name ?? "—")}</div>
+                        <div class="lp-discipline">${esc(disc?.discipline_name ?? "—")} <span style="opacity:0.55;margin-left:0.5rem">/${disc?.max_points ?? "?"}</span></div>
+                    </div>
+                </div>
+                <div class="lp-commentary">
+                    ${esc(commentary)}
+                    <span class="lp-commentary-tag">AI commentary · placeholder (dashboard-011 hooks Claude Haiku 4.5)</span>
+                </div>
+                <div class="lp-context">${contextHtml}</div>
             `;
         }
 
-        // ===== Disciplin strip (bottom) ======================================
+        function mockCommentary(team, disc, points, teamTotal, isLeader, leaderTeam, leaderTotal) {
+            const teamShort = shortName(team?.team_name ?? "Holdet");
+            const leaderShort = shortName(leaderTeam?.team_name ?? "feltet");
+            const discName = disc?.discipline_name ?? "disciplinen";
+            const maxPts = disc?.max_points ?? 0;
+            const pctOfMax = maxPts > 0 ? points / maxPts : 0;
+            const gap = leaderTotal - teamTotal;
+
+            // Strong performance
+            if (pctOfMax >= 0.85) {
+                if (isLeader) return `${teamShort} tromler videre — ${points} af ${maxPts} i ${discName} sætter dem endnu mere fast på toppen.`;
+                return `${teamShort} ridder højt på ${points} i ${discName}, men ${leaderShort} holder fortsat føringen ${gap} pt foran.`;
+            }
+            // Decent
+            if (pctOfMax >= 0.5) {
+                if (isLeader) return `${teamShort} samler ${points} i ${discName} — føringen bliver sværere at indhente.`;
+                return `${teamShort} henter ${points} i ${discName} og kæmper sig op. Stadig ${gap} pt bag ${leaderShort}.`;
+            }
+            // Weak
+            if (isLeader) return `${teamShort} mistede momentum i ${discName} med kun ${points}, men holder stadig toppen.`;
+            return `Skuffende ${points} i ${discName} for ${teamShort}. ${leaderShort} løber fra dem — ${gap} pt foran nu.`;
+        }
+
+        // ===== Disciplin strip ================================================
         function renderDiscStrip(disciplines, teams, matrix) {
             discStrip.innerHTML = disciplines.map(d => {
                 const hasAny = teams.some(t => typeof matrix[t.team_key]?.[d.discipline_key] === "number");
@@ -855,6 +951,12 @@
                 `;
             }).join("");
         }
+
+        // ===== Resize handler — rerender bump chart on container resize =======
+        const resizeObs = new ResizeObserver(() => {
+            if (lastData) renderBump(lastData.teams, lastData.scores);
+        });
+        resizeObs.observe(bumpWrap);
 
         async function poll() {
             try { render(await fetchAll()); }
