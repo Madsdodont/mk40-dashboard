@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mk40 — Cinematic prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Inter:wght@500;700&family=JetBrains+Mono:wght@700;800&display=swap">
+    <style>
+        :root {
+            --ink-deep:        oklch(8% 0.01 30);
+            --bone:            oklch(96% 0.008 60);
+            --bone-muted:      oklch(72% 0.012 60);
+            --gold-ceremonial: oklch(78% 0.16 85);
+            --team-rød:        oklch(55% 0.22 25);
+            --team-blå:        oklch(48% 0.20 245);
+            --team-grøn:       oklch(50% 0.15 145);
+            --team-gul:        oklch(80% 0.16 90);
+            --team-sortHvid:   oklch(60% 0.005 60);
+            --font-display:    "Fraunces", Georgia, serif;
+            --font-label:      "Inter", system-ui, sans-serif;
+            --font-numeric:    "JetBrains Mono", ui-monospace, monospace;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        body {
+            background: var(--ink-deep); color: var(--bone);
+            font-family: var(--font-label);
+            -webkit-font-smoothing: antialiased;
+            display: flex; flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .proto-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+            background: oklch(5% 0.005 30 / 0.7); backdrop-filter: blur(10px);
+            padding: 0.5rem 1.5rem; display: flex; gap: 0.5rem;
+            font-family: var(--font-label); font-size: 0.75rem;
+            font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+        }
+        .proto-nav a {
+            color: var(--bone-muted); text-decoration: none; padding: 0.25rem 0.75rem;
+            border: 1px solid transparent;
+        }
+        .proto-nav a.current { color: var(--gold-ceremonial); border-color: var(--gold-ceremonial); }
+        .proto-nav a:hover { color: var(--bone); }
+
+        .cinema-banner {
+            position: fixed; top: 2.5rem; left: 0; right: 0; z-index: 15;
+            padding: 1.5rem 3rem;
+            display: flex; justify-content: space-between; align-items: baseline;
+            gap: 2rem;
+            pointer-events: none;
+        }
+        .cinema-banner .title {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: 900; line-height: 1.0; letter-spacing: -0.02em;
+            color: var(--bone);
+            mix-blend-mode: difference;
+        }
+        .cinema-banner .meta {
+            color: var(--bone); font-size: 0.75rem; font-weight: 600;
+            letter-spacing: 0.15em; text-transform: uppercase;
+            font-variant-numeric: tabular-nums; text-align: right;
+            mix-blend-mode: difference;
+        }
+
+        main {
+            flex: 1;
+            padding-top: 0;
+            display: flex;
+            position: relative;
+        }
+
+        .cinema-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0;
+            min-height: 100vh;
+        }
+
+        .team-zone {
+            position: relative;
+            background:
+                linear-gradient(180deg,
+                    color-mix(in oklch, var(--team-color) 85%, transparent) 0%,
+                    color-mix(in oklch, var(--team-color) 50%, var(--ink-deep)) 55%,
+                    var(--ink-deep) 100%);
+            display: flex; flex-direction: column;
+            padding: 6rem 1.5rem 2rem 1.5rem;
+            overflow: hidden;
+            transition: flex-basis 600ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .team-zone.leader {
+            box-shadow: inset 0 0 0 3px var(--gold-ceremonial);
+        }
+
+        .team-zone .rank {
+            font-family: var(--font-numeric); font-weight: 800;
+            font-size: clamp(0.875rem, 1vw, 1.125rem);
+            color: var(--bone); opacity: 0.6;
+            letter-spacing: 0.1em;
+        }
+
+        .team-zone .name {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 2.5vw, 2.5rem);
+            font-weight: 900; line-height: 0.95;
+            color: var(--bone); letter-spacing: -0.02em;
+            margin-top: 0.5rem; margin-bottom: 0.5rem;
+            text-wrap: balance;
+        }
+
+        .team-zone .motto {
+            font-family: var(--font-display); font-style: italic;
+            font-size: clamp(0.875rem, 1.1vw, 1.125rem);
+            font-weight: 700;
+            color: var(--bone); opacity: 0.85; line-height: 1.3;
+            margin-bottom: 1.5rem;
+            text-wrap: balance;
+            min-height: 2.6em;
+        }
+
+        .team-zone .total {
+            font-family: var(--font-display);
+            font-size: clamp(4rem, 9vw, 9.5rem);
+            font-weight: 900; line-height: 0.9;
+            color: var(--bone); letter-spacing: -0.04em;
+            margin-top: auto; margin-bottom: 0.25rem;
+            font-variant-numeric: tabular-nums;
+        }
+        .team-zone.leader .total {
+            color: var(--gold-ceremonial);
+            text-shadow: 0 0 60px color-mix(in oklch, var(--gold-ceremonial) 50%, transparent);
+        }
+
+        .team-zone .total-label {
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 700; letter-spacing: 0.2em;
+            color: var(--bone); opacity: 0.7;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+        }
+
+        .team-zone .disciplines {
+            display: flex; flex-direction: column; gap: 0.3rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid color-mix(in oklch, var(--bone) 25%, transparent);
+        }
+
+        .disc-line {
+            display: flex; justify-content: space-between; align-items: baseline;
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 600; letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--bone); opacity: 0.75;
+        }
+        .disc-line .pts {
+            font-family: var(--font-numeric); font-weight: 700;
+            font-size: 0.875rem;
+            font-variant-numeric: tabular-nums;
+            color: var(--bone); opacity: 1;
+        }
+        .disc-line .pts.empty { opacity: 0.4; }
+
+        @media (max-width: 900px) {
+            html, body { overflow: auto; }
+            .cinema-grid { grid-template-columns: 1fr; min-height: auto; }
+            .team-zone { min-height: 50vh; padding-top: 4rem; }
+            .cinema-banner { padding: 0.75rem 1.25rem; top: 2.25rem; }
+        }
+
+        .state-message {
+            grid-column: 1/-1;
+            text-align: center; padding: 6rem 2rem; color: var(--bone-muted);
+            font-family: var(--font-label); letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .state-message.error { color: var(--team-rød); }
+    </style>
+</head>
+<body>
+    <nav class="proto-nav">
+        <a href="./">Table (boring)</a>
+        <a href="./cards.html">A · Cards</a>
+        <a href="./bars.html">B · Bars</a>
+        <a href="./cinema.html" class="current">C · Cinematic</a>
+    </nav>
+
+    <div class="cinema-banner">
+        <div class="title">Kongerigernes Kamp</div>
+        <div class="meta">
+            <span>mk40 · 2026-06-27</span><br>
+            <span id="last-updated">Forbinder…</span>
+        </div>
+    </div>
+
+    <main>
+        <div id="cinema-grid" class="cinema-grid">
+            <div class="state-message">Henter data…</div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const grid = document.getElementById("cinema-grid");
+        const lastUpdated = document.getElementById("last-updated");
+
+        function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
+        function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c])); }
+
+        async function fetchAll() {
+            const [t, d, s] = await Promise.all([
+                supabase.from("DimTeam").select("*").order("team_key"),
+                supabase.from("DimDiscipline").select("*").order("discipline_key"),
+                supabase.from("FactScore").select("*").eq("is_final", true),
+            ]);
+            if (t.error || d.error || s.error) throw new Error(t.error?.message || d.error?.message || s.error?.message);
+            return { teams: t.data, disciplines: d.data, scores: s.data };
+        }
+
+        function render({ teams, disciplines, scores }) {
+            const matrix = {};
+            for (const r of scores) {
+                if (!matrix[r.team_key]) matrix[r.team_key] = {};
+                matrix[r.team_key][r.discipline_key] = r.points;
+            }
+            const totals = teams.map(t => ({
+                team: t,
+                total: disciplines.reduce((a, d) => a + (matrix[t.team_key]?.[d.discipline_key] ?? 0), 0),
+            }));
+            const ranked = [...totals].sort((a, b) => b.total - a.total);
+            const leaderKey = ranked[0]?.team.team_key;
+            const rankByKey = Object.fromEntries(ranked.map((x, i) => [x.team.team_key, i + 1]));
+
+            grid.innerHTML = totals.map(x => {
+                const colorVar = `var(--team-${cssVarSafe(x.team.team_color)})`;
+                const isLeader = x.team.team_key === leaderKey;
+                const rank = rankByKey[x.team.team_key];
+                const discList = disciplines.map(d => {
+                    const pts = matrix[x.team.team_key]?.[d.discipline_key];
+                    const empty = typeof pts !== "number";
+                    return `<div class="disc-line"><span>${esc(d.discipline_name)}</span><span class="pts${empty ? " empty" : ""}">${empty ? "—" : pts}</span></div>`;
+                }).join("");
+                return `
+                    <div class="team-zone${isLeader ? " leader" : ""}" style="--team-color: ${colorVar}">
+                        <div class="rank">#${rank}</div>
+                        <div class="name">${esc(x.team.team_name)}</div>
+                        <div class="motto">${esc(x.team.team_motto || "")}</div>
+                        <div class="total">${x.total}</div>
+                        <div class="total-label">Total</div>
+                        <div class="disciplines">${discList}</div>
+                    </div>
+                `;
+            }).join("");
+
+            const time = new Date().toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            lastUpdated.textContent = `Opdateret ${time}`;
+        }
+
+        async function poll() {
+            try { render(await fetchAll()); }
+            catch (e) {
+                grid.innerHTML = `<div class="state-message error">${esc(e.message)}</div>`;
+                lastUpdated.textContent = "Forbindelse afbrudt";
+            }
+        }
+        poll(); setInterval(poll, 5000);
+    </script>
+</body>
+</html>
