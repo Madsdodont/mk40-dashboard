@@ -22,13 +22,12 @@
             --bone-muted:      oklch(68% 0.012 60);
             --bone-dim:        oklch(45% 0.010 60);
 
-            /* Gold — leader signal (10% accent budget per 60-30-10) */
-            --gold-ceremonial: oklch(78% 0.16 85);
-            --gold-soft:       oklch(70% 0.14 85);
-            --gold-glow:       oklch(78% 0.16 85 / 0.18);  /* ambient glow for leader */
-
-            /* Live red — broadcast pill only */
+            /* Live red — broadcast pill only (broadcast convention, not a brand color) */
             --live-red:        oklch(60% 0.22 25);
+
+            /* NB: Gold tokens retired 2026-05-30 — team colors drive the whole palette.
+               Leader is signaled via own team-color amplified, not via gold accent.
+               Reason: gold + bone + ink combined overpowered the 5 team identities. */
 
             /* Team colors — sampled from physical bandanas, calibrated for TV readability against ink-deep.
                Navy bumped from bandana L=28% to L=45% so the team reads on dark canvas without losing navy character. */
@@ -88,7 +87,8 @@
             color: var(--bone-muted); text-decoration: none; padding: 0.25rem 0.75rem;
             border: 1px solid transparent;
         }
-        .proto-nav a.current { color: var(--gold-ceremonial); border-color: var(--gold-ceremonial); }
+        /* Proto-nav is dev chrome — not part of fest dashboard. Hardcoded amber, not a brand token. */
+        .proto-nav a.current { color: oklch(78% 0.16 85); border-color: oklch(78% 0.16 85); }
         .proto-nav a:hover { color: var(--bone); }
 
         /* ===== Layout shell — vertical lock 15/45/25/15 ===== */
@@ -249,12 +249,16 @@
             min-height: 0;
         }
 
+        /* Hold-cards — team-color BAKED into surface so each card is visibly the team's territory.
+           Default: subtle team-bake (20% top → ink-card). Leader: amplified bake (40% top, deeper saturation,
+           team-color glow). No gold anywhere — leader is signaled by amplified own-team-color. */
         .hold-card {
             background:
                 linear-gradient(180deg,
-                    var(--ink-elevated) 0%,
-                    var(--ink-card) 60%);
-            border: 1px solid var(--ink-border-soft);
+                    color-mix(in oklch, var(--team-color) 22%, var(--ink-card)) 0%,
+                    color-mix(in oklch, var(--team-color) 6%, var(--ink-card)) 55%,
+                    var(--ink-card) 100%);
+            border: 1px solid color-mix(in oklch, var(--team-color) 28%, var(--ink-border-soft));
             border-top: 6px solid var(--team-color);
             padding: 1.5rem 1.5rem 1.25rem 1.5rem;
             display: grid;
@@ -263,46 +267,50 @@
             position: relative;
             min-height: 0;
             overflow: hidden;
-            box-shadow: var(--shadow-low);
+            box-shadow:
+                var(--shadow-low),
+                0 0 0 1px color-mix(in oklch, var(--team-color) 8%, transparent) inset;
             transition: box-shadow 240ms cubic-bezier(0.23, 1, 0.32, 1);
         }
-        /* Hold card top-edge light catch (under colored stripe) */
+        /* Top-edge light catch (under colored stripe) */
         .hold-card::before {
             content: ""; position: absolute; top: 6px; left: 0; right: 0; height: 1px;
             background: linear-gradient(90deg,
                 transparent 0%,
-                oklch(45% 0.020 30 / 0.4) 50%,
+                color-mix(in oklch, var(--team-color) 50%, oklch(55% 0.020 30)) 50%,
                 transparent 100%);
+            opacity: 0.6;
             pointer-events: none;
             z-index: 1;
         }
-        /* Subtle team-color spill at bottom of card */
+        /* Bottom team-color spill — anchors the card to its territory */
         .hold-card::after {
-            content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 60%;
+            content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 70%;
             background: radial-gradient(ellipse at 50% 100%,
-                color-mix(in oklch, var(--team-color) 14%, transparent) 0%,
+                color-mix(in oklch, var(--team-color) 22%, transparent) 0%,
                 transparent 70%);
             pointer-events: none;
             z-index: 0;
         }
         .hold-card > * { position: relative; z-index: 2; }
 
+        /* Leader — own team-color AMPLIFIED. No gold. */
         .hold-card.leader {
             background:
                 radial-gradient(ellipse at 50% 0%,
-                    color-mix(in oklch, var(--gold-ceremonial) 18%, var(--ink-elevated)) 0%,
-                    var(--ink-card) 70%);
-            border-color: color-mix(in oklch, var(--gold-ceremonial) 60%, var(--ink-border));
-            border-top-color: var(--gold-ceremonial);
-            border-top-width: 8px;
+                    color-mix(in oklch, var(--team-color) 55%, var(--ink-card)) 0%,
+                    color-mix(in oklch, var(--team-color) 18%, var(--ink-card)) 45%,
+                    var(--ink-card) 90%);
+            border: 1px solid color-mix(in oklch, var(--team-color) 65%, var(--ink-border));
+            border-top: 10px solid var(--team-color);
             box-shadow:
                 var(--shadow-high),
-                0 0 40px var(--gold-glow),
-                inset 0 1px 0 oklch(85% 0.10 85 / 0.3);
+                0 0 60px color-mix(in oklch, var(--team-color) 35%, transparent),
+                inset 0 1px 0 color-mix(in oklch, var(--team-color) 60%, oklch(90% 0.020 30) / 0.5);
         }
         .hold-card.leader::after {
             background: radial-gradient(ellipse at 50% 100%,
-                color-mix(in oklch, var(--gold-ceremonial) 14%, transparent) 0%,
+                color-mix(in oklch, var(--team-color) 38%, transparent) 0%,
                 transparent 70%);
         }
 
@@ -313,13 +321,14 @@
             text-transform: uppercase; color: var(--bone-dim);
         }
         .hold-card.leader .badge-row {
-            color: var(--gold-ceremonial);
+            color: var(--bone);
         }
         .hold-card.leader .badge-row .lead-badge {
-            background: var(--gold-ceremonial);
+            background: var(--team-color);
             color: var(--ink-deep);
             padding: 0.25rem 0.6rem;
             font-weight: 900;
+            box-shadow: 0 0 12px color-mix(in oklch, var(--team-color) 60%, transparent);
         }
 
         .hold-card .name {
@@ -355,25 +364,28 @@
             color: var(--bone-dim); text-transform: uppercase;
         }
         .hold-card .total {
-            font-family: var(--font-numeric); font-weight: 800;
+            font-family: var(--font-numeric); font-weight: 700;
             font-size: clamp(3.5rem, 6vw, 6.5rem);
-            color: var(--bone); line-height: 0.9;
+            color: var(--bone-muted); line-height: 0.9;
             margin-top: 0.15rem;
             font-variant-numeric: tabular-nums;
             letter-spacing: -0.03em;
         }
+        /* Leader total — amplified via size + weight + full bone (not muted) + team-color text-shadow halo */
         .hold-card.leader .total {
-            color: var(--gold-ceremonial);
+            color: var(--bone);
             font-weight: 800;
+            font-size: clamp(4.5rem, 7.5vw, 8rem);
+            text-shadow: 0 0 32px color-mix(in oklch, var(--team-color) 60%, transparent);
         }
 
         .hold-card .radar-row {
             margin-top: 1.25rem;
             padding-top: 1rem;
-            border-top: 1px solid var(--ink-border-soft);
+            border-top: 1px solid color-mix(in oklch, var(--team-color) 20%, var(--ink-border-soft));
             display: flex; align-items: center; gap: 1rem;
         }
-        .hold-card.leader .radar-row { border-top-color: color-mix(in oklch, var(--gold-ceremonial) 30%, transparent); }
+        .hold-card.leader .radar-row { border-top-color: color-mix(in oklch, var(--team-color) 45%, transparent); }
 
         .hold-card .radar { width: 120px; height: 120px; flex-shrink: 0; }
         .hold-card .radar .axis { stroke: var(--ink-border); stroke-width: 1; }
@@ -383,9 +395,11 @@
             stroke: var(--team-color); stroke-width: 2;
             stroke-linejoin: round;
         }
+        /* Leader radar — same team-color, just brighter fill + stronger stroke */
         .hold-card.leader .radar .polygon {
-            fill: var(--gold-ceremonial); fill-opacity: 0.32;
-            stroke: var(--gold-ceremonial);
+            fill-opacity: 0.6;
+            stroke-width: 2.5;
+            filter: drop-shadow(0 0 8px color-mix(in oklch, var(--team-color) 50%, transparent));
         }
         .hold-card .radar .axis-label {
             font-family: var(--font-label); font-size: 7px;
@@ -511,10 +525,11 @@
                 var(--shadow-medium),
                 0 0 60px color-mix(in oklch, var(--team-color) 18%, transparent);
         }
+        /* When latest event IS the leader — amplify own team-color glow further */
         .latest-panel.has-event.leader {
             box-shadow:
                 var(--shadow-high),
-                0 0 80px var(--gold-glow);
+                0 0 80px color-mix(in oklch, var(--team-color) 35%, transparent);
         }
 
         .latest-panel .lp-header {
@@ -609,7 +624,8 @@
             color: var(--bone); font-size: 0.9375rem;
             letter-spacing: 0.04em;
         }
-        .latest-panel .lp-context strong.lead { color: var(--gold-ceremonial); }
+        /* Position-line: leader gets bone (full), behind gets bone-muted. Team-identity carried by panel's team-color edge + glow. */
+        .latest-panel .lp-context strong.lead { color: var(--bone); }
         .latest-panel .lp-context strong.behind { color: var(--bone-muted); }
 
         .latest-panel.empty .lp-hero,
@@ -660,8 +676,13 @@
             text-transform: uppercase; color: var(--bone-muted);
             display: flex; align-items: center; gap: 0.5rem;
         }
-        .disc-pill[data-status="done"] .label { color: var(--gold-ceremonial); }
-        .disc-pill[data-status="done"] .label::before { content: "✓"; font-weight: 900; font-size: 0.875rem; }
+        /* Done discipline: label stays bone-muted; checkmark gets the leading team's color */
+        .disc-pill[data-status="done"] .label { color: var(--bone); }
+        .disc-pill[data-status="done"] .label::before {
+            content: "✓"; font-weight: 900; font-size: 0.875rem;
+            color: var(--leader-color, var(--bone));
+            text-shadow: 0 0 8px color-mix(in oklch, var(--leader-color, transparent) 40%, transparent);
+        }
         .disc-pill[data-status="pending"] .label::before { content: "○"; opacity: 0.6; }
         .disc-pill .meta {
             font-family: var(--font-numeric); font-size: 0.8125rem;
@@ -1090,8 +1111,12 @@
                 const meta = hasAny
                     ? `${topScore}/${d.max_points} <span class="leader-name">${esc(topTeam?.team_name ?? "")}</span>`
                     : `Kommer · /${d.max_points}`;
+                // Pass leader-of-this-discipline color to the pill so the ✓ carries team identity
+                const leaderColorStyle = hasAny && topTeam
+                    ? ` style="--leader-color: ${teamColorVar(topTeam)}"`
+                    : "";
                 return `
-                    <div class="disc-pill" data-status="${status}">
+                    <div class="disc-pill" data-status="${status}"${leaderColorStyle}>
                         <span class="label">${esc(d.discipline_name)}</span>
                         <span class="meta">${meta}</span>
                     </div>
