@@ -9,30 +9,68 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,600;1,9..144,700&family=Inter:wght@500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap">
     <style>
         :root {
-            --ink-deep:        oklch(10% 0.012 30);
-            --ink-card:        oklch(15% 0.014 30);
-            --ink-elevated:    oklch(18% 0.016 30);
-            --ink-border:      oklch(28% 0.018 30);
-            --ink-border-soft: oklch(22% 0.016 30);
+            /* Ink palette — wider tonal spread (8→15→20→24→32) so 5 levels read as hierarchy on TV */
+            --ink-void:        oklch(6% 0.010 30);   /* page background — deepest, behind shell */
+            --ink-deep:        oklch(8% 0.012 30);   /* shell background */
+            --ink-card:        oklch(15% 0.014 30);  /* card surface (default elevation) */
+            --ink-elevated:    oklch(20% 0.018 30);  /* mid surface (banner clock block, hero variants) */
+            --ink-border-soft: oklch(24% 0.016 30);  /* subtle divider */
+            --ink-border:      oklch(32% 0.020 30);  /* visible divider */
+
+            /* Bone scale — foreground */
             --bone:            oklch(95% 0.008 60);
             --bone-muted:      oklch(68% 0.012 60);
             --bone-dim:        oklch(45% 0.010 60);
+
+            /* Gold — leader signal (10% accent budget per 60-30-10) */
             --gold-ceremonial: oklch(78% 0.16 85);
             --gold-soft:       oklch(70% 0.14 85);
+            --gold-glow:       oklch(78% 0.16 85 / 0.18);  /* ambient glow for leader */
+
+            /* Live red — broadcast pill only */
             --live-red:        oklch(60% 0.22 25);
-            --team-rød:        oklch(58% 0.22 25);
-            --team-blå:        oklch(58% 0.20 245);
-            --team-grøn:       oklch(58% 0.16 145);
-            --team-gul:        oklch(82% 0.16 90);
-            --team-sortHvid:   oklch(85% 0.005 60);
+
+            /* Team colors — sampled from physical bandanas, calibrated for TV readability against ink-deep.
+               Navy bumped from bandana L=28% to L=45% so the team reads on dark canvas without losing navy character. */
+            --team-rød:        oklch(64% 0.22 5);    /* Pink bandana ("Pink Rødder" — rename pending) */
+            --team-blå:        oklch(48% 0.20 258);  /* Navy bandana, L-bumped for TV */
+            --team-grøn:       oklch(55% 0.18 145);  /* Grass green bandana */
+            --team-gul:        oklch(74% 0.18 65);   /* Orange/golden bandana → Gyldne Riger */
+            --team-sortHvid:   oklch(60% 0.18 295);  /* Lilla bandana → Sorte Cirkel (decided 2026-05-29) */
+
+            /* Fonts */
             --font-display:    "Fraunces", Georgia, serif;
             --font-label:      "Inter", system-ui, sans-serif;
             --font-numeric:    "JetBrains Mono", ui-monospace, monospace;
+
+            /* Shadow tokens — 3-level elevation (per Material Design + designparser elevation-system).
+               Tinted dark-warm (matches ink hue 30°), never pure black per shadow-fundamentals. */
+            --shadow-low:    0 1px 2px oklch(0% 0.02 30 / 0.45),
+                             0 2px 6px oklch(0% 0.02 30 / 0.25);
+            --shadow-medium: 0 2px 4px oklch(0% 0.02 30 / 0.55),
+                             0 8px 24px oklch(0% 0.02 30 / 0.35);
+            --shadow-high:   0 4px 8px oklch(0% 0.02 30 / 0.60),
+                             0 16px 48px oklch(0% 0.02 30 / 0.45);
+
+            /* Spacing scale — 8pt grid (4pt only for micro-typography) */
+            --space-1:  4px;
+            --space-2:  8px;
+            --space-3:  12px;
+            --space-4:  16px;
+            --space-5:  24px;
+            --space-6:  32px;
+            --space-7:  40px;
+            --space-8:  48px;
         }
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }
         body {
-            background: var(--ink-deep); color: var(--bone);
+            background:
+                radial-gradient(ellipse at 50% 0%,
+                    oklch(12% 0.018 30) 0%,
+                    var(--ink-void) 60%),
+                var(--ink-void);
+            color: var(--bone);
             font-family: var(--font-label); min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             display: flex; flex-direction: column;
@@ -68,12 +106,25 @@
 
         /* ===== Top banner ===== */
         .top-banner {
-            background: var(--ink-card);
+            background: linear-gradient(180deg,
+                var(--ink-elevated) 0%,
+                var(--ink-card) 100%);
             border: 1px solid var(--ink-border-soft);
+            box-shadow: var(--shadow-low);
             display: grid;
             grid-template-columns: 1.7fr repeat(4, 1fr) auto;
             overflow: hidden;
             min-height: 0;
+            position: relative;
+        }
+        /* Top-edge light catch — single light source from above per shadow-fundamentals */
+        .top-banner::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                oklch(45% 0.020 30 / 0.6) 50%,
+                transparent 100%);
+            pointer-events: none;
         }
 
         .event-block {
@@ -89,10 +140,29 @@
         .event-block.empty .ev-team { color: var(--bone-dim); }
 
         .event-block.hero {
-            background: linear-gradient(135deg,
-                color-mix(in oklch, var(--team-color) 32%, var(--ink-card)) 0%,
-                var(--ink-card) 72%);
+            background:
+                radial-gradient(ellipse at 0% 100%,
+                    color-mix(in oklch, var(--team-color) 55%, transparent) 0%,
+                    transparent 60%),
+                linear-gradient(135deg,
+                    color-mix(in oklch, var(--team-color) 38%, var(--ink-elevated)) 0%,
+                    var(--ink-elevated) 80%);
             padding: 1rem 1.25rem;
+            box-shadow:
+                inset 0 1px 0 oklch(60% 0.020 30 / 0.25),
+                inset 0 0 0 1px color-mix(in oklch, var(--team-color) 25%, transparent);
+            position: relative;
+            overflow: hidden;
+        }
+        /* Hero ambient glow — radial spill behind team color */
+        .event-block.hero::after {
+            content: ""; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 80%,
+                color-mix(in oklch, var(--team-color) 25%, transparent) 0%,
+                transparent 50%);
+            pointer-events: none;
+            mix-blend-mode: screen;
+            opacity: 0.6;
         }
 
         .event-block .ev-team-tag {
@@ -180,7 +250,10 @@
         }
 
         .hold-card {
-            background: var(--ink-card);
+            background:
+                linear-gradient(180deg,
+                    var(--ink-elevated) 0%,
+                    var(--ink-card) 60%);
             border: 1px solid var(--ink-border-soft);
             border-top: 6px solid var(--team-color);
             padding: 1.5rem 1.5rem 1.25rem 1.5rem;
@@ -190,15 +263,47 @@
             position: relative;
             min-height: 0;
             overflow: hidden;
+            box-shadow: var(--shadow-low);
+            transition: box-shadow 240ms cubic-bezier(0.23, 1, 0.32, 1);
         }
+        /* Hold card top-edge light catch (under colored stripe) */
+        .hold-card::before {
+            content: ""; position: absolute; top: 6px; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                oklch(45% 0.020 30 / 0.4) 50%,
+                transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+        /* Subtle team-color spill at bottom of card */
+        .hold-card::after {
+            content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 60%;
+            background: radial-gradient(ellipse at 50% 100%,
+                color-mix(in oklch, var(--team-color) 14%, transparent) 0%,
+                transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .hold-card > * { position: relative; z-index: 2; }
 
         .hold-card.leader {
-            background: linear-gradient(180deg,
-                color-mix(in oklch, var(--gold-ceremonial) 8%, var(--ink-card)) 0%,
-                var(--ink-card) 50%);
-            border-color: var(--gold-ceremonial);
+            background:
+                radial-gradient(ellipse at 50% 0%,
+                    color-mix(in oklch, var(--gold-ceremonial) 18%, var(--ink-elevated)) 0%,
+                    var(--ink-card) 70%);
+            border-color: color-mix(in oklch, var(--gold-ceremonial) 60%, var(--ink-border));
             border-top-color: var(--gold-ceremonial);
             border-top-width: 8px;
+            box-shadow:
+                var(--shadow-high),
+                0 0 40px var(--gold-glow),
+                inset 0 1px 0 oklch(85% 0.10 85 / 0.3);
+        }
+        .hold-card.leader::after {
+            background: radial-gradient(ellipse at 50% 100%,
+                color-mix(in oklch, var(--gold-ceremonial) 14%, transparent) 0%,
+                transparent 70%);
         }
 
         .hold-card .badge-row {
@@ -313,12 +418,24 @@
         }
 
         .panel {
-            background: var(--ink-card);
+            background: linear-gradient(180deg,
+                var(--ink-elevated) 0%,
+                var(--ink-card) 80%);
             border: 1px solid var(--ink-border-soft);
             padding: 1.25rem 1.5rem;
             display: flex; flex-direction: column;
             overflow: hidden;
             min-height: 0;
+            box-shadow: var(--shadow-low);
+            position: relative;
+        }
+        .panel::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                oklch(45% 0.020 30 / 0.4) 50%,
+                transparent 100%);
+            pointer-events: none;
         }
 
         .panel-header {
@@ -366,20 +483,38 @@
             display: grid;
             grid-template-rows: auto auto 1fr auto;
             gap: 0;
-            background: var(--ink-card);
+            background: linear-gradient(180deg,
+                var(--ink-elevated) 0%,
+                var(--ink-card) 80%);
             border: 1px solid var(--ink-border-soft);
             position: relative;
             overflow: hidden;
             min-height: 0;
+            box-shadow: var(--shadow-low);
+            transition: box-shadow 240ms cubic-bezier(0.23, 1, 0.32, 1);
         }
         .latest-panel::before {
             content: ""; position: absolute; top: 0; left: 0; right: 0;
             height: 6px; background: var(--team-color);
+            box-shadow: 0 1px 12px color-mix(in oklch, var(--team-color) 60%, transparent);
+            z-index: 2;
         }
         .latest-panel.has-event {
-            background: linear-gradient(180deg,
-                color-mix(in oklch, var(--team-color) 18%, var(--ink-card)) 0%,
-                var(--ink-card) 40%);
+            background:
+                radial-gradient(ellipse at 0% 100%,
+                    color-mix(in oklch, var(--team-color) 28%, transparent) 0%,
+                    transparent 55%),
+                linear-gradient(180deg,
+                    color-mix(in oklch, var(--team-color) 16%, var(--ink-elevated)) 0%,
+                    var(--ink-card) 70%);
+            box-shadow:
+                var(--shadow-medium),
+                0 0 60px color-mix(in oklch, var(--team-color) 18%, transparent);
+        }
+        .latest-panel.has-event.leader {
+            box-shadow:
+                var(--shadow-high),
+                0 0 80px var(--gold-glow);
         }
 
         .latest-panel .lp-header {
@@ -491,12 +626,24 @@
 
         /* ===== Disciplin strip ===== */
         .disc-strip {
-            background: var(--ink-card);
+            background: linear-gradient(180deg,
+                var(--ink-card) 0%,
+                var(--ink-elevated) 100%);
             border: 1px solid var(--ink-border-soft);
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             overflow: hidden;
             min-height: 0;
+            box-shadow: var(--shadow-low);
+            position: relative;
+        }
+        .disc-strip::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                oklch(45% 0.020 30 / 0.4) 50%,
+                transparent 100%);
+            pointer-events: none;
         }
         .disc-pill {
             padding: 1.125rem 1.5rem;
