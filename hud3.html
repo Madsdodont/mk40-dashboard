@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mk40 — HUD v2 prototype</title>
+    <title>mk40 — HUD v3 (viz) prototype</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,600;1,9..144,700&family=Inter:wght@500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap">
@@ -391,6 +391,20 @@
             text-shadow: 0 0 32px color-mix(in oklch, var(--team-color) 60%, transparent);
         }
 
+        /* Gap-to-leader — dumbbell delta as a glance number. Serves PRODUCT.md job (a): se hvem leder OG med hvor meget. */
+        .hold-card .gap {
+            font-family: var(--font-numeric); font-weight: 700;
+            font-size: clamp(0.75rem, 0.9vw, 0.9375rem);
+            letter-spacing: 0.04em;
+            color: var(--bone-dim); font-variant-numeric: tabular-nums;
+            margin-top: 0.2rem;
+        }
+        .hold-card .gap .gap-unit { font-size: 0.7em; opacity: 0.7; margin-left: 0.15em; }
+        .hold-card.leader .gap {
+            color: var(--bone);
+            text-shadow: 0 0 16px color-mix(in oklch, var(--team-color) 45%, transparent);
+        }
+
         .hold-card .radar-row {
             margin-top: 1.25rem;
             padding-top: 1rem;
@@ -707,6 +721,30 @@
             letter-spacing: 0; margin-left: 0.25rem;
         }
 
+        /* Per-discipline dot-strip — generalizes dumbbell to N teams. Each team's score as a dot
+           on a shared 0→max axis; position on common baseline = most accurately decoded channel.
+           Reveals how contested each discipline was (tight cluster = gyser, lone right dot = walkover). */
+        .disc-pill .disc-dots {
+            position: relative; height: 14px;
+            margin: 0.15rem 0.25rem;
+            border-bottom: 1px solid var(--ink-border-soft);
+        }
+        .disc-pill .disc-dots .dot {
+            position: absolute; top: 50%; transform: translate(-50%, -50%);
+            width: 9px; height: 9px; border-radius: 50%;
+            background: var(--team-color);
+            box-shadow: 0 0 0 1.5px var(--ink-card);
+        }
+        .disc-pill .disc-dots .dot.lead {
+            width: 13px; height: 13px;
+            box-shadow: 0 0 0 2px var(--ink-card),
+                        0 0 8px color-mix(in oklch, var(--team-color) 50%, transparent);
+            z-index: 2;
+        }
+        .disc-pill[data-status="pending"] .disc-dots {
+            border-bottom-style: dashed; opacity: 0.5;
+        }
+
         /* ===== Responsive breakpoints ===== */
 
         /* Tablets landscape & smaller desktop */
@@ -771,8 +809,8 @@
         <a href="./bars.html">B · Bars</a>
         <a href="./cinema.html">C · Cinematic</a>
         <a href="./hud.html">D · HUD</a>
-        <a href="./hud2.html" class="current">E · HUD v2</a>
-        <a href="./hud3.html">F · HUD v3 (viz)</a>
+        <a href="./hud2.html">E · HUD v2</a>
+        <a href="./hud3.html" class="current">F · HUD v3 (viz)</a>
     </nav>
 
     <div class="shell">
@@ -904,6 +942,10 @@
 
         // ===== Hold cards =====================================================
         function renderCards(totals, matrix, disciplines, leaderKey, rankByKey) {
+            // Leader margin + each chaser's deficit — the dumbbell delta as a glance number.
+            const sortedDesc = [...totals].sort((a, b) => b.total - a.total);
+            const leaderTotal = sortedDesc[0]?.total ?? 0;
+            const secondTotal = sortedDesc[1]?.total ?? leaderTotal;
             cardsRow.innerHTML = totals.map(x => {
                 const isLeader = x.team.team_key === leaderKey;
                 const rank = rankByKey[x.team.team_key];
@@ -911,6 +953,9 @@
                 const filledDiscs = disciplines.filter(d => typeof teamScores[d.discipline_key] === "number").length;
                 const badgeLeft = isLeader ? `<span class="lead-badge">FØRER</span>` : `<span>#${rank}</span>`;
                 const badgeRight = isLeader ? `` : `<span>${shortName(x.team.team_name)}</span>`;
+                const gapHtml = isLeader
+                    ? `<div class="gap">+${leaderTotal - secondTotal}<span class="gap-unit">PT FORSPRING</span></div>`
+                    : `<div class="gap">−${leaderTotal - x.total}<span class="gap-unit">PT BAGUD</span></div>`;
                 return `
                     <div class="hold-card${isLeader ? " leader" : ""}" style="--team-color: ${teamColorVar(x.team)}">
                         <div class="badge-row">${badgeLeft}${badgeRight}</div>
@@ -919,6 +964,7 @@
                         <div class="total-block">
                             <div class="total-label">Total</div>
                             <div class="total">${x.total}</div>
+                            ${gapHtml}
                         </div>
                         <div class="radar-row">
                             ${renderRadar(teamScores, disciplines, 120)}
@@ -1002,22 +1048,28 @@
                 svg += `<text class="rank-label" x="${(padL - 8).toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="end">#${r}</text>`;
             }
 
+            // Rank is a step function: a team holds its rank until a scoring event flips it.
+            // Hold flat, then a short "knee" transition INTO each event node — so crossings happen
+            // at the event (truthful) and read as deliberate steps, not gradual broadcast-swoosh.
+            const kneeFrac = 0.35; // 65% flat hold, 35% transition before the node
             for (const team of teams) {
                 const colorVar = teamColorVar(team);
-                const points = snapshots.map((snap, i) => {
-                    const rank = snap[team.team_key];
-                    const x = padL + i * xStep;
-                    const y = padT + (rank - 1) * yStep;
-                    return `${x.toFixed(1)},${y.toFixed(1)}`;
-                }).join(" ");
-                svg += `<polyline class="team-line" stroke="${colorVar}" points="${points}"/>`;
+                const pts = snapshots.map((snap, i) => ({
+                    x: padL + i * xStep,
+                    y: padT + (snap[team.team_key] - 1) * yStep,
+                }));
 
-                const last = snapshots[snapshots.length - 1];
-                const lastRank = last[team.team_key];
-                const ex = padL + (N - 1) * xStep;
-                const ey = padT + (lastRank - 1) * yStep;
-                svg += `<circle class="team-end-dot" cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="5" fill="${colorVar}"/>`;
-                svg += `<text class="team-end-label" x="${(ex + 11).toFixed(1)}" y="${(ey + 5).toFixed(1)}" fill="${colorVar}">${esc(shortName(team.team_name))}</text>`;
+                let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+                for (let i = 1; i < pts.length; i++) {
+                    const prev = pts[i - 1], cur = pts[i];
+                    const kneeX = cur.x - (cur.x - prev.x) * kneeFrac;
+                    d += ` L ${kneeX.toFixed(1)} ${prev.y.toFixed(1)} L ${cur.x.toFixed(1)} ${cur.y.toFixed(1)}`;
+                }
+                svg += `<path class="team-line" stroke="${colorVar}" d="${d}"/>`;
+
+                const last = pts[pts.length - 1];
+                svg += `<circle class="team-end-dot" cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="5" fill="${colorVar}"/>`;
+                svg += `<text class="team-end-label" x="${(last.x + 11).toFixed(1)}" y="${(last.y + 5).toFixed(1)}" fill="${colorVar}">${esc(shortName(team.team_name))}</text>`;
             }
 
             bumpSvg.innerHTML = svg;
@@ -1121,6 +1173,15 @@
                     const pts = matrix[t.team_key]?.[d.discipline_key];
                     if (typeof pts === "number" && pts > topScore) { topScore = pts; topTeam = t; }
                 }
+                // Dot per team that has scored this discipline, on a shared 0→max axis.
+                const dotsHtml = teams.map(t => {
+                    const pts = matrix[t.team_key]?.[d.discipline_key];
+                    if (typeof pts !== "number") return "";
+                    const frac = d.max_points > 0 ? Math.min(pts / d.max_points, 1) : 0;
+                    const leftPct = (4 + frac * 92).toFixed(1); // inset so edge dots aren't clipped
+                    const isTop = topTeam && t.team_key === topTeam.team_key;
+                    return `<span class="dot${isTop ? " lead" : ""}" style="left:${leftPct}%; --team-color: ${teamColorVar(t)}" title="${esc(t.team_name)}: ${pts}"></span>`;
+                }).join("");
                 const meta = hasAny
                     ? `${topScore}/${d.max_points} <span class="leader-name">${esc(topTeam?.team_name ?? "")}</span>`
                     : `Kommer · /${d.max_points}`;
@@ -1131,6 +1192,7 @@
                 return `
                     <div class="disc-pill" data-status="${status}"${leaderColorStyle}>
                         <span class="label">${esc(d.discipline_name)}</span>
+                        <div class="disc-dots">${dotsHtml}</div>
                         <span class="meta">${meta}</span>
                     </div>
                 `;
