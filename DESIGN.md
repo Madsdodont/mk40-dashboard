@@ -1,18 +1,27 @@
 ---
 name: mk40 — Kongerigernes Kamp
-description: Live scoretavle som monument-medaltavle. OL-mood, ikke broadcast-flash.
+description: Live scoretavle som håndsat festens program — editorial monument cream, subtil lækkerhed, eksklusivitets-farve.
 colors:
-  ink-deep: "oklch(18% 0.015 30)"
-  ink-elevated: "oklch(22% 0.018 30)"
-  ink-border: "oklch(30% 0.020 30)"
-  bone: "oklch(94% 0.010 60)"
-  bone-muted: "oklch(78% 0.012 60)"
-  gold-ceremonial: "oklch(78% 0.16 85)"
-  team-rød: "[to be resolved from bandana photo]"
-  team-blå: "[to be resolved from bandana photo]"
-  team-grøn: "[to be resolved from bandana photo]"
-  team-gul: "[to be resolved from bandana photo]"
-  team-sortHvid: "[to be resolved from bandana photo]"
+  # Paper palette — light cream surfaces. Token-navne (--ink-*) er retained fra dark-version origin, refactor til --paper-* pending.
+  ink-void: "oklch(94% 0.012 60)"    # page background — slight cream
+  ink-deep: "oklch(97% 0.008 60)"    # shell background — paper white
+  ink-card: "oklch(99% 0.005 60)"    # card surface — brightest
+  ink-elevated: "oklch(96% 0.010 60)" # mid surface — tinted paper
+  ink-border-soft: "oklch(88% 0.012 60)" # subtle divider
+  ink-border: "oklch(75% 0.012 60)"  # visible divider
+  # Text scale — warm dark ink. Token-navne (--bone-*) retained, refactor til --text-* pending.
+  bone: "oklch(20% 0.014 30)"        # primary text — near-black, warm
+  bone-muted: "oklch(40% 0.014 30)"  # secondary text
+  bone-dim: "oklch(58% 0.012 30)"    # tertiary text — labels, hints
+  # Live red — broadcast pill only
+  live-red: "oklch(58% 0.22 25)"
+  # Team colors — bandana-mapped 2026-05-29/30, L-calibrated for paper bg contrast
+  team-rød: "oklch(58% 0.22 5)"      # Pink bandana — "Pink Rødder" (rename pending)
+  team-blå: "oklch(42% 0.20 258)"    # Navy bandana — Det Blå Imperium
+  team-grøn: "oklch(50% 0.18 145)"   # Grass green bandana — Den Grønne Pagt
+  team-gul: "oklch(68% 0.18 65)"     # Orange/golden bandana — Gyldne Riger
+  team-sortHvid: "oklch(52% 0.18 295)" # Lilla bandana — Den Sorte Cirkel
+  # Gold tokens retired 2026-05-30 — team colors drive everything, leader signaled via own team-color amplified.
 typography:
   display:
     fontFamily: "Fraunces, Source Serif Pro, Georgia, serif"
@@ -77,49 +86,64 @@ components:
 
 ## 1. Overview
 
-**Creative North Star: "The Olympic Hall Scoreboard"**
+**Creative North Star: "Festens håndsatte program" — kuratoreret katalog, ikke TV-broadcast.**
 
-Festens scoretavle er ikke et corporate dashboard. Den er en monumental medaltavle bygget til et lørdagsritualt klædt i deep ink — ceremoniel uden at være højtidelig, eksplosiv kun i score-change-øjeblikket. OL-stadion-storsskærm filtreret gennem editorial-ro: tabulær præcision på data, monumental typografi på navne, deep ink-canvas der lader hold-farverne brænde frem som flag.
+Festens scoretavle er ikke et corporate dashboard og ikke en live-broadcast. Den er et omhyggeligt trykt program klædt i paper-cream — monumental i typografi, ceremoniel i rytme, håndsat i detalje. Hold-farverne drives som flag mod paper-canvas; whitespace og soft shadows udstråler eksklusivitet uden at skrige. Editorial monument cream — galleri-katalog filtreret gennem fest-energi.
 
-Systemet afviser eksplicit corporate-dashboard-reflexerne: ingen grids, ingen donut-charts, ingen subtle SaaS-shadows. Det afviser også esports-HUD-reflexen: ingen glow, ingen gradient-borders, ingen animerede sparkles. Mellem disse to defaultes til **fest-broadcast i ceremonial-register**.
+Systemet afviser eksplicit corporate-dashboard-reflexerne (ingen grids, ingen donut-charts, ingen SaaS-blue-gray), esports-HUD-reflexen (ingen neon, ingen gradient-borders, ingen animerede sparkles) OG den casino-bling-fælde der lurer ved enhver "fest"-event. Mellem disse defaultes til **håndsat program i editorial-register**.
+
+Brand-pivot dokumenteret 2026-05-30: tidligere "OL Olympic Hall Scoreboard" + deep ink + gold-ceremonial-accent retired. Light theme + team-color-driven palette + gold-retired vandt A/B test fordi den lader paletten styre uden at warm ink overdøver.
 
 **Key Characteristics:**
-- Deep ink-canvas (OKLCH-tinted neutral, mod cream-burgundy)
-- 5 hold-farver som named roles, sampled fra fysiske bandanas
+- Paper-canvas (OKLCH cream-tinted neutral hue 60, aldrig pure white)
+- 5 hold-farver som named roles, sampled fra fysiske bandanas, L-calibreret for paper-bg
 - Editorial serif på holdnavne, display sans på discipliner, mono-tabular på tal
-- Gold ceremonial-accent reserveret total-row leader
+- Ingen gold — leader signaleres via egen team-color amplified (deeper bake, glow, scale-bump)
+- Subtile shadows (opacity 0.08-0.14) — paper-on-paper depth, ikke broadcast-flash
 - Animation kun ved faktisk score-change (Emil's "rare/first-time → can add delight")
 - Multi-screen: TV-broadcast-skala + mobile hand-skala som separate udgaver
 
 ## 2. Colors
 
-Paletten er fem mættede hold-identifikatorer mod en deep ink-canvas tintet mod burgundy. Gold er reserveret total-row-leader; resten af interfacet er stille.
+Paletten styres af de 5 hold-farver. Paper-canvas (cream-tinted neutral) er backdrop, warm-ink er text-foreground, og resten af supporting-paletten holdes stille så hold-identiteten bæres uden konkurrence. Gold retired 2026-05-30.
 
-### Primary
-- **Ink Deep** (oklch(18% 0.015 30)): Canvas. Hele scoretavlens baggrund. Tintet mod warm/burgundy, ikke pure black — Emil's regel om aldrig `#000`. På TV mod variabelt ambient lys forbliver dette neutralt-dybt uden at virke vasket.
-- **Ink Elevated** (oklch(22% 0.018 30)): Header-row + total-row surface. Tydeligt opdriftet uden borders.
-- **Ink Border** (oklch(30% 0.020 30)): Skille-linjer mellem rows, kun hvor nødvendigt.
+### Paper canvas (primary surface scale)
+- **Ink Void** (oklch(94% 0.012 60)): Page background bag shell — slight cream undertone.
+- **Ink Deep** (oklch(97% 0.008 60)): Shell background — paper white.
+- **Ink Card** (oklch(99% 0.005 60)): Card surface — brightest paper.
+- **Ink Elevated** (oklch(96% 0.010 60)): Mid surface — tinted paper, banner-clock-block.
+- **Ink Border Soft** (oklch(88% 0.012 60)): Subtle divider, fine line.
+- **Ink Border** (oklch(75% 0.012 60)): Visible divider, sektion-breaks.
 
-### Secondary
-- **Gold Ceremonial** (oklch(78% 0.16 85)): Total-row text. Reserveret rene placeringer — den ene farve der bryder out af paletten signalerer leader. Brugen er ≤5% af surfacen.
+*NB:* Token-navne (`--ink-*`) er retained fra dark-version origin. Semantisk er de nu paper-surfaces, ikke ink. Rename til `--paper-*` parkeret som follow-up refactor (mekanisk, holder ikke designet tilbage).
 
-### Tertiary (de 5 hold som named roles)
-- **Team Rød** ([HEX sampled fra bandana]): Kongeriget Røde Rødder.
-- **Team Blå** ([HEX sampled]): Det Blå Imperium.
-- **Team Grøn** ([HEX sampled]): Den Grønne Pagt.
-- **Team Gul** ([HEX sampled]): Gyldne Riger.
-- **Team Sort/Hvid** ([HEX sampled]): Den Sorte Cirkel.
+### Tekst (foreground scale — warm ink hue 30)
+- **Bone** (oklch(20% 0.014 30)): Primary text — near-black, warm hue 30.
+- **Bone Muted** (oklch(40% 0.014 30)): Secondary text — supporting numerics, sub-context.
+- **Bone Dim** (oklch(58% 0.012 30)): Tertiary text — labels, hints, placeholder-text.
+
+*NB:* `--bone-*` retained fra dark-origin; semantisk er de nu dark text. Rename til `--text-*` parkeret.
+
+### 5 hold-farver (drive the entire palette)
+- **Team Rød** (oklch(58% 0.22 5)): Pink bandana — "Pink Rødder" (rename pending).
+- **Team Blå** (oklch(42% 0.20 258)): Navy bandana — Det Blå Imperium.
+- **Team Grøn** (oklch(50% 0.18 145)): Grass green bandana — Den Grønne Pagt.
+- **Team Gul** (oklch(68% 0.18 65)): Orange/golden bandana — Gyldne Riger.
+- **Team Sort/Hvid** (oklch(52% 0.18 295)): Lilla bandana — Den Sorte Cirkel.
+
+L-værdier kalibreret fra bandana-foto til paper-bg-kontrast (dropped 4-10pp fra raw bandana for læsbarhed mod cream).
 
 Hver hold-farve har én rolle: identifikator. Aldrig decoration, aldrig UI-chrome, aldrig accent på andet end holdet selv.
 
-### Neutral
-- **Bone** (oklch(94% 0.010 60)): Foreground text mod ink-canvas. Cream-tintet hvid, aldrig pure white.
-- **Bone Muted** (oklch(78% 0.012 60)): Label-tekst, header-row text. Stille hierarchy under bone.
+### Live red (broadcast convention only)
+- **Live Red** (oklch(58% 0.22 25)): Reserveret til LIVE-pill i banner-clock. Ikke en brand-farve, en broadcast-konvention. Hvid text + hvid dot, hardcoded — uafhængigt af theme-tokens.
 
 ### Named Rules
 **The Identifier-Only Rule.** Hold-farverne er knyttet til hold og hold alene. Aldrig brugt som UI-accent, button-color, border-decoration, eller mood-tint. Hvis du er fristet til at bruge `team-rød` på noget der ikke er Kongeriget Røde Rødder, hold dig tilbage.
 
-**The Gold Reserve Rule.** Gold ceremonial er total-row-text only. Aldrig button, aldrig border, aldrig accent. Dens sjældenhed er pointen.
+**The No-Gold Rule.** Gold-ceremonial token retired 2026-05-30 efter Mads' diagnose: gold + ink overdøvede de 5 team-farver, gjorde dem til pynt frem for styring. Leader signaleres nu via egen team-color amplified (deeper bake 75% top vs default 50%, team-color glow 50px, border-top 10px vs 6px, total-tal 1.3x scale med team-color text-halo). Ingen gold nogensteder i fest-dashboardet — kun proto-nav (dev-chrome) har en hardcoded amber, ikke en brand-token.
+
+**The Team-Bake Rule.** Hver hold-card har sin team-farve bagt ind i baggrunden (linear-gradient team@50% top → team@18% middle → ink-card bottom). Cards er territorier, ikke ens-paper med stripe-accent.
 
 ## 3. Typography
 
@@ -144,12 +168,23 @@ Hver hold-farve har én rolle: identifikator. Aldrig decoration, aldrig UI-chrom
 
 ## 4. Elevation
 
-Systemet er **tonally layered, ikke shadow-elevated**. Ingen box-shadows. Ingen drop-shadows. Ingen glow. Depth opnås via subtile lightness-skift i ink-paletten (deep → elevated → border = 3 OKLCH-trin).
+Systemet er **tonally layered + subtle-shadow-elevated**. 3-level shadow-token system (low/medium/high) kombineret med paper-tonal-spread (5 ink-trin). Shadows er warm-tinted (oklch hue 30) og opacity 0.06-0.14 — paper-on-paper-depth, ikke broadcast-flash.
 
-Dette er en bevidst rejection af både SaaS-shadow-default og esports-glow-reflex. På TV-distance forsvinder shadow-subtilitet alligevel — tonal-layering læses fra 8 meter, shadows gør ikke.
+Brand-pivot 2026-05-30: tidligere "The Flat-Tonal Rule" (no box-shadows, depth-via-lightness-only) retired efter Mads' feedback: flade surfaces fungerede ikke i light theme — alle 5 cards "svævede" lige højt uden hierarki, leader-amplification var ikke aflæselig. Subtle shadows + top-edge paper-highlight + bottom team-spill bringer depth uden at skride mod SaaS-shadow eller esports-glow.
+
+### Elevation tokens
+- **Shadow Low** (opacity 0.06-0.08): Default cards, panels, banner, disc-strip. Subtle lift fra page-bg.
+- **Shadow Medium** (opacity 0.08-0.10): Latest-result panel når has-event. Aktiv-state opløftning.
+- **Shadow High** (opacity 0.12-0.14): Leader-card. Stærk lift + team-color ambient glow (50px) som ceremonial signalering.
+
+Per shadow-fundamentals: single light-source fra over → shadows pegér ned. Top-edge får paper-highlight (oklch(100% 0 0 / 0.7)) for "facing-light" effekt. Per elevation-system: max 5-6 levels for at undgå decision paralysis — vi har 3, holder den enkel.
 
 ### Named Rules
-**The Flat-Tonal Rule.** Surfaces er flade. Hierarki læses af baggrundsfarvens lightness-trin, ikke af shadow eller stroke. Hvis du er fristet til at tilføje en shadow for "depth" — gør lightness-trinnet større i stedet.
+**The Subtle-Shadow Rule.** Shadows er warm-tinted (oklch hue 30, aldrig pure black) og lav opacity. Tre tokens (low/medium/high) — aldrig hardcode shadow-values i komponenter. Hvis et niveau ikke matcher behovet, justér token-værdien, ikke component-CSS.
+
+**The Light-Catch-From-Above Rule.** Cards, banner, og panels får et 1px paper-highlight top-edge (oklch(100% 0 0 / 0.7)) for at simulere lys fra over. Det er det visuelle anchor for paper-on-paper depth. Aldrig anvendes som bottom-edge eller side-edge — kun top.
+
+**The Team-Color-Glow Rule.** Leader-card får team-color ambient glow (`0 0 50px color-mix(team@25%, transparent)`) som ceremonial signalering. Ikke gold, ikke white — leader's egen farve amplificeret. Glow-radius må aldrig overstige 80px (skrider mod neon).
 
 ## 5. Components
 
@@ -187,17 +222,24 @@ Change detected (cell-value differs fra forrige render):
 ### Do:
 - **Do** brug Fraunces (eller specified faldback) på holdnavne. Editorial serif er den valgte voice.
 - **Do** brug JetBrains Mono med `font-feature-settings: "tnum" 1` på alle tal. Tabular figures er ikke-forhandelbar for kolonne-alignment.
-- **Do** brug OKLCH for alle neutrals med chroma 0.010-0.020 tintet mod brand-hue (~30°). Aldrig `#000` eller `#fff`.
+- **Do** brug OKLCH for alle neutrals — paper-tints hue 60 (cream), tekst-tints hue 30 (warm ink). Aldrig `#000` eller `#fff` (undtagelse: paper-highlight `oklch(100% 0 0 / 0.7)` på top-edges + live-pill white).
+- **Do** bake team-color ind i card-overflader (linear-gradient team@50% top → team@18% middle → ink-card). Cards er territorier, ikke ens-paper med stripe.
+- **Do** signalér leader via egen team-color amplified — deeper bake, team-color glow, tykkere stripe, scale-bump på total-tal. Aldrig via fremmed accent-farve.
+- **Do** brug 3-level shadow tokens (low/medium/high) med warm-tint hue 30 + opacity 0.06-0.14. Subtile, paper-on-paper.
+- **Do** brug 1px paper-highlight top-edges (`oklch(100% 0 0 / 0.7)`) på cards/panels/banner som light-catch-from-above.
 - **Do** animér KUN ved score-change. Score-cell der ikke ændrer værdi får intet motion. (Emil's 100+ times/day rule.)
 - **Do** brug Emil's custom ease-out `cubic-bezier(0.23, 1, 0.32, 1)` for alle UI-transitions.
 - **Do** respektér `prefers-reduced-motion` — degradér til ren opacity-fade.
-- **Do** sampl hold-farver fra bandana-foto. Visuel kobling fest↔dashboard er en taste-detail.
+- **Do** sampl hold-farver fra bandana-foto, L-kalibrér for paper-bg-kontrast (drop 4-10pp L fra raw bandana).
 
 ### Don't:
 - **Don't** brug Power BI / corporate dashboard-reflex (Excel-grids, donut charts, navy + light-gray accent). Direkte fra PRODUCT.md anti-references.
 - **Don't** brug generisk SaaS-cream + navy reflex (Linear/Notion blue+gray). Også PRODUCT.md anti-reference.
 - **Don't** glide ind i Twitch/Esports HUD-territorium: neon-glow, gradient-shadows, animerede sparkles. På risiko-listen i PRODUCT.md.
-- **Don't** glide ind i Casino-bling: gold-gradients, hero-metric template, big-bold-loud everywhere. Stadium-personality skal være disciplineret.
+- **Don't** glide ind i Casino-bling: gold-gradients, hero-metric template, big-bold-loud everywhere. Editorial-personality skal være disciplineret.
+- **Don't** glide ind i loud / neon / high-contrast broadcast (NY risiko-line 2026-05-30): light theme + saturerede team-colors kan skride mod neon hvis ikke disciplineret. Soft shadows + generøs whitespace er værnet.
+- **Don't** glide ind i Wedding/event-app generisk (NY risiko-line 2026-05-30): Wes Anderson-pastel kan tippe mod softness-without-spine. Monumental + ceremoniel skal forblive rygraden.
+- **Don't** brug gold nogensteder i fest-dashboardet — gold tokens retired 2026-05-30. Leader signaleres via egen team-color amplified, ikke gold accent. (Eneste undtagelse: proto-nav dev-chrome har hardcoded amber.)
 - **Don't** brug border-left/right >1px som colored stripe på rows eller cells. (Impeccable absolute ban.)
 - **Don't** brug gradient-text på title eller numbers. (Impeccable absolute ban.)
 - **Don't** brug glassmorphism (backdrop-filter blur som decoration). (Impeccable absolute ban.)
@@ -207,3 +249,5 @@ Change detected (cell-value differs fra forrige render):
 - **Don't** brug `transition: all`. Specificér exact properties (transform, opacity, background-color).
 - **Don't** start animation fra `scale(0)`. Start fra `scale(0.95)` + `opacity: 0`. (Emil's "nothing in the real world appears from nothing".)
 - **Don't** brug `ease-in` på UI-elementer. Føles sluggish; brug ease-out eller custom.
+- **Don't** brug pure-black shadows. Warm-tint hue 30 + low opacity (≤0.14) — per shadow-fundamentals.
+- **Don't** lave team-color glow større end 80px radius. Skrider mod neon/esports.
