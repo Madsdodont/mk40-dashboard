@@ -9,49 +9,55 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,600;1,9..144,700&family=Inter:wght@500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap">
     <style>
         :root {
-            /* Ink palette — wider tonal spread (8→15→20→24→32) so 5 levels read as hierarchy on TV */
-            --ink-void:        oklch(6% 0.010 30);   /* page background — deepest, behind shell */
-            --ink-deep:        oklch(8% 0.012 30);   /* shell background */
-            --ink-card:        oklch(15% 0.014 30);  /* card surface (default elevation) */
-            --ink-elevated:    oklch(20% 0.018 30);  /* mid surface (banner clock block, hero variants) */
-            --ink-border-soft: oklch(24% 0.016 30);  /* subtle divider */
-            --ink-border:      oklch(32% 0.020 30);  /* visible divider */
+            /* Light/editorial theme — won A/B test 2026-05-30 vs dark broadcast variant.
+               Token names retained from dark-version origin (--ink-* / --bone-*) pending
+               rename to --paper-* / --text-* in a follow-up.
 
-            /* Bone scale — foreground */
-            --bone:            oklch(95% 0.008 60);
-            --bone-muted:      oklch(68% 0.012 60);
-            --bone-dim:        oklch(45% 0.010 60);
+               Paper palette — bone-tinted backdrop. Warm hue 60 (cream), never pure white.
+               Wider spread so 5 surface levels read as hierarchy. */
+            --ink-void:        oklch(94% 0.012 60);  /* page background — slight cream */
+            --ink-deep:        oklch(97% 0.008 60);  /* shell background — paper white */
+            --ink-card:        oklch(99% 0.005 60);  /* card surface — brightest */
+            --ink-elevated:    oklch(96% 0.010 60);  /* mid surface — tinted paper */
+            --ink-border-soft: oklch(88% 0.012 60);  /* subtle divider */
+            --ink-border:      oklch(75% 0.012 60);  /* visible divider */
 
-            /* Live red — broadcast pill only (broadcast convention, not a brand color) */
-            --live-red:        oklch(60% 0.22 25);
+            /* Text — was "bone" (light text on dark), now holds dark text values for light bg.
+               Warm ink hue 30 for editorial warmth. */
+            --bone:            oklch(20% 0.014 30);  /* primary text — near-black, warm */
+            --bone-muted:      oklch(40% 0.014 30);  /* secondary text */
+            --bone-dim:        oklch(58% 0.012 30);  /* tertiary text — labels, hints */
 
-            /* NB: Gold tokens retired 2026-05-30 — team colors drive the whole palette.
-               Leader is signaled via own team-color amplified, not via gold accent.
-               Reason: gold + bone + ink combined overpowered the 5 team identities. */
+            /* Live red — broadcast pill only */
+            --live-red:        oklch(58% 0.22 25);
 
-            /* Team colors — sampled from physical bandanas, calibrated for TV readability against ink-deep.
-               Navy bumped from bandana L=28% to L=45% so the team reads on dark canvas without losing navy character. */
-            --team-rød:        oklch(64% 0.22 5);    /* Pink bandana ("Pink Rødder" — rename pending) */
-            --team-blå:        oklch(48% 0.20 258);  /* Navy bandana, L-bumped for TV */
-            --team-grøn:       oklch(55% 0.18 145);  /* Grass green bandana */
-            --team-gul:        oklch(74% 0.18 65);   /* Orange/golden bandana → Gyldne Riger */
-            --team-sortHvid:   oklch(60% 0.18 295);  /* Lilla bandana → Sorte Cirkel (decided 2026-05-29) */
+            /* NB: Gold retired in dark version (2026-05-30) — team colors drive everything.
+               Same principle holds here. */
+
+            /* Team colors — same OKLCH as dark version. Mid-saturation bandana values render
+               vividly against light cream bg without need for L-adjustment.
+               Navy stays at L=48% (was bumped for dark TV); on light bg it has more headroom. */
+            --team-rød:        oklch(58% 0.22 5);    /* Pink bandana — slight L drop for white-bg contrast */
+            --team-blå:        oklch(42% 0.20 258);  /* Navy bandana — slight L drop for contrast on cream */
+            --team-grøn:       oklch(50% 0.18 145);  /* Grass green — L drop for legibility */
+            --team-gul:        oklch(68% 0.18 65);   /* Orange — L drop so it reads as orange not pastel */
+            --team-sortHvid:   oklch(52% 0.18 295);  /* Lilla — L drop for clear identity on light */
 
             /* Fonts */
             --font-display:    "Fraunces", Georgia, serif;
             --font-label:      "Inter", system-ui, sans-serif;
             --font-numeric:    "JetBrains Mono", ui-monospace, monospace;
 
-            /* Shadow tokens — 3-level elevation (per Material Design + designparser elevation-system).
-               Tinted dark-warm (matches ink hue 30°), never pure black per shadow-fundamentals. */
-            --shadow-low:    0 1px 2px oklch(0% 0.02 30 / 0.45),
-                             0 2px 6px oklch(0% 0.02 30 / 0.25);
-            --shadow-medium: 0 2px 4px oklch(0% 0.02 30 / 0.55),
-                             0 8px 24px oklch(0% 0.02 30 / 0.35);
-            --shadow-high:   0 4px 8px oklch(0% 0.02 30 / 0.60),
-                             0 16px 48px oklch(0% 0.02 30 / 0.45);
+            /* Shadow tokens — softer for light theme. Warm-tinted (ink hue 30), low opacity.
+               Light surfaces show shadows as subtle warmth-shifts, not depth-chasms. */
+            --shadow-low:    0 1px 2px oklch(20% 0.02 30 / 0.08),
+                             0 2px 6px oklch(20% 0.02 30 / 0.06);
+            --shadow-medium: 0 2px 4px oklch(20% 0.02 30 / 0.10),
+                             0 8px 24px oklch(20% 0.02 30 / 0.08);
+            --shadow-high:   0 4px 8px oklch(20% 0.02 30 / 0.14),
+                             0 16px 48px oklch(20% 0.02 30 / 0.12);
 
-            /* Spacing scale — 8pt grid (4pt only for micro-typography) */
+            /* Spacing scale — 8pt grid */
             --space-1:  4px;
             --space-2:  8px;
             --space-3:  12px;
@@ -66,8 +72,8 @@
         body {
             background:
                 radial-gradient(ellipse at 50% 0%,
-                    oklch(12% 0.018 30) 0%,
-                    var(--ink-void) 60%),
+                    oklch(99% 0.006 60) 0%,
+                    var(--ink-void) 70%),
                 var(--ink-void);
             color: var(--bone);
             font-family: var(--font-label); min-height: 100vh;
@@ -78,7 +84,8 @@
         /* ===== Proto nav ===== */
         .proto-nav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 30;
-            background: oklch(7% 0.008 30 / 0.85); backdrop-filter: blur(8px);
+            background: oklch(96% 0.008 60 / 0.85); backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--ink-border-soft);
             padding: 0.5rem 1.5rem; display: flex; gap: 0.5rem;
             font-family: var(--font-label); font-size: 0.75rem;
             font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
@@ -87,8 +94,8 @@
             color: var(--bone-muted); text-decoration: none; padding: 0.25rem 0.75rem;
             border: 1px solid transparent;
         }
-        /* Proto-nav is dev chrome — not part of fest dashboard. Hardcoded amber, not a brand token. */
-        .proto-nav a.current { color: oklch(78% 0.16 85); border-color: oklch(78% 0.16 85); }
+        /* Proto-nav is dev chrome. Dark amber for light theme — readable, signals "current". */
+        .proto-nav a.current { color: oklch(45% 0.16 50); border-color: oklch(45% 0.16 50); }
         .proto-nav a:hover { color: var(--bone); }
 
         /* ===== Layout shell — vertical lock 15/45/25/15 ===== */
@@ -117,12 +124,12 @@
             min-height: 0;
             position: relative;
         }
-        /* Top-edge light catch — single light source from above per shadow-fundamentals */
+        /* Top-edge light catch — bright highlight on light theme (sun from above on paper) */
         .top-banner::before {
             content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
             background: linear-gradient(90deg,
                 transparent 0%,
-                oklch(45% 0.020 30 / 0.6) 50%,
+                oklch(100% 0 0 / 0.9) 50%,
                 transparent 100%);
             pointer-events: none;
         }
@@ -142,27 +149,27 @@
         .event-block.hero {
             background:
                 radial-gradient(ellipse at 0% 100%,
-                    color-mix(in oklch, var(--team-color) 55%, transparent) 0%,
+                    color-mix(in oklch, var(--team-color) 70%, transparent) 0%,
                     transparent 60%),
                 linear-gradient(135deg,
-                    color-mix(in oklch, var(--team-color) 38%, var(--ink-elevated)) 0%,
-                    var(--ink-elevated) 80%);
+                    color-mix(in oklch, var(--team-color) 50%, var(--ink-card)) 0%,
+                    color-mix(in oklch, var(--team-color) 15%, var(--ink-card)) 80%);
             padding: 1rem 1.25rem;
             box-shadow:
-                inset 0 1px 0 oklch(60% 0.020 30 / 0.25),
-                inset 0 0 0 1px color-mix(in oklch, var(--team-color) 25%, transparent);
+                inset 0 1px 0 oklch(100% 0 0 / 0.4),
+                inset 0 0 0 1px color-mix(in oklch, var(--team-color) 45%, transparent);
             position: relative;
             overflow: hidden;
         }
-        /* Hero ambient glow — radial spill behind team color */
+        /* Hero ambient glow — multiply for light theme (darker saturation instead of screen-lighten) */
         .event-block.hero::after {
             content: ""; position: absolute; inset: 0;
             background: radial-gradient(circle at 20% 80%,
-                color-mix(in oklch, var(--team-color) 25%, transparent) 0%,
+                color-mix(in oklch, var(--team-color) 30%, transparent) 0%,
                 transparent 50%);
             pointer-events: none;
-            mix-blend-mode: screen;
-            opacity: 0.6;
+            mix-blend-mode: multiply;
+            opacity: 0.7;
         }
 
         .event-block .ev-team-tag {
@@ -216,16 +223,18 @@
             background: var(--ink-elevated);
             min-width: 120px;
         }
+        /* Live pill — broadcast convention: white text on red, regardless of theme.
+           Hardcoded white (not --bone, which is dark in light theme). */
         .live-pill {
             display: inline-flex; align-items: center; gap: 0.5rem;
-            background: var(--live-red); color: var(--bone);
+            background: var(--live-red); color: oklch(100% 0 0);
             padding: 0.25rem 0.6rem;
             font-family: var(--font-label); font-weight: 800;
             letter-spacing: 0.12em; font-size: 0.6875rem;
         }
         .live-pill::before {
             content: ""; width: 6px; height: 6px; border-radius: 50%;
-            background: var(--bone); animation: pulse 1.8s ease-in-out infinite;
+            background: oklch(100% 0 0); animation: pulse 1.8s ease-in-out infinite;
         }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
@@ -249,16 +258,16 @@
             min-height: 0;
         }
 
-        /* Hold-cards — team-color BAKED into surface so each card is visibly the team's territory.
-           Default: subtle team-bake (20% top → ink-card). Leader: amplified bake (40% top, deeper saturation,
-           team-color glow). No gold anywhere — leader is signaled by amplified own-team-color. */
+        /* Hold-cards (LIGHT THEME) — team-color baked vivid on cream-paper bg.
+           Higher mix-percentages than dark version because team-color on paper reads softer
+           than on ink. Top 50% → middle 18% → bottom 0% creates clear team-territory. */
         .hold-card {
             background:
                 linear-gradient(180deg,
-                    color-mix(in oklch, var(--team-color) 22%, var(--ink-card)) 0%,
-                    color-mix(in oklch, var(--team-color) 6%, var(--ink-card)) 55%,
+                    color-mix(in oklch, var(--team-color) 50%, var(--ink-card)) 0%,
+                    color-mix(in oklch, var(--team-color) 18%, var(--ink-card)) 50%,
                     var(--ink-card) 100%);
-            border: 1px solid color-mix(in oklch, var(--team-color) 28%, var(--ink-border-soft));
+            border: 1px solid color-mix(in oklch, var(--team-color) 45%, var(--ink-border-soft));
             border-top: 6px solid var(--team-color);
             padding: 1.5rem 1.5rem 1.25rem 1.5rem;
             display: grid;
@@ -269,17 +278,16 @@
             overflow: hidden;
             box-shadow:
                 var(--shadow-low),
-                0 0 0 1px color-mix(in oklch, var(--team-color) 8%, transparent) inset;
+                0 0 0 1px color-mix(in oklch, var(--team-color) 15%, transparent) inset;
             transition: box-shadow 240ms cubic-bezier(0.23, 1, 0.32, 1);
         }
-        /* Top-edge light catch (under colored stripe) */
+        /* Top-edge light catch (under colored stripe) — paper highlight, not dark line */
         .hold-card::before {
             content: ""; position: absolute; top: 6px; left: 0; right: 0; height: 1px;
             background: linear-gradient(90deg,
                 transparent 0%,
-                color-mix(in oklch, var(--team-color) 50%, oklch(55% 0.020 30)) 50%,
+                oklch(100% 0 0 / 0.7) 50%,
                 transparent 100%);
-            opacity: 0.6;
             pointer-events: none;
             z-index: 1;
         }
@@ -287,30 +295,31 @@
         .hold-card::after {
             content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 70%;
             background: radial-gradient(ellipse at 50% 100%,
-                color-mix(in oklch, var(--team-color) 22%, transparent) 0%,
+                color-mix(in oklch, var(--team-color) 28%, transparent) 0%,
                 transparent 70%);
             pointer-events: none;
             z-index: 0;
+            mix-blend-mode: multiply;
         }
         .hold-card > * { position: relative; z-index: 2; }
 
-        /* Leader — own team-color AMPLIFIED. No gold. */
+        /* Leader (LIGHT) — team-color amplified on paper. */
         .hold-card.leader {
             background:
                 radial-gradient(ellipse at 50% 0%,
-                    color-mix(in oklch, var(--team-color) 55%, var(--ink-card)) 0%,
-                    color-mix(in oklch, var(--team-color) 18%, var(--ink-card)) 45%,
-                    var(--ink-card) 90%);
-            border: 1px solid color-mix(in oklch, var(--team-color) 65%, var(--ink-border));
+                    color-mix(in oklch, var(--team-color) 75%, var(--ink-card)) 0%,
+                    color-mix(in oklch, var(--team-color) 32%, var(--ink-card)) 50%,
+                    var(--ink-card) 100%);
+            border: 1px solid color-mix(in oklch, var(--team-color) 75%, var(--ink-border));
             border-top: 10px solid var(--team-color);
             box-shadow:
                 var(--shadow-high),
-                0 0 60px color-mix(in oklch, var(--team-color) 35%, transparent),
-                inset 0 1px 0 color-mix(in oklch, var(--team-color) 60%, oklch(90% 0.020 30) / 0.5);
+                0 0 50px color-mix(in oklch, var(--team-color) 25%, transparent),
+                inset 0 1px 0 oklch(100% 0 0 / 0.5);
         }
         .hold-card.leader::after {
             background: radial-gradient(ellipse at 50% 100%,
-                color-mix(in oklch, var(--team-color) 38%, transparent) 0%,
+                color-mix(in oklch, var(--team-color) 45%, transparent) 0%,
                 transparent 70%);
         }
 
@@ -323,9 +332,12 @@
         .hold-card.leader .badge-row {
             color: var(--bone);
         }
+        /* LIGHT THEME: badge text must be DARK on team-color bg (was --ink-deep = dark in dark theme,
+           but tokens are flipped here so --ink-deep is now light = unreadable on team bg).
+           --bone holds dark text in light theme. */
         .hold-card.leader .badge-row .lead-badge {
             background: var(--team-color);
-            color: var(--ink-deep);
+            color: var(--bone);
             padding: 0.25rem 0.6rem;
             font-weight: 900;
             box-shadow: 0 0 12px color-mix(in oklch, var(--team-color) 60%, transparent);
@@ -447,7 +459,7 @@
             content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
             background: linear-gradient(90deg,
                 transparent 0%,
-                oklch(45% 0.020 30 / 0.4) 50%,
+                oklch(100% 0 0 / 0.7) 50%,
                 transparent 100%);
             pointer-events: none;
         }
@@ -657,7 +669,7 @@
             content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
             background: linear-gradient(90deg,
                 transparent 0%,
-                oklch(45% 0.020 30 / 0.4) 50%,
+                oklch(100% 0 0 / 0.7) 50%,
                 transparent 100%);
             pointer-events: none;
         }
@@ -759,8 +771,7 @@
         <a href="./bars.html">B · Bars</a>
         <a href="./cinema.html">C · Cinematic</a>
         <a href="./hud.html">D · HUD</a>
-        <a href="./hud2.html" class="current">E · HUD v2 (dark)</a>
-        <a href="./hud2-light.html">F · HUD v2 (light)</a>
+        <a href="./hud2.html" class="current">E · HUD v2</a>
     </nav>
 
     <div class="shell">
@@ -974,7 +985,7 @@
             }
 
             if (snapshots.length < 2) {
-                bumpSvg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" class="rank-label" fill="oklch(45% 0.010 60)">Venter på første scores</text>`;
+                bumpSvg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" class="rank-label" fill="oklch(58% 0.012 30)">Venter på første scores</text>`;
                 return;
             }
 
