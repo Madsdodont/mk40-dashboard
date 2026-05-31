@@ -20,7 +20,7 @@ colors:
   team-blå: "oklch(42% 0.20 258)"    # Navy bandana — Det Blå Imperium
   team-grøn: "oklch(50% 0.18 145)"   # Grass green bandana — Den Grønne Pagt
   team-gul: "oklch(68% 0.18 65)"     # Orange/golden bandana — Gyldne Riger
-  team-sortHvid: "oklch(52% 0.18 295)" # Lilla bandana — Den Sorte Cirkel
+  team-sorthvid: "oklch(52% 0.18 295)" # Lilla bandana — Den Sorte Cirkel (lowercase: team_color 'sort/hvid' → cssVarSafe → 'sorthvid', CSS vars case-sensitive)
   # Gold tokens retired 2026-05-30 — team colors drive everything, leader signaled via own team-color amplified.
 typography:
   display:
