@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mk40 — HUD v3 (viz) prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,600;1,9..144,700&family=Inter:wght@500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap">
+    <style>
+        :root {
+            /* Light/editorial theme — won A/B test 2026-05-30 vs dark broadcast variant.
+               Token names retained from dark-version origin (--ink-* / --bone-*) pending
+               rename to --paper-* / --text-* in a follow-up.
+
+               Paper palette — bone-tinted backdrop. Warm hue 60 (cream), never pure white.
+               Wider spread so 5 surface levels read as hierarchy. */
+            --ink-void:        oklch(94% 0.012 60);  /* page background — slight cream */
+            --ink-deep:        oklch(97% 0.008 60);  /* shell background — paper white */
+            --ink-card:        oklch(99% 0.005 60);  /* card surface — brightest */
+            --ink-elevated:    oklch(96% 0.010 60);  /* mid surface — tinted paper */
+            --ink-border-soft: oklch(88% 0.012 60);  /* subtle divider */
+            --ink-border:      oklch(75% 0.012 60);  /* visible divider */
+
+            /* Text — was "bone" (light text on dark), now holds dark text values for light bg.
+               Warm ink hue 30 for editorial warmth. */
+            --bone:            oklch(20% 0.014 30);  /* primary text — near-black, warm */
+            --bone-muted:      oklch(40% 0.014 30);  /* secondary text */
+            --bone-dim:        oklch(58% 0.012 30);  /* tertiary text — labels, hints */
+
+            /* Live red — broadcast pill only */
+            --live-red:        oklch(58% 0.22 25);
+
+            /* NB: Gold retired in dark version (2026-05-30) — team colors drive everything.
+               Same principle holds here. */
+
+            /* Team colors — same OKLCH as dark version. Mid-saturation bandana values render
+               vividly against light cream bg without need for L-adjustment.
+               Navy stays at L=48% (was bumped for dark TV); on light bg it has more headroom. */
+            --team-rød:        oklch(58% 0.22 5);    /* Pink bandana — slight L drop for white-bg contrast */
+            --team-blå:        oklch(42% 0.20 258);  /* Navy bandana — slight L drop for contrast on cream */
+            --team-grøn:       oklch(50% 0.18 145);  /* Grass green — L drop for legibility */
+            --team-gul:        oklch(68% 0.18 65);   /* Orange — L drop so it reads as orange not pastel */
+            --team-sorthvid:   oklch(52% 0.18 295);  /* Lilla — L drop for clear identity on light. NB: lowercase — cssVarSafe('sort/hvid')→'sorthvid', CSS vars er case-sensitive */
+
+            /* Fonts */
+            --font-display:    "Fraunces", Georgia, serif;
+            --font-label:      "Inter", system-ui, sans-serif;
+            --font-numeric:    "JetBrains Mono", ui-monospace, monospace;
+
+            /* Shadow tokens — softer for light theme. Warm-tinted (ink hue 30), low opacity.
+               Light surfaces show shadows as subtle warmth-shifts, not depth-chasms. */
+            --shadow-low:    0 1px 2px oklch(20% 0.02 30 / 0.08),
+                             0 2px 6px oklch(20% 0.02 30 / 0.06);
+            --shadow-medium: 0 2px 4px oklch(20% 0.02 30 / 0.10),
+                             0 8px 24px oklch(20% 0.02 30 / 0.08);
+            --shadow-high:   0 4px 8px oklch(20% 0.02 30 / 0.14),
+                             0 16px 48px oklch(20% 0.02 30 / 0.12);
+
+            /* Spacing scale — 8pt grid */
+            --space-1:  4px;
+            --space-2:  8px;
+            --space-3:  12px;
+            --space-4:  16px;
+            --space-5:  24px;
+            --space-6:  32px;
+            --space-7:  40px;
+            --space-8:  48px;
+            --space-9:  64px;
+            --space-10: 96px;
+
+            /* Layout system — doubling tiers on the 8pt grid (24→48→96), one per proximity level.
+               Semantic aliases so the role is explicit and reusable (also portable to AV). */
+            --gap-row:   var(--space-5);   /* 24px — elements within a row (cards, panels) */
+            --gap-stack: var(--space-8);   /* 48px — between shell rows (section break) */
+            --frame:     var(--space-10);  /* 96px — outer margin, all four sides */
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            /* Five-team aurora field — the shared arena. Each team's hue sits as a soft, low-presence
+               wash; heavy overlap blends them into one cohesive multi-hue field over the cream base.
+               Color lives HERE, not on the cards — cards are calm vessels that pick up ambient hue
+               through their transparency. Knobs: the % per hue (intensity) and the at-positions (layout). */
+            background:
+                radial-gradient(ellipse 55% 60% at 10% 12%,  color-mix(in oklch, var(--team-rød)      16%, transparent) 0%, transparent 62%),
+                radial-gradient(ellipse 55% 60% at 30% 88%,  color-mix(in oklch, var(--team-blå)      15%, transparent) 0%, transparent 62%),
+                radial-gradient(ellipse 60% 65% at 52% 8%,   color-mix(in oklch, var(--team-grøn)     14%, transparent) 0%, transparent 62%),
+                radial-gradient(ellipse 55% 60% at 73% 90%,  color-mix(in oklch, var(--team-gul)      15%, transparent) 0%, transparent 62%),
+                radial-gradient(ellipse 55% 60% at 92% 14%,  color-mix(in oklch, var(--team-sorthvid) 16%, transparent) 0%, transparent 62%),
+                var(--ink-void);
+            background-attachment: fixed;
+            color: var(--bone);
+            font-family: var(--font-label); min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            display: flex; flex-direction: column;
+        }
+
+        /* ===== Proto nav ===== */
+        .proto-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+            background: oklch(96% 0.008 60 / 0.85); backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--ink-border-soft);
+            padding: 0.5rem 1.5rem; display: flex; gap: 0.5rem;
+            font-family: var(--font-label); font-size: 0.75rem;
+            font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+        }
+        .proto-nav a {
+            color: var(--bone-muted); text-decoration: none; padding: 0.25rem 0.75rem;
+            border: 1px solid transparent;
+        }
+        /* Proto-nav is dev chrome. Dark amber for light theme — readable, signals "current". */
+        .proto-nav a.current { color: oklch(45% 0.16 50); border-color: oklch(45% 0.16 50); }
+        .proto-nav a:hover { color: var(--bone); }
+
+        /* ===== Layout shell — vertical lock 15/45/25/15 ===== */
+        .shell {
+            /* 96px frame all sides (proto-nav is fixed-overlay scaffolding, floats in the top frame).
+               Fit-to-one-screen: min-height 100vh, rows compress via fr + child overflow:hidden. */
+            min-height: 100vh;
+            padding: var(--frame);
+            display: grid;
+            grid-template-rows: 15fr 45fr 25fr 15fr;
+            gap: var(--gap-stack);
+            max-width: 2400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ===== Top banner ===== */
+        /* Banner is now a row of independent frosted blocks with 24px air between (was one glued
+           strip with border-dividers). Each event-block carries its own surface + shadow. */
+        .top-banner {
+            display: grid;
+            grid-template-columns: 1.7fr repeat(4, 1fr) auto;
+            gap: var(--gap-row);
+            min-height: 0;
+        }
+
+        .event-block {
+            padding: 0.875rem 1rem;
+            display: flex; flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            min-width: 0;
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
+            border: 1px solid color-mix(in oklch, var(--team-color, var(--ink-border)) 18%, var(--ink-border-soft));
+            border-radius: 8px;
+            box-shadow: var(--shadow-low);
+            overflow: hidden;
+        }
+        .event-block.empty { opacity: 0.4; }
+        .event-block.empty .ev-team { color: var(--bone-dim); }
+
+        /* Hero (latest event) — emphasis via a MORE SOLID surface + team glow, not a color flood. */
+        .event-block.hero {
+            background: color-mix(in oklch, var(--ink-card) 88%, transparent);
+            padding: 1rem 1.25rem;
+            border-color: color-mix(in oklch, var(--team-color) 32%, var(--ink-border));
+            box-shadow:
+                var(--shadow-low),
+                0 0 20px color-mix(in oklch, var(--team-color) 12%, transparent);
+        }
+        .event-block.hero::after { background: none; }
+
+        .event-block .ev-team-tag {
+            position: absolute; top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--team-color);
+        }
+        .event-block.hero .ev-team-tag { width: 6px; }
+        .event-block.empty .ev-team-tag { background: var(--ink-border); }
+
+        .event-block .ev-meta {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 700; letter-spacing: 0.12em;
+            color: var(--bone-dim); text-transform: uppercase;
+        }
+        .event-block.hero .ev-meta { font-size: 0.75rem; color: var(--bone-muted); }
+
+        .event-block .ev-team {
+            font-family: var(--font-display); font-weight: 700;
+            font-size: clamp(0.875rem, 1vw, 1.0625rem);
+            line-height: 1.05; color: var(--bone);
+            letter-spacing: -0.01em; margin-top: 0.4rem;
+        }
+        .event-block.hero .ev-team {
+            font-weight: 900;
+            font-size: clamp(1.125rem, 1.4vw, 1.625rem);
+        }
+
+        .event-block .ev-discipline {
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 600; letter-spacing: 0.1em;
+            color: var(--bone-muted); text-transform: uppercase;
+            margin-top: 0.1rem;
+        }
+        .event-block.hero .ev-discipline { font-size: 0.75rem; }
+
+        .event-block .ev-points {
+            font-family: var(--font-numeric); font-weight: 800;
+            font-size: clamp(1.25rem, 1.7vw, 1.875rem);
+            color: var(--bone); line-height: 1;
+            font-variant-numeric: tabular-nums; align-self: flex-end;
+        }
+        .event-block.hero .ev-points { font-size: clamp(2rem, 3.2vw, 3.5rem); }
+        .event-block .ev-points::before { content: "+"; opacity: 0.5; font-weight: 700; }
+
+        .banner-clock-block {
+            padding: 0.875rem 1.25rem;
+            display: flex; flex-direction: column;
+            justify-content: space-between; align-items: flex-end;
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
+            border: 1px solid var(--ink-border-soft);
+            border-radius: 8px;
+            box-shadow: var(--shadow-low);
+            min-width: 120px;
+        }
+        /* Live pill — broadcast convention: white text on red, regardless of theme.
+           Hardcoded white (not --bone, which is dark in light theme). */
+        .live-pill {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: var(--live-red); color: oklch(100% 0 0);
+            padding: 0.25rem 0.6rem;
+            font-family: var(--font-label); font-weight: 800;
+            letter-spacing: 0.12em; font-size: 0.6875rem;
+        }
+        .live-pill::before {
+            content: ""; width: 6px; height: 6px; border-radius: 50%;
+            background: oklch(100% 0 0); animation: pulse 1.8s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .banner-clock {
+            font-family: var(--font-numeric); font-weight: 700;
+            color: var(--bone); font-variant-numeric: tabular-nums;
+            font-size: 1.5rem; line-height: 1;
+        }
+        .banner-date {
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 600; letter-spacing: 0.12em;
+            color: var(--bone-dim); text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        /* ===== Hold cards row — BIG ===== */
+        .cards-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: var(--gap-row);
+            min-height: 0;
+        }
+
+        /* Hold-cards (LIGHT THEME) — team-color baked vivid on cream-paper bg.
+           Higher mix-percentages than dark version because team-color on paper reads softer
+           than on ink. Top 50% → middle 18% → bottom 0% creates clear team-territory. */
+        .hold-card {
+            /* Calm vessel — NO team tint on the surface. The aurora field behind glows through
+               the translucent frosted card, so each card picks up ambient hue from its zone
+               without flooding. Team identity lives in the stripe + radar + badge only. */
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
+            border: 1px solid color-mix(in oklch, var(--team-color) 18%, var(--ink-border-soft));
+            border-top: 6px solid var(--team-color);  /* stripe carries team identity, not the surface */
+            border-radius: 8px;
+            padding: var(--space-5);  /* 24px symmetric — was 24/24/20/24, asymmetric bottom snapped to grid */
+            display: flex;
+            flex-direction: column;
+            /* identity (badge/name/motto) sits top, stats zone (total/gap/radar) anchored bottom
+               via .total-block margin-top:auto → ALL slack collapses into ONE intentional gap.
+               Was grid-template-rows: auto auto 1fr auto — the 1fr landed on motto (5 kids, 4 tracks)
+               and inflated it to a dead gradient void. */
+            position: relative;
+            min-height: 0;
+            overflow: hidden;
+            box-shadow:
+                var(--shadow-low),
+                0 0 0 1px color-mix(in oklch, var(--team-color) 15%, transparent) inset;
+            transition: box-shadow 240ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        /* Top-edge light catch (under colored stripe) — paper highlight, not dark line */
+        .hold-card::before {
+            content: ""; position: absolute; top: 6px; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                oklch(100% 0 0 / 0.7) 50%,
+                transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+        /* Bottom team-color spill — anchors the card to its territory */
+        .hold-card::after {
+            content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 70%;
+            background: none;  /* spill removed — the aurora field supplies all ambient color now */
+            pointer-events: none;
+            z-index: 0;
+        }
+        .hold-card > * { position: relative; z-index: 2; }
+
+        /* Leader (LIGHT) — team-color amplified on paper. */
+        .hold-card.leader {
+            /* Leader stays calm too — no tint. It reads as leader via a MORE OPAQUE (more solid,
+               less ghosted) surface + thicker 10px stripe + glow shadow. Presence, not color-flood. */
+            background: color-mix(in oklch, var(--ink-card) 90%, transparent);
+            border: 1px solid color-mix(in oklch, var(--team-color) 32%, var(--ink-border));
+            border-top: 10px solid var(--team-color);
+            box-shadow:
+                var(--shadow-high),
+                0 0 50px color-mix(in oklch, var(--team-color) 25%, transparent),
+                inset 0 1px 0 oklch(100% 0 0 / 0.5);
+        }
+        .hold-card.leader::after {
+            background: none;  /* leader differentiated by opacity + stripe + glow, not a spill */
+        }
+
+        .hold-card .badge-row {
+            display: flex; justify-content: space-between; align-items: center;
+            min-height: 28px;  /* fixed height across ALL cards (pill vs plain rank) → names align on a shared baseline below */
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 800; letter-spacing: 0.18em;
+            text-transform: uppercase; color: var(--bone-dim);
+        }
+        .hold-card.leader .badge-row {
+            color: var(--bone);
+        }
+        /* LIGHT THEME: badge text must be DARK on team-color bg (was --ink-deep = dark in dark theme,
+           but tokens are flipped here so --ink-deep is now light = unreadable on team bg).
+           --bone holds dark text in light theme. */
+        .hold-card.leader .badge-row .lead-badge {
+            background: var(--team-color);
+            color: oklch(100% 0 0);  /* white text on team-color pill */
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-weight: 900;
+            box-shadow: 0 0 12px color-mix(in oklch, var(--team-color) 60%, transparent);
+        }
+
+        .hold-card .name {
+            font-family: var(--font-display); font-weight: 700;
+            font-size: clamp(1.125rem, 1.4vw, 1.625rem);
+            line-height: 1.0; color: var(--bone);
+            letter-spacing: -0.02em; margin-top: var(--space-2);  /* 8px — related to badge above */
+            text-wrap: balance;
+        }
+        .hold-card.leader .name {
+            font-weight: 900;
+            font-size: clamp(1.25rem, 1.7vw, 2rem);
+        }
+
+        .hold-card .motto {
+            font-family: var(--font-display); font-style: italic;
+            font-weight: 600; font-size: 0.875rem;
+            color: var(--bone-muted); line-height: 1.3;
+            margin-top: var(--space-2); min-height: 2.2em;  /* 8px — within identity group */
+        }
+        .hold-card.leader .motto {
+            color: var(--bone);
+            opacity: 0.85;
+        }
+
+        .hold-card .total-block {
+            margin-top: auto;  /* anchors stats zone to card bottom; absorbs motto-length variance so all 5 cards' stats align */
+            padding-top: var(--space-4);  /* 16px */
+        }
+        .hold-card .total-label {
+            font-family: var(--font-label); font-size: 0.625rem;
+            font-weight: 700; letter-spacing: 0.2em;
+            color: var(--bone-dim); text-transform: uppercase;
+        }
+        .hold-card .total {
+            font-family: var(--font-numeric); font-weight: 700;
+            font-size: clamp(3.5rem, 6vw, 6.5rem);
+            color: var(--bone-muted); line-height: 0.9;
+            margin-top: 0.15rem;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.03em;
+        }
+        /* Leader total — amplified via size + weight + full bone (not muted) + team-color text-shadow halo */
+        .hold-card.leader .total {
+            color: var(--bone);
+            font-weight: 800;
+            font-size: clamp(4.5rem, 7.5vw, 8rem);
+            text-shadow: 0 0 32px color-mix(in oklch, var(--team-color) 60%, transparent);
+        }
+
+        /* Gap-to-leader — dumbbell delta as a glance number. Serves PRODUCT.md job (a): se hvem leder OG med hvor meget. */
+        .hold-card .gap {
+            font-family: var(--font-numeric); font-weight: 700;
+            font-size: clamp(0.75rem, 0.9vw, 0.9375rem);
+            letter-spacing: 0.04em;
+            color: var(--bone-dim); font-variant-numeric: tabular-nums;
+            margin-top: 0.2rem;
+        }
+        .hold-card .gap .gap-unit { font-size: 0.7em; opacity: 0.7; margin-left: 0.15em; }
+        .hold-card.leader .gap {
+            color: var(--bone);
+            text-shadow: 0 0 16px color-mix(in oklch, var(--team-color) 45%, transparent);
+        }
+
+        .hold-card .radar-row {
+            margin-top: var(--space-5);  /* 24px — was 20px (off-grid); section break below stats */
+            padding-top: var(--space-4);  /* 16px */
+            border-top: 1px solid color-mix(in oklch, var(--team-color) 20%, var(--ink-border-soft));
+            display: flex; align-items: center; gap: var(--space-4);  /* 16px radar↔meta */
+        }
+        .hold-card.leader .radar-row { border-top-color: color-mix(in oklch, var(--team-color) 45%, transparent); }
+
+        .hold-card .radar { width: 152px; height: 152px; flex-shrink: 0; }  /* 19×8 — snapped to 8pt grid */
+        .hold-card .radar .axis { stroke: var(--ink-border); stroke-width: 1; }
+        .hold-card .radar .ring { stroke: var(--ink-border); stroke-width: 1; fill: none; opacity: 0.55; }
+        .hold-card .radar .polygon {
+            fill: var(--team-color); fill-opacity: 0.42;
+            stroke: var(--team-color); stroke-width: 2;
+            stroke-linejoin: round;
+        }
+        /* Leader radar — same team-color, just brighter fill + stronger stroke */
+        .hold-card.leader .radar .polygon {
+            fill-opacity: 0.6;
+            stroke-width: 2.5;
+            filter: drop-shadow(0 0 8px color-mix(in oklch, var(--team-color) 50%, transparent));
+        }
+        /* Numbered vertex nodes — paper disc + dark number, matches the disc-strip number chip.
+           Neutral (no team/discipline color) so it reads as a key, not another color signal. */
+        .hold-card .radar .axis-node {
+            fill: var(--ink-card); stroke: var(--ink-border); stroke-width: 1;
+        }
+        .hold-card .radar .axis-num {
+            font-family: var(--font-numeric); font-size: 9px;
+            font-weight: 700; fill: var(--bone-muted); text-anchor: middle;
+        }
+
+        .hold-card .radar-meta {
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 700; letter-spacing: 0.15em;
+            color: var(--bone-dim); text-transform: uppercase;
+            line-height: 1.35;
+            min-width: 0;
+        }
+        .hold-card .radar-meta strong {
+            display: block;
+            font-family: var(--font-numeric); font-weight: 700;
+            font-size: 1rem; color: var(--bone-muted);
+            letter-spacing: 0.04em;
+            margin-top: 0.15rem;
+        }
+        .hold-card.leader .radar-meta strong { color: var(--bone); }
+
+        /* ===== Mid row: bump (1.4fr) + seneste+AI (1fr) ===== */
+        .mid-row {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: var(--gap-row);
+            min-height: 0;
+        }
+
+        .panel {
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
+            border: 1px solid var(--ink-border-soft);
+            border-radius: 8px;
+            padding: 1.25rem 1.5rem;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+            box-shadow: var(--shadow-low);
+            position: relative;
+        }
+        .panel::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                oklch(100% 0 0 / 0.7) 50%,
+                transparent 100%);
+            pointer-events: none;
+        }
+
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: baseline;
+            margin-bottom: 0.875rem;
+            flex-shrink: 0;
+        }
+        .panel-header .title {
+            font-family: var(--font-display); font-weight: 700;
+            font-size: 1.25rem; letter-spacing: -0.01em;
+            color: var(--bone);
+        }
+        .panel-header .sub {
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 700; letter-spacing: 0.15em;
+            color: var(--bone-dim); text-transform: uppercase;
+        }
+
+        /* Bump chart container — fills mid-row vertically */
+        .bump-wrap {
+            flex: 1; min-height: 0;
+            position: relative;
+        }
+        .bump-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .bump-svg .axis-line {
+            stroke: var(--ink-border-soft); stroke-width: 1; stroke-dasharray: 2 5;
+        }
+        .bump-svg .rank-label {
+            font-family: var(--font-numeric); font-size: 12px;
+            font-weight: 700; fill: var(--bone-dim);
+            letter-spacing: 0.05em;
+        }
+        .bump-svg .team-line {
+            stroke-width: 3; fill: none;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+        .bump-svg .team-end-dot { stroke: var(--ink-card); stroke-width: 2.5; }
+        .bump-svg .team-end-label {
+            font-family: var(--font-display); font-weight: 700;
+            font-size: 14px; letter-spacing: -0.01em;
+        }
+
+        /* ===== Seneste + AI commentary panel ===== */
+        .latest-panel {
+            display: grid;
+            grid-template-rows: auto auto 1fr auto;
+            gap: 0;
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
+            border: 1px solid var(--ink-border-soft);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            min-height: 0;
+            box-shadow: var(--shadow-low);
+            transition: box-shadow 240ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .latest-panel::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0;
+            height: 6px; background: var(--team-color);
+            box-shadow: 0 1px 12px color-mix(in oklch, var(--team-color) 60%, transparent);
+            z-index: 2;
+        }
+        /* Latest result with an event — emphasis via more-solid surface + team-stripe (::before) + glow. */
+        .latest-panel.has-event {
+            background: color-mix(in oklch, var(--ink-card) 88%, transparent);
+            border-color: color-mix(in oklch, var(--team-color) 28%, var(--ink-border-soft));
+            box-shadow:
+                var(--shadow-low),
+                0 0 20px color-mix(in oklch, var(--team-color) 10%, transparent);
+        }
+        /* When latest event IS the leader — amplify own team-color glow further */
+        .latest-panel.has-event.leader {
+            box-shadow:
+                var(--shadow-low),
+                0 0 28px color-mix(in oklch, var(--team-color) 16%, transparent);
+        }
+
+        .latest-panel .lp-header {
+            padding: 1rem 1.5rem 0.5rem 1.5rem;
+            display: flex; justify-content: space-between; align-items: baseline;
+        }
+        .latest-panel .lp-label {
+            font-family: var(--font-label); font-size: 0.6875rem;
+            font-weight: 800; letter-spacing: 0.2em;
+            color: var(--bone-muted); text-transform: uppercase;
+        }
+        .latest-panel .lp-time {
+            font-family: var(--font-numeric); font-weight: 600;
+            font-size: 0.75rem; color: var(--bone-dim);
+            font-variant-numeric: tabular-nums; letter-spacing: 0.05em;
+        }
+
+        .latest-panel .lp-hero {
+            padding: 0.25rem 1.5rem 0 1.5rem;
+            display: flex; align-items: baseline; gap: 1.25rem;
+        }
+        .latest-panel .lp-points {
+            font-family: var(--font-display); font-weight: 900;
+            font-size: clamp(3.5rem, 6vw, 5.5rem);
+            line-height: 0.9;
+            color: var(--bone);
+            letter-spacing: -0.04em;
+            font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
+        }
+        .latest-panel .lp-points::before {
+            content: "+"; opacity: 0.55; font-weight: 700;
+            font-size: 0.55em; vertical-align: top;
+            margin-right: 0.05em;
+        }
+        .latest-panel .lp-event-meta {
+            display: flex; flex-direction: column;
+            min-width: 0;
+        }
+        .latest-panel .lp-team {
+            font-family: var(--font-display); font-weight: 900;
+            font-size: clamp(1.25rem, 1.6vw, 1.875rem);
+            line-height: 1.0; color: var(--bone);
+            letter-spacing: -0.02em; text-wrap: balance;
+        }
+        .latest-panel .lp-discipline {
+            font-family: var(--font-label); font-size: 0.8125rem;
+            font-weight: 700; letter-spacing: 0.15em;
+            color: var(--bone-muted); text-transform: uppercase;
+            margin-top: 0.25rem;
+        }
+
+        .latest-panel .lp-commentary {
+            padding: 1rem 1.5rem 0.5rem 1.5rem;
+            font-family: var(--font-display); font-style: italic;
+            font-weight: 600;
+            font-size: clamp(0.95rem, 1.1vw, 1.25rem);
+            line-height: 1.35;
+            color: var(--bone);
+            text-wrap: balance;
+            align-self: end;
+        }
+        .latest-panel .lp-commentary::before {
+            content: "“"; font-size: 1.5em; line-height: 0;
+            vertical-align: -0.25em; color: var(--bone-muted);
+            margin-right: 0.15em;
+        }
+        .latest-panel .lp-commentary::after {
+            content: "”"; font-size: 1.5em; line-height: 0;
+            vertical-align: -0.25em; color: var(--bone-muted);
+            margin-left: 0.1em;
+        }
+        .latest-panel .lp-commentary-tag {
+            display: block;
+            margin-top: 0.4rem;
+            font-family: var(--font-label); font-style: normal;
+            font-size: 0.625rem; font-weight: 700;
+            letter-spacing: 0.18em; text-transform: uppercase;
+            color: var(--bone-dim);
+        }
+
+        .latest-panel .lp-context {
+            padding: 0.75rem 1.5rem 1rem 1.5rem;
+            font-family: var(--font-label); font-size: 0.75rem;
+            font-weight: 700; letter-spacing: 0.12em;
+            color: var(--bone-muted); text-transform: uppercase;
+            border-top: 1px solid var(--ink-border-soft);
+            display: flex; justify-content: space-between; align-items: baseline;
+        }
+        .latest-panel .lp-context strong {
+            font-family: var(--font-numeric); font-weight: 800;
+            color: var(--bone); font-size: 0.9375rem;
+            letter-spacing: 0.04em;
+        }
+        /* Position-line: leader gets bone (full), behind gets bone-muted. Team-identity carried by panel's team-color edge + glow. */
+        .latest-panel .lp-context strong.lead { color: var(--bone); }
+        .latest-panel .lp-context strong.behind { color: var(--bone-muted); }
+
+        .latest-panel.empty .lp-hero,
+        .latest-panel.empty .lp-commentary { display: none; }
+        .latest-panel.empty .lp-empty {
+            grid-row: 2 / 4;
+            padding: 2rem 1.5rem;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--bone-dim);
+            font-family: var(--font-label); font-size: 0.875rem;
+            font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+            text-align: center;
+        }
+
+        /* ===== Disciplin strip ===== */
+        /* Was one glued strip; now 5 independent frosted pills with 24px air between. */
+        .disc-strip {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: var(--gap-row);
+            min-height: 0;
+        }
+        .disc-pill {
+            padding: 1.125rem 1.5rem;
+            display: flex; flex-direction: column;
+            justify-content: center;
+            gap: 0.35rem;
+            min-width: 0;
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
+            border: 1px solid var(--ink-border-soft);
+            border-radius: 8px;
+            box-shadow: var(--shadow-low);
+        }
+        .disc-pill .label {
+            font-family: var(--font-label); font-size: 0.875rem;
+            font-weight: 800; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--bone-muted);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        /* Number chip — matches the radar vertex node (paper disc + dark number). The radar↔discipline key. */
+        .disc-pill .label .disc-num {
+            margin-left: auto;  /* parks the number at the far right of each box → consistent scan position */
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 20px; height: 20px; border-radius: 50%;
+            border: 1px solid var(--ink-border); background: var(--ink-card);
+            font-family: var(--font-numeric); font-size: 0.6875rem;
+            font-weight: 700; color: var(--bone-muted);
+            letter-spacing: 0; flex-shrink: 0;
+        }
+        /* Done discipline: label stays bone-muted; checkmark gets the leading team's color */
+        .disc-pill[data-status="done"] .label { color: var(--bone); }
+        .disc-pill[data-status="done"] .label::before {
+            content: "✓"; font-weight: 900; font-size: 0.875rem;
+            color: var(--leader-color, var(--bone));
+            text-shadow: 0 0 8px color-mix(in oklch, var(--leader-color, transparent) 40%, transparent);
+        }
+        .disc-pill[data-status="pending"] .label::before { content: "○"; opacity: 0.6; }
+        .disc-pill .meta {
+            font-family: var(--font-numeric); font-size: 0.8125rem;
+            font-weight: 700; color: var(--bone-dim);
+            font-variant-numeric: tabular-nums; letter-spacing: 0.04em;
+        }
+        .disc-pill .meta .leader-name {
+            font-family: var(--font-display); font-weight: 700;
+            font-style: italic; color: var(--bone-muted);
+            letter-spacing: 0; margin-left: 0.25rem;
+        }
+
+        /* Per-discipline dot-strip — generalizes dumbbell to N teams. Each team's score as a dot
+           on a shared 0→max axis; position on common baseline = most accurately decoded channel.
+           Reveals how contested each discipline was (tight cluster = gyser, lone right dot = walkover). */
+        .disc-pill .disc-dots {
+            position: relative; height: 14px;
+            margin: 0.15rem 0.25rem;
+            border-bottom: 1px solid var(--ink-border-soft);
+        }
+        .disc-pill .disc-dots .dot {
+            position: absolute; top: 50%; transform: translate(-50%, -50%);
+            width: 9px; height: 9px; border-radius: 50%;
+            background: var(--team-color);
+            box-shadow: 0 0 0 1.5px var(--ink-card);
+        }
+        .disc-pill .disc-dots .dot.lead {
+            width: 13px; height: 13px;
+            box-shadow: 0 0 0 2px var(--ink-card),
+                        0 0 8px color-mix(in oklch, var(--team-color) 50%, transparent);
+            z-index: 2;
+        }
+        .disc-pill[data-status="pending"] .disc-dots {
+            border-bottom-style: dashed; opacity: 0.5;
+        }
+
+        /* ===== Responsive breakpoints ===== */
+
+        /* Tablets landscape & smaller desktop */
+        @media (max-width: 1500px) {
+            .hold-card .radar { width: 96px; height: 96px; }
+            .hold-card .total { font-size: clamp(3rem, 5vw, 5.5rem); }
+            .hold-card .name { font-size: clamp(1rem, 1.2vw, 1.375rem); }
+        }
+
+        /* Smaller tablet — drop to 3-up cards */
+        @media (max-width: 1300px) {
+            .cards-row { grid-template-columns: repeat(3, 1fr); }
+            .hold-card:nth-child(4), .hold-card:nth-child(5) {
+                grid-column: span 1;
+            }
+            .hold-card { min-height: 280px; }
+            .hold-card .radar { width: 88px; height: 88px; }
+        }
+
+        /* Phones & narrow */
+        @media (max-width: 1100px) {
+            .shell {
+                padding: 0.75rem;
+                grid-template-rows: auto auto auto auto;
+            }
+            .top-banner { grid-template-columns: 1fr; }
+            .event-block { border-right: none; border-bottom: 1px solid var(--ink-border-soft); }
+            .event-block.empty { display: none; }
+            .banner-clock-block { flex-direction: row; align-items: center; padding: 0.6rem 1rem; }
+            .banner-date { margin-bottom: 0; }
+            .cards-row { grid-template-columns: repeat(2, 1fr); }
+            .hold-card { min-height: 240px; }
+            .hold-card .radar { width: 80px; height: 80px; }
+            .hold-card .total { font-size: clamp(2.5rem, 8vw, 4rem); }
+            .mid-row { grid-template-columns: 1fr; }
+            .bump-wrap { min-height: 280px; }
+            .latest-panel .lp-hero { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .latest-panel .lp-points { font-size: 3rem; }
+            .disc-strip { grid-template-columns: 1fr 1fr; }
+            .disc-pill { border-right: none; border-bottom: 1px solid var(--ink-border-soft); padding: 0.75rem 1rem; }
+        }
+
+        @media (max-width: 540px) {
+            .cards-row { grid-template-columns: 1fr; }
+        }
+
+        .state-message {
+            grid-column: 1 / -1;
+            text-align: center; padding: 2rem 1rem;
+            color: var(--bone-muted);
+            font-family: var(--font-label); letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-size: 0.75rem; font-weight: 700;
+        }
+        .state-message.error { color: var(--live-red); }
+
+        /* ========================================================================
+           G · CARDS HORIZONTAL — layout overrides, placed last so they win the cascade.
+           Reuses hud3's tokens, frosted surface, typography and radar; only geometry changes:
+           five rank-sorted cards laid DOWN and stacked on the left, radar to the right of TOTAL.
+           Right column left intentionally open for v1 — we react to the form, then fill it.
+           ======================================================================== */
+        .shell {
+            /* Two card-width columns (cards | bump) + an open far-right gutter. Both card columns
+               are the SAME 36% track, so the bump box is always exactly as wide as a card —
+               at any viewport. Row tracks shared so rows 4-5 align across columns. */
+            grid-template-columns: minmax(440px, 36%) minmax(440px, 36%) 1fr;
+            grid-template-rows: repeat(5, 1fr);
+            column-gap: var(--gap-stack);
+            row-gap: var(--gap-row);
+        }
+        .cards-stack {
+            grid-column: 1;
+            grid-row: 1 / 6;
+            display: grid;
+            grid-template-rows: repeat(5, 1fr);
+            gap: var(--gap-row);
+            min-height: 0;
+        }
+        /* Wrapper dissolves so the bump box is a direct shell-grid child sharing the row tracks. */
+        .open-right { display: contents; }
+        .bump-panel {
+            grid-column: 2;
+            grid-row: 4 / 6;   /* bottom two rows — auto-aligned with cards #4 and #5 */
+            min-height: 0;
+        }
+
+        .hold-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            grid-template-rows: none;
+            align-items: center;
+            column-gap: var(--space-6);
+            padding: var(--space-2) var(--space-6);  /* 8px vertical — tighter so the radar gets more room */
+            border-top: 0;
+            border-left: 6px solid var(--team-color);  /* accent moves to the left edge */
+            box-shadow: var(--shadow-low);
+        }
+        .hold-card.leader {
+            border-top: 0;
+            border-left: 10px solid var(--team-color);
+            box-shadow:
+                var(--shadow-low),
+                0 0 24px color-mix(in oklch, var(--team-color) 14%, transparent);
+        }
+
+        .hc-identity { display: flex; flex-direction: column; min-width: 0; }
+        .hc-stats    { display: flex; flex-direction: column; align-items: flex-start; }
+        .hc-radar    { display: flex; align-items: center; justify-content: center; }
+
+        /* TOTAL scaled down for the shorter horizontal card; radar sits to its right. */
+        .hold-card .total        { font-size: clamp(2.5rem, 3.4vw, 3.75rem); margin-top: 0; }
+        .hold-card.leader .total { font-size: clamp(3rem, 4.4vw, 4.75rem); }
+        .hold-card .total-label  { margin-bottom: var(--space-1); }
+        .hc-radar .radar         { width: 144px; height: 144px; }  /* 18×8 — up from 128 */
+    </style>
+</head>
+<body>
+    <nav class="proto-nav">
+        <a href="./">Table (boring)</a>
+        <a href="./cards.html">A · Cards</a>
+        <a href="./bars.html">B · Bars</a>
+        <a href="./cinema.html">C · Cinematic</a>
+        <a href="./hud.html">D · HUD</a>
+        <a href="./hud2.html">E · HUD v2</a>
+        <a href="./hud3.html">F · HUD v3 (viz)</a>
+        <a href="./cards-h.html" class="current">G · Cards Horizontal</a>
+    </nav>
+
+    <div class="shell">
+        <div class="cards-stack" id="cards-row">
+            <div class="state-message">Henter data…</div>
+        </div>
+        <div class="open-right">
+            <div class="panel bump-panel">
+                <div class="panel-header">
+                    <span class="title">Placering gennem aftenen</span>
+                    <span class="sub">Rank · Bump</span>
+                </div>
+                <div class="bump-wrap" id="bump-wrap">
+                    <svg class="bump-svg" id="bump-svg" preserveAspectRatio="none"></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const $ = id => document.getElementById(id);
+        const banner = $("top-banner");
+        const cardsRow = $("cards-row");
+        const bumpSvg = $("bump-svg");
+        const bumpWrap = $("bump-wrap");
+        const latestPanel = $("latest-panel");
+        const discStrip = $("disc-strip");
+
+        function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
+        function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c])); }
+        function teamColorVar(team) { return `var(--team-${cssVarSafe(team.team_color)})`; }
+        function shortName(name) { return String(name).split(" ").slice(-1)[0]; }
+
+        let lastData = null;
+
+        async function fetchAll() {
+            const [t, d, s] = await Promise.all([
+                supabase.from("DimTeam").select("*").order("team_key"),
+                supabase.from("DimDiscipline").select("*").order("discipline_key"),
+                supabase.from("FactScore").select("*").eq("is_final", true),
+            ]);
+            if (t.error || d.error || s.error) throw new Error(t.error?.message || d.error?.message || s.error?.message);
+            return { teams: t.data, disciplines: d.data, scores: s.data };
+        }
+
+        function render(data) {
+            lastData = data;
+            const { teams, disciplines, scores } = data;
+            const matrix = {};
+            for (const r of scores) {
+                if (!matrix[r.team_key]) matrix[r.team_key] = {};
+                matrix[r.team_key][r.discipline_key] = r.points;
+            }
+            const totals = teams.map(t => ({
+                team: t,
+                total: disciplines.reduce((a, d) => a + (matrix[t.team_key]?.[d.discipline_key] ?? 0), 0),
+            }));
+            const sortedByTotal = [...totals].sort((a, b) => b.total - a.total);
+            const leaderKey = sortedByTotal[0]?.team.team_key;
+            const leaderTeam = sortedByTotal[0]?.team;
+            const leaderTotal = sortedByTotal[0]?.total ?? 0;
+            const rankByKey = Object.fromEntries(sortedByTotal.map((x, i) => [x.team.team_key, i + 1]));
+
+            // G · Cards Horizontal — rank-sorted cards (left) + bump chart in the right gutter.
+            // Banner / latest / disc-strip renderers are retained below but not called.
+            renderCards(totals, matrix, disciplines, leaderKey, rankByKey);
+            renderBump(teams, scores);
+        }
+
+        // ===== Banner =========================================================
+        function renderBanner(scores, teams, disciplines) {
+            const sortedDesc = [...scores].sort((a, b) => new Date(b.score_timestamp) - new Date(a.score_timestamp));
+            const top5 = sortedDesc.slice(0, 5);
+            while (top5.length < 5) top5.push(null);
+
+            const eventsHtml = top5.map((s, idx) => {
+                if (!s) {
+                    return `<div class="event-block empty"><span class="ev-team-tag"></span><div><div class="ev-meta"><span>—</span></div><div class="ev-team">—</div><div class="ev-discipline">Venter</div></div><div class="ev-points">0</div></div>`;
+                }
+                const team = teams.find(t => t.team_key === s.team_key);
+                const disc = disciplines.find(d => d.discipline_key === s.discipline_key);
+                const isHero = idx === 0;
+                const time = new Date(s.score_timestamp).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+                return `
+                    <div class="event-block${isHero ? " hero" : ""}" style="--team-color: ${teamColorVar(team)}">
+                        <span class="ev-team-tag"></span>
+                        <div>
+                            <div class="ev-meta"><span>${isHero ? "Seneste" : "–" + (idx + 1)}</span><span>·</span><span>${time}</span></div>
+                            <div class="ev-team">${esc(team?.team_name ?? "—")}</div>
+                            <div class="ev-discipline">${esc(disc?.discipline_name ?? "—")}</div>
+                        </div>
+                        <div class="ev-points">${s.points}</div>
+                    </div>
+                `;
+            }).join("");
+
+            const now = new Date();
+            const clockTime = now.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+            const dateStr = now.toLocaleDateString("da-DK", { day: "numeric", month: "short" }).toUpperCase();
+
+            banner.innerHTML = eventsHtml + `
+                <div class="banner-clock-block">
+                    <div><span class="live-pill">LIVE</span></div>
+                    <div>
+                        <div class="banner-date">${esc(dateStr)}</div>
+                        <div class="banner-clock">${clockTime}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== Hold cards — HORIZONTAL, sorted by rank (leader on top; re-sorts as scores change) =====
+        function renderCards(totals, matrix, disciplines, leaderKey, rankByKey) {
+            const sortedDesc = [...totals].sort((a, b) => b.total - a.total);
+            const leaderTotal = sortedDesc[0]?.total ?? 0;
+            const secondTotal = sortedDesc[1]?.total ?? leaderTotal;
+            // Render in rank order so the stack reorders through the evening.
+            const ordered = [...totals].sort((a, b) => rankByKey[a.team.team_key] - rankByKey[b.team.team_key]);
+            cardsRow.innerHTML = ordered.map(x => {
+                const isLeader = x.team.team_key === leaderKey;
+                const rank = rankByKey[x.team.team_key];
+                const teamScores = matrix[x.team.team_key] ?? {};
+                const badgeLeft = isLeader ? `<span class="lead-badge">FØRER</span>` : `<span>#${rank}</span>`;
+                const gapHtml = isLeader
+                    ? `<div class="gap">+${leaderTotal - secondTotal}<span class="gap-unit">PT FORSPRING</span></div>`
+                    : `<div class="gap">−${leaderTotal - x.total}<span class="gap-unit">PT BAGUD</span></div>`;
+                return `
+                    <div class="hold-card${isLeader ? " leader" : ""}" style="--team-color: ${teamColorVar(x.team)}">
+                        <div class="hc-identity">
+                            <div class="badge-row">${badgeLeft}</div>
+                            <div class="name">${esc(x.team.team_name)}</div>
+                            <div class="motto">${esc(x.team.team_motto || "")}</div>
+                        </div>
+                        <div class="hc-stats">
+                            <div class="total-label">Total</div>
+                            <div class="total">${x.total}</div>
+                            ${gapHtml}
+                        </div>
+                        <div class="hc-radar">
+                            ${renderRadar(teamScores, disciplines, 120)}
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function renderRadar(teamScores, disciplines, size) {
+            const cx = size / 2, cy = size / 2;
+            const maxR = size / 2 - 12;  /* extra margin so the numbered vertex nodes fit inside the viewBox */
+            const N = disciplines.length;
+            if (N < 3) return "";
+
+            let axes = "";
+            for (let i = 0; i < N; i++) {
+                const ang = (i / N) * 2 * Math.PI - Math.PI / 2;
+                axes += `<line class="axis" x1="${cx}" y1="${cy}" x2="${(cx + maxR * Math.cos(ang)).toFixed(2)}" y2="${(cy + maxR * Math.sin(ang)).toFixed(2)}"/>`;
+            }
+
+            let rings = "";
+            for (const frac of [0.5, 1.0]) {
+                const pts = [];
+                for (let i = 0; i <= N; i++) {
+                    const ang = (i / N) * 2 * Math.PI - Math.PI / 2;
+                    const r = maxR * frac;
+                    pts.push(`${(cx + r * Math.cos(ang)).toFixed(2)},${(cy + r * Math.sin(ang)).toFixed(2)}`);
+                }
+                rings += `<polyline class="ring" points="${pts.join(" ")}"/>`;
+            }
+
+            const polyPts = disciplines.map((d, i) => {
+                const ang = (i / N) * 2 * Math.PI - Math.PI / 2;
+                const pts = teamScores[d.discipline_key];
+                const pct = typeof pts === "number" ? Math.min(pts / d.max_points, 1) : 0;
+                const r = maxR * pct;
+                return `${(cx + r * Math.cos(ang)).toFixed(2)},${(cy + r * Math.sin(ang)).toFixed(2)}`;
+            }).join(" ");
+
+            // Numbered vertex nodes — each corner carries the discipline's index (1..N), matching
+            // the number chip on the disc-strip pill below. This is the radar↔discipline key.
+            let nodes = "";
+            for (let i = 0; i < N; i++) {
+                const ang = (i / N) * 2 * Math.PI - Math.PI / 2;
+                const nx = (cx + maxR * Math.cos(ang)).toFixed(2);
+                const ny = (cy + maxR * Math.sin(ang)).toFixed(2);
+                nodes += `<circle class="axis-node" cx="${nx}" cy="${ny}" r="8"/>`;
+                nodes += `<text class="axis-num" x="${nx}" y="${ny}" dy="0.34em">${i + 1}</text>`;
+            }
+
+            return `<svg class="radar" viewBox="0 0 ${size} ${size}">${axes}${rings}<polygon class="polygon" points="${polyPts}"/>${nodes}</svg>`;
+        }
+
+        // ===== Bump chart — dynamic viewBox sized to container ===============
+        function renderBump(teams, scores) {
+            const W = bumpWrap.clientWidth;
+            const H = bumpWrap.clientHeight;
+            if (W < 50 || H < 50) return; // not yet sized
+
+            bumpSvg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+            const padL = 32, padR = 100, padT = 16, padB = 20;
+            const plotW = W - padL - padR;
+            const plotH = H - padT - padB;
+
+            const sortedAsc = [...scores].sort((a, b) => new Date(a.score_timestamp) - new Date(b.score_timestamp));
+            const running = Object.fromEntries(teams.map(t => [t.team_key, 0]));
+            const snapshots = [];
+            for (const s of sortedAsc) {
+                running[s.team_key] = (running[s.team_key] ?? 0) + s.points;
+                snapshots.push(computeRanks(running, teams));
+            }
+
+            if (snapshots.length < 2) {
+                bumpSvg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" class="rank-label" fill="oklch(58% 0.012 30)">Venter på første scores</text>`;
+                return;
+            }
+
+            const N = snapshots.length;
+            const numTeams = teams.length;
+            const xStep = N > 1 ? plotW / (N - 1) : 0;
+            const yStep = numTeams > 1 ? plotH / (numTeams - 1) : 0;
+
+            let svg = "";
+            for (let r = 1; r <= numTeams; r++) {
+                const y = padT + (r - 1) * yStep;
+                svg += `<line class="axis-line" x1="${padL}" y1="${y.toFixed(1)}" x2="${(padL + plotW).toFixed(1)}" y2="${y.toFixed(1)}"/>`;
+                svg += `<text class="rank-label" x="${(padL - 8).toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="end">#${r}</text>`;
+            }
+
+            // Rank is a step function: a team holds its rank until a scoring event flips it.
+            // Hold flat, then a short "knee" transition INTO each event node — so crossings happen
+            // at the event (truthful) and read as deliberate steps, not gradual broadcast-swoosh.
+            const kneeFrac = 0.35; // 65% flat hold, 35% transition before the node
+            for (const team of teams) {
+                const colorVar = teamColorVar(team);
+                const pts = snapshots.map((snap, i) => ({
+                    x: padL + i * xStep,
+                    y: padT + (snap[team.team_key] - 1) * yStep,
+                }));
+
+                let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+                for (let i = 1; i < pts.length; i++) {
+                    const prev = pts[i - 1], cur = pts[i];
+                    const kneeX = cur.x - (cur.x - prev.x) * kneeFrac;
+                    d += ` L ${kneeX.toFixed(1)} ${prev.y.toFixed(1)} L ${cur.x.toFixed(1)} ${cur.y.toFixed(1)}`;
+                }
+                svg += `<path class="team-line" stroke="${colorVar}" d="${d}"/>`;
+
+                const last = pts[pts.length - 1];
+                svg += `<circle class="team-end-dot" cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="5" fill="${colorVar}"/>`;
+                svg += `<text class="team-end-label" x="${(last.x + 11).toFixed(1)}" y="${(last.y + 5).toFixed(1)}" fill="${colorVar}">${esc(shortName(team.team_name))}</text>`;
+            }
+
+            bumpSvg.innerHTML = svg;
+        }
+
+        function computeRanks(running, teams) {
+            const entries = teams.map(t => [t.team_key, running[t.team_key] ?? 0]);
+            entries.sort((a, b) => b[1] - a[1] || a[0] - b[0]);
+            const ranks = {};
+            entries.forEach(([key], i) => { ranks[key] = i + 1; });
+            return ranks;
+        }
+
+        // ===== Seneste resultat + AI commentary ===============================
+        function renderLatest(scores, teams, disciplines, totals, leaderKey, leaderTeam, leaderTotal, rankByKey) {
+            const sortedDesc = [...scores].sort((a, b) => new Date(b.score_timestamp) - new Date(a.score_timestamp));
+            const latest = sortedDesc[0];
+
+            if (!latest) {
+                latestPanel.className = "latest-panel empty";
+                latestPanel.style.removeProperty("--team-color");
+                $("lp-time").textContent = "";
+                latestPanel.innerHTML = `
+                    <div class="lp-header"><span class="lp-label">Seneste resultat</span><span class="lp-time"></span></div>
+                    <div class="lp-empty">Venter på første score</div>
+                `;
+                return;
+            }
+
+            const team = teams.find(t => t.team_key === latest.team_key);
+            const disc = disciplines.find(d => d.discipline_key === latest.discipline_key);
+            const teamTotal = totals.find(x => x.team.team_key === latest.team_key)?.total ?? 0;
+            const isLeader = latest.team_key === leaderKey;
+            const rank = rankByKey[latest.team_key];
+            const time = new Date(latest.score_timestamp).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+
+            // Context line
+            let contextHtml;
+            if (isLeader) {
+                contextHtml = `<span>Position</span><strong class="lead">#1 · Fører med ${teamTotal} pt</strong>`;
+            } else {
+                const gap = leaderTotal - teamTotal;
+                contextHtml = `<span>Vs. ${esc(shortName(leaderTeam?.team_name ?? ""))}</span><strong class="behind">#${rank} · ${gap} pt bagud</strong>`;
+            }
+
+            // Mock AI commentary (placeholder for dashboard-011 LLM-calls)
+            const commentary = mockCommentary(team, disc, latest.points, teamTotal, isLeader, leaderTeam, leaderTotal);
+
+            latestPanel.className = "latest-panel has-event" + (isLeader ? " leader" : "");
+            latestPanel.style.setProperty("--team-color", teamColorVar(team));
+            latestPanel.innerHTML = `
+                <div class="lp-header">
+                    <span class="lp-label">Seneste resultat</span>
+                    <span class="lp-time" id="lp-time">${esc(time)}</span>
+                </div>
+                <div class="lp-hero">
+                    <div class="lp-points">${latest.points}</div>
+                    <div class="lp-event-meta">
+                        <div class="lp-team">${esc(team?.team_name ?? "—")}</div>
+                        <div class="lp-discipline">${esc(disc?.discipline_name ?? "—")} <span style="opacity:0.55;margin-left:0.5rem">/${disc?.max_points ?? "?"}</span></div>
+                    </div>
+                </div>
+                <div class="lp-commentary">
+                    ${esc(commentary)}
+                    <span class="lp-commentary-tag">AI commentary · placeholder (dashboard-011 hooks Claude Haiku 4.5)</span>
+                </div>
+                <div class="lp-context">${contextHtml}</div>
+            `;
+        }
+
+        function mockCommentary(team, disc, points, teamTotal, isLeader, leaderTeam, leaderTotal) {
+            const teamShort = shortName(team?.team_name ?? "Holdet");
+            const leaderShort = shortName(leaderTeam?.team_name ?? "feltet");
+            const discName = disc?.discipline_name ?? "disciplinen";
+            const maxPts = disc?.max_points ?? 0;
+            const pctOfMax = maxPts > 0 ? points / maxPts : 0;
+            const gap = leaderTotal - teamTotal;
+
+            // Strong performance
+            if (pctOfMax >= 0.85) {
+                if (isLeader) return `${teamShort} tromler videre — ${points} af ${maxPts} i ${discName} sætter dem endnu mere fast på toppen.`;
+                return `${teamShort} ridder højt på ${points} i ${discName}, men ${leaderShort} holder fortsat føringen ${gap} pt foran.`;
+            }
+            // Decent
+            if (pctOfMax >= 0.5) {
+                if (isLeader) return `${teamShort} samler ${points} i ${discName} — føringen bliver sværere at indhente.`;
+                return `${teamShort} henter ${points} i ${discName} og kæmper sig op. Stadig ${gap} pt bag ${leaderShort}.`;
+            }
+            // Weak
+            if (isLeader) return `${teamShort} mistede momentum i ${discName} med kun ${points}, men holder stadig toppen.`;
+            return `Skuffende ${points} i ${discName} for ${teamShort}. ${leaderShort} løber fra dem — ${gap} pt foran nu.`;
+        }
+
+        // ===== Disciplin strip ================================================
+        function renderDiscStrip(disciplines, teams, matrix) {
+            discStrip.innerHTML = disciplines.map((d, i) => {
+                const hasAny = teams.some(t => typeof matrix[t.team_key]?.[d.discipline_key] === "number");
+                const status = hasAny ? "done" : "pending";
+                let topScore = -1, topTeam = null;
+                for (const t of teams) {
+                    const pts = matrix[t.team_key]?.[d.discipline_key];
+                    if (typeof pts === "number" && pts > topScore) { topScore = pts; topTeam = t; }
+                }
+                // Dot per team that has scored this discipline, on a shared 0→max axis.
+                const dotsHtml = teams.map(t => {
+                    const pts = matrix[t.team_key]?.[d.discipline_key];
+                    if (typeof pts !== "number") return "";
+                    const frac = d.max_points > 0 ? Math.min(pts / d.max_points, 1) : 0;
+                    const leftPct = (4 + frac * 92).toFixed(1); // inset so edge dots aren't clipped
+                    const isTop = topTeam && t.team_key === topTeam.team_key;
+                    return `<span class="dot${isTop ? " lead" : ""}" style="left:${leftPct}%; --team-color: ${teamColorVar(t)}" title="${esc(t.team_name)}: ${pts}"></span>`;
+                }).join("");
+                const meta = hasAny
+                    ? `${topScore}/${d.max_points} <span class="leader-name">${esc(topTeam?.team_name ?? "")}</span>`
+                    : `Kommer · /${d.max_points}`;
+                // Pass leader-of-this-discipline color to the pill so the ✓ carries team identity
+                const leaderColorStyle = hasAny && topTeam
+                    ? ` style="--leader-color: ${teamColorVar(topTeam)}"`
+                    : "";
+                return `
+                    <div class="disc-pill" data-status="${status}"${leaderColorStyle}>
+                        <span class="label">${esc(d.discipline_name)}<span class="disc-num">${i + 1}</span></span>
+                        <div class="disc-dots">${dotsHtml}</div>
+                        <span class="meta">${meta}</span>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        // Re-render the bump chart when its container resizes (it sizes to viewBox at runtime).
+        const resizeObs = new ResizeObserver(() => {
+            if (lastData) renderBump(lastData.teams, lastData.scores);
+        });
+        resizeObs.observe(bumpWrap);
+
+        async function poll() {
+            try { render(await fetchAll()); }
+            catch (e) {
+                cardsRow.innerHTML = `<div class="state-message error">${esc(e.message)}</div>`;
+            }
+        }
+        poll(); setInterval(poll, 5000);
+    </script>
+</body>
+</html>
