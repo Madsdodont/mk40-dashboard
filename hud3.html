@@ -66,15 +66,30 @@
             --space-6:  32px;
             --space-7:  40px;
             --space-8:  48px;
+            --space-9:  64px;
+            --space-10: 96px;
+
+            /* Layout system — doubling tiers on the 8pt grid (24→48→96), one per proximity level.
+               Semantic aliases so the role is explicit and reusable (also portable to AV). */
+            --gap-row:   var(--space-5);   /* 24px — elements within a row (cards, panels) */
+            --gap-stack: var(--space-8);   /* 48px — between shell rows (section break) */
+            --frame:     var(--space-10);  /* 96px — outer margin, all four sides */
         }
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }
         body {
+            /* Five-team aurora field — the shared arena. Each team's hue sits as a soft, low-presence
+               wash; heavy overlap blends them into one cohesive multi-hue field over the cream base.
+               Color lives HERE, not on the cards — cards are calm vessels that pick up ambient hue
+               through their transparency. Knobs: the % per hue (intensity) and the at-positions (layout). */
             background:
-                radial-gradient(ellipse at 50% 0%,
-                    oklch(99% 0.006 60) 0%,
-                    var(--ink-void) 70%),
+                radial-gradient(ellipse 55% 60% at 10% 12%,  color-mix(in oklch, var(--team-rød)      16%, transparent) 0%, transparent 62%),
+                radial-gradient(ellipse 55% 60% at 30% 88%,  color-mix(in oklch, var(--team-blå)      15%, transparent) 0%, transparent 62%),
+                radial-gradient(ellipse 60% 65% at 52% 8%,   color-mix(in oklch, var(--team-grøn)     14%, transparent) 0%, transparent 62%),
+                radial-gradient(ellipse 55% 60% at 73% 90%,  color-mix(in oklch, var(--team-gul)      15%, transparent) 0%, transparent 62%),
+                radial-gradient(ellipse 55% 60% at 92% 14%,  color-mix(in oklch, var(--team-sorthvid) 16%, transparent) 0%, transparent 62%),
                 var(--ink-void);
+            background-attachment: fixed;
             color: var(--bone);
             font-family: var(--font-label); min-height: 100vh;
             -webkit-font-smoothing: antialiased;
@@ -100,38 +115,26 @@
 
         /* ===== Layout shell — vertical lock 15/45/25/15 ===== */
         .shell {
-            margin-top: 2.25rem;
-            min-height: calc(100vh - 2.25rem);
-            padding: 1rem;
+            /* 96px frame all sides (proto-nav is fixed-overlay scaffolding, floats in the top frame).
+               Fit-to-one-screen: min-height 100vh, rows compress via fr + child overflow:hidden. */
+            min-height: 100vh;
+            padding: var(--frame);
             display: grid;
             grid-template-rows: 15fr 45fr 25fr 15fr;
-            gap: 1rem;
+            gap: var(--gap-stack);
             max-width: 2400px;
-            margin-left: auto; margin-right: auto;
+            margin: 0 auto;
             width: 100%;
         }
 
         /* ===== Top banner ===== */
+        /* Banner is now a row of independent frosted blocks with 24px air between (was one glued
+           strip with border-dividers). Each event-block carries its own surface + shadow. */
         .top-banner {
-            background: linear-gradient(180deg,
-                var(--ink-elevated) 0%,
-                var(--ink-card) 100%);
-            border: 1px solid var(--ink-border-soft);
-            box-shadow: var(--shadow-low);
             display: grid;
             grid-template-columns: 1.7fr repeat(4, 1fr) auto;
-            overflow: hidden;
+            gap: var(--gap-row);
             min-height: 0;
-            position: relative;
-        }
-        /* Top-edge light catch — bright highlight on light theme (sun from above on paper) */
-        .top-banner::before {
-            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg,
-                transparent 0%,
-                oklch(100% 0 0 / 0.9) 50%,
-                transparent 100%);
-            pointer-events: none;
         }
 
         .event-block {
@@ -139,38 +142,27 @@
             display: flex; flex-direction: column;
             justify-content: space-between;
             position: relative;
-            border-right: 1px solid var(--ink-border-soft);
             min-width: 0;
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
+            border: 1px solid color-mix(in oklch, var(--team-color, var(--ink-border)) 18%, var(--ink-border-soft));
+            border-radius: 8px;
+            box-shadow: var(--shadow-low);
+            overflow: hidden;
         }
-        .event-block:last-of-type { border-right: 1px solid var(--ink-border-soft); }
         .event-block.empty { opacity: 0.4; }
         .event-block.empty .ev-team { color: var(--bone-dim); }
 
+        /* Hero (latest event) — emphasis via a MORE SOLID surface + team glow, not a color flood. */
         .event-block.hero {
-            background:
-                radial-gradient(ellipse at 0% 100%,
-                    color-mix(in oklch, var(--team-color) 70%, transparent) 0%,
-                    transparent 60%),
-                linear-gradient(135deg,
-                    color-mix(in oklch, var(--team-color) 50%, var(--ink-card)) 0%,
-                    color-mix(in oklch, var(--team-color) 15%, var(--ink-card)) 80%);
+            background: color-mix(in oklch, var(--ink-card) 88%, transparent);
             padding: 1rem 1.25rem;
+            border-color: color-mix(in oklch, var(--team-color) 32%, var(--ink-border));
             box-shadow:
-                inset 0 1px 0 oklch(100% 0 0 / 0.4),
-                inset 0 0 0 1px color-mix(in oklch, var(--team-color) 45%, transparent);
-            position: relative;
-            overflow: hidden;
+                var(--shadow-low),
+                0 0 20px color-mix(in oklch, var(--team-color) 12%, transparent);
         }
-        /* Hero ambient glow — multiply for light theme (darker saturation instead of screen-lighten) */
-        .event-block.hero::after {
-            content: ""; position: absolute; inset: 0;
-            background: radial-gradient(circle at 20% 80%,
-                color-mix(in oklch, var(--team-color) 30%, transparent) 0%,
-                transparent 50%);
-            pointer-events: none;
-            mix-blend-mode: multiply;
-            opacity: 0.7;
-        }
+        .event-block.hero::after { background: none; }
 
         .event-block .ev-team-tag {
             position: absolute; top: 0; left: 0;
@@ -220,7 +212,11 @@
             padding: 0.875rem 1.25rem;
             display: flex; flex-direction: column;
             justify-content: space-between; align-items: flex-end;
-            background: var(--ink-elevated);
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
+            border: 1px solid var(--ink-border-soft);
+            border-radius: 8px;
+            box-shadow: var(--shadow-low);
             min-width: 120px;
         }
         /* Live pill — broadcast convention: white text on red, regardless of theme.
@@ -254,7 +250,7 @@
         .cards-row {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 1rem;
+            gap: var(--gap-row);
             min-height: 0;
         }
 
@@ -262,17 +258,21 @@
            Higher mix-percentages than dark version because team-color on paper reads softer
            than on ink. Top 50% → middle 18% → bottom 0% creates clear team-territory. */
         .hold-card {
-            background:
-                linear-gradient(180deg,
-                    color-mix(in oklch, var(--team-color) 50%, var(--ink-card)) 0%,
-                    color-mix(in oklch, var(--team-color) 18%, var(--ink-card)) 50%,
-                    var(--ink-card) 100%);
-            border: 1px solid color-mix(in oklch, var(--team-color) 45%, var(--ink-border-soft));
-            border-top: 6px solid var(--team-color);
-            padding: 1.5rem 1.5rem 1.25rem 1.5rem;
-            display: grid;
-            grid-template-rows: auto auto 1fr auto;
-            gap: 0;
+            /* Calm vessel — NO team tint on the surface. The aurora field behind glows through
+               the translucent frosted card, so each card picks up ambient hue from its zone
+               without flooding. Team identity lives in the stripe + radar + badge only. */
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
+            border: 1px solid color-mix(in oklch, var(--team-color) 18%, var(--ink-border-soft));
+            border-top: 6px solid var(--team-color);  /* stripe carries team identity, not the surface */
+            border-radius: 8px;
+            padding: var(--space-5);  /* 24px symmetric — was 24/24/20/24, asymmetric bottom snapped to grid */
+            display: flex;
+            flex-direction: column;
+            /* identity (badge/name/motto) sits top, stats zone (total/gap/radar) anchored bottom
+               via .total-block margin-top:auto → ALL slack collapses into ONE intentional gap.
+               Was grid-template-rows: auto auto 1fr auto — the 1fr landed on motto (5 kids, 4 tracks)
+               and inflated it to a dead gradient void. */
             position: relative;
             min-height: 0;
             overflow: hidden;
@@ -294,23 +294,18 @@
         /* Bottom team-color spill — anchors the card to its territory */
         .hold-card::after {
             content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 70%;
-            background: radial-gradient(ellipse at 50% 100%,
-                color-mix(in oklch, var(--team-color) 28%, transparent) 0%,
-                transparent 70%);
+            background: none;  /* spill removed — the aurora field supplies all ambient color now */
             pointer-events: none;
             z-index: 0;
-            mix-blend-mode: multiply;
         }
         .hold-card > * { position: relative; z-index: 2; }
 
         /* Leader (LIGHT) — team-color amplified on paper. */
         .hold-card.leader {
-            background:
-                radial-gradient(ellipse at 50% 0%,
-                    color-mix(in oklch, var(--team-color) 75%, var(--ink-card)) 0%,
-                    color-mix(in oklch, var(--team-color) 32%, var(--ink-card)) 50%,
-                    var(--ink-card) 100%);
-            border: 1px solid color-mix(in oklch, var(--team-color) 75%, var(--ink-border));
+            /* Leader stays calm too — no tint. It reads as leader via a MORE OPAQUE (more solid,
+               less ghosted) surface + thicker 10px stripe + glow shadow. Presence, not color-flood. */
+            background: color-mix(in oklch, var(--ink-card) 90%, transparent);
+            border: 1px solid color-mix(in oklch, var(--team-color) 32%, var(--ink-border));
             border-top: 10px solid var(--team-color);
             box-shadow:
                 var(--shadow-high),
@@ -318,13 +313,12 @@
                 inset 0 1px 0 oklch(100% 0 0 / 0.5);
         }
         .hold-card.leader::after {
-            background: radial-gradient(ellipse at 50% 100%,
-                color-mix(in oklch, var(--team-color) 45%, transparent) 0%,
-                transparent 70%);
+            background: none;  /* leader differentiated by opacity + stripe + glow, not a spill */
         }
 
         .hold-card .badge-row {
-            display: flex; justify-content: space-between; align-items: baseline;
+            display: flex; justify-content: space-between; align-items: center;
+            min-height: 28px;  /* fixed height across ALL cards (pill vs plain rank) → names align on a shared baseline below */
             font-family: var(--font-label); font-size: 0.6875rem;
             font-weight: 800; letter-spacing: 0.18em;
             text-transform: uppercase; color: var(--bone-dim);
@@ -337,8 +331,9 @@
            --bone holds dark text in light theme. */
         .hold-card.leader .badge-row .lead-badge {
             background: var(--team-color);
-            color: var(--bone);
+            color: oklch(100% 0 0);  /* white text on team-color pill */
             padding: 0.25rem 0.6rem;
+            border-radius: 4px;
             font-weight: 900;
             box-shadow: 0 0 12px color-mix(in oklch, var(--team-color) 60%, transparent);
         }
@@ -347,7 +342,7 @@
             font-family: var(--font-display); font-weight: 700;
             font-size: clamp(1.125rem, 1.4vw, 1.625rem);
             line-height: 1.0; color: var(--bone);
-            letter-spacing: -0.02em; margin-top: 0.5rem;
+            letter-spacing: -0.02em; margin-top: var(--space-2);  /* 8px — related to badge above */
             text-wrap: balance;
         }
         .hold-card.leader .name {
@@ -359,7 +354,7 @@
             font-family: var(--font-display); font-style: italic;
             font-weight: 600; font-size: 0.875rem;
             color: var(--bone-muted); line-height: 1.3;
-            margin-top: 0.5rem; min-height: 2.2em;
+            margin-top: var(--space-2); min-height: 2.2em;  /* 8px — within identity group */
         }
         .hold-card.leader .motto {
             color: var(--bone);
@@ -367,8 +362,8 @@
         }
 
         .hold-card .total-block {
-            align-self: end;
-            margin-top: 1rem;
+            margin-top: auto;  /* anchors stats zone to card bottom; absorbs motto-length variance so all 5 cards' stats align */
+            padding-top: var(--space-4);  /* 16px */
         }
         .hold-card .total-label {
             font-family: var(--font-label); font-size: 0.625rem;
@@ -406,14 +401,14 @@
         }
 
         .hold-card .radar-row {
-            margin-top: 1.25rem;
-            padding-top: 1rem;
+            margin-top: var(--space-5);  /* 24px — was 20px (off-grid); section break below stats */
+            padding-top: var(--space-4);  /* 16px */
             border-top: 1px solid color-mix(in oklch, var(--team-color) 20%, var(--ink-border-soft));
-            display: flex; align-items: center; gap: 1rem;
+            display: flex; align-items: center; gap: var(--space-4);  /* 16px radar↔meta */
         }
         .hold-card.leader .radar-row { border-top-color: color-mix(in oklch, var(--team-color) 45%, transparent); }
 
-        .hold-card .radar { width: 120px; height: 120px; flex-shrink: 0; }
+        .hold-card .radar { width: 152px; height: 152px; flex-shrink: 0; }  /* 19×8 — snapped to 8pt grid */
         .hold-card .radar .axis { stroke: var(--ink-border); stroke-width: 1; }
         .hold-card .radar .ring { stroke: var(--ink-border); stroke-width: 1; fill: none; opacity: 0.55; }
         .hold-card .radar .polygon {
@@ -427,10 +422,14 @@
             stroke-width: 2.5;
             filter: drop-shadow(0 0 8px color-mix(in oklch, var(--team-color) 50%, transparent));
         }
-        .hold-card .radar .axis-label {
-            font-family: var(--font-label); font-size: 7px;
-            font-weight: 700; letter-spacing: 0.06em;
-            fill: var(--bone-dim); text-transform: uppercase;
+        /* Numbered vertex nodes — paper disc + dark number, matches the disc-strip number chip.
+           Neutral (no team/discipline color) so it reads as a key, not another color signal. */
+        .hold-card .radar .axis-node {
+            fill: var(--ink-card); stroke: var(--ink-border); stroke-width: 1;
+        }
+        .hold-card .radar .axis-num {
+            font-family: var(--font-numeric); font-size: 9px;
+            font-weight: 700; fill: var(--bone-muted); text-anchor: middle;
         }
 
         .hold-card .radar-meta {
@@ -453,15 +452,15 @@
         .mid-row {
             display: grid;
             grid-template-columns: 1.4fr 1fr;
-            gap: 1rem;
+            gap: var(--gap-row);
             min-height: 0;
         }
 
         .panel {
-            background: linear-gradient(180deg,
-                var(--ink-elevated) 0%,
-                var(--ink-card) 80%);
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
             border: 1px solid var(--ink-border-soft);
+            border-radius: 8px;
             padding: 1.25rem 1.5rem;
             display: flex; flex-direction: column;
             overflow: hidden;
@@ -523,10 +522,10 @@
             display: grid;
             grid-template-rows: auto auto 1fr auto;
             gap: 0;
-            background: linear-gradient(180deg,
-                var(--ink-elevated) 0%,
-                var(--ink-card) 80%);
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
             border: 1px solid var(--ink-border-soft);
+            border-radius: 8px;
             position: relative;
             overflow: hidden;
             min-height: 0;
@@ -539,23 +538,19 @@
             box-shadow: 0 1px 12px color-mix(in oklch, var(--team-color) 60%, transparent);
             z-index: 2;
         }
+        /* Latest result with an event — emphasis via more-solid surface + team-stripe (::before) + glow. */
         .latest-panel.has-event {
-            background:
-                radial-gradient(ellipse at 0% 100%,
-                    color-mix(in oklch, var(--team-color) 28%, transparent) 0%,
-                    transparent 55%),
-                linear-gradient(180deg,
-                    color-mix(in oklch, var(--team-color) 16%, var(--ink-elevated)) 0%,
-                    var(--ink-card) 70%);
+            background: color-mix(in oklch, var(--ink-card) 88%, transparent);
+            border-color: color-mix(in oklch, var(--team-color) 28%, var(--ink-border-soft));
             box-shadow:
-                var(--shadow-medium),
-                0 0 60px color-mix(in oklch, var(--team-color) 18%, transparent);
+                var(--shadow-low),
+                0 0 20px color-mix(in oklch, var(--team-color) 10%, transparent);
         }
         /* When latest event IS the leader — amplify own team-color glow further */
         .latest-panel.has-event.leader {
             box-shadow:
-                var(--shadow-high),
-                0 0 80px color-mix(in oklch, var(--team-color) 35%, transparent);
+                var(--shadow-low),
+                0 0 28px color-mix(in oklch, var(--team-color) 16%, transparent);
         }
 
         .latest-panel .lp-header {
@@ -667,40 +662,40 @@
         }
 
         /* ===== Disciplin strip ===== */
+        /* Was one glued strip; now 5 independent frosted pills with 24px air between. */
         .disc-strip {
-            background: linear-gradient(180deg,
-                var(--ink-card) 0%,
-                var(--ink-elevated) 100%);
-            border: 1px solid var(--ink-border-soft);
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            overflow: hidden;
+            gap: var(--gap-row);
             min-height: 0;
-            box-shadow: var(--shadow-low);
-            position: relative;
-        }
-        .disc-strip::before {
-            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg,
-                transparent 0%,
-                oklch(100% 0 0 / 0.7) 50%,
-                transparent 100%);
-            pointer-events: none;
         }
         .disc-pill {
             padding: 1.125rem 1.5rem;
-            border-right: 1px solid var(--ink-border-soft);
             display: flex; flex-direction: column;
             justify-content: center;
             gap: 0.35rem;
             min-width: 0;
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
+            border: 1px solid var(--ink-border-soft);
+            border-radius: 8px;
+            box-shadow: var(--shadow-low);
         }
-        .disc-pill:last-child { border-right: none; }
         .disc-pill .label {
             font-family: var(--font-label); font-size: 0.875rem;
             font-weight: 800; letter-spacing: 0.12em;
             text-transform: uppercase; color: var(--bone-muted);
             display: flex; align-items: center; gap: 0.5rem;
+        }
+        /* Number chip — matches the radar vertex node (paper disc + dark number). The radar↔discipline key. */
+        .disc-pill .label .disc-num {
+            margin-left: auto;  /* parks the number at the far right of each box → consistent scan position */
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 20px; height: 20px; border-radius: 50%;
+            border: 1px solid var(--ink-border); background: var(--ink-card);
+            font-family: var(--font-numeric); font-size: 0.6875rem;
+            font-weight: 700; color: var(--bone-muted);
+            letter-spacing: 0; flex-shrink: 0;
         }
         /* Done discipline: label stays bone-muted; checkmark gets the leading team's color */
         .disc-pill[data-status="done"] .label { color: var(--bone); }
@@ -811,6 +806,7 @@
         <a href="./hud.html">D · HUD</a>
         <a href="./hud2.html">E · HUD v2</a>
         <a href="./hud3.html" class="current">F · HUD v3 (viz)</a>
+        <a href="./cards-h.html">G · Cards Horizontal</a>
     </nav>
 
     <div class="shell">
@@ -979,7 +975,7 @@
 
         function renderRadar(teamScores, disciplines, size) {
             const cx = size / 2, cy = size / 2;
-            const maxR = size / 2 - 8;
+            const maxR = size / 2 - 12;  /* extra margin so the numbered vertex nodes fit inside the viewBox */
             const N = disciplines.length;
             if (N < 3) return "";
 
@@ -1008,7 +1004,18 @@
                 return `${(cx + r * Math.cos(ang)).toFixed(2)},${(cy + r * Math.sin(ang)).toFixed(2)}`;
             }).join(" ");
 
-            return `<svg class="radar" viewBox="0 0 ${size} ${size}">${axes}${rings}<polygon class="polygon" points="${polyPts}"/></svg>`;
+            // Numbered vertex nodes — each corner carries the discipline's index (1..N), matching
+            // the number chip on the disc-strip pill below. This is the radar↔discipline key.
+            let nodes = "";
+            for (let i = 0; i < N; i++) {
+                const ang = (i / N) * 2 * Math.PI - Math.PI / 2;
+                const nx = (cx + maxR * Math.cos(ang)).toFixed(2);
+                const ny = (cy + maxR * Math.sin(ang)).toFixed(2);
+                nodes += `<circle class="axis-node" cx="${nx}" cy="${ny}" r="8"/>`;
+                nodes += `<text class="axis-num" x="${nx}" y="${ny}" dy="0.34em">${i + 1}</text>`;
+            }
+
+            return `<svg class="radar" viewBox="0 0 ${size} ${size}">${axes}${rings}<polygon class="polygon" points="${polyPts}"/>${nodes}</svg>`;
         }
 
         // ===== Bump chart — dynamic viewBox sized to container ===============
@@ -1165,7 +1172,7 @@
 
         // ===== Disciplin strip ================================================
         function renderDiscStrip(disciplines, teams, matrix) {
-            discStrip.innerHTML = disciplines.map(d => {
+            discStrip.innerHTML = disciplines.map((d, i) => {
                 const hasAny = teams.some(t => typeof matrix[t.team_key]?.[d.discipline_key] === "number");
                 const status = hasAny ? "done" : "pending";
                 let topScore = -1, topTeam = null;
@@ -1191,7 +1198,7 @@
                     : "";
                 return `
                     <div class="disc-pill" data-status="${status}"${leaderColorStyle}>
-                        <span class="label">${esc(d.discipline_name)}</span>
+                        <span class="label">${esc(d.discipline_name)}<span class="disc-num">${i + 1}</span></span>
                         <div class="disc-dots">${dotsHtml}</div>
                         <span class="meta">${meta}</span>
                     </div>
