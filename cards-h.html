@@ -821,29 +821,36 @@
            Right column left intentionally open for v1 — we react to the form, then fill it.
            ======================================================================== */
         .shell {
-            /* Two card-width columns (cards | bump) + an open far-right gutter. Both card columns
-               are the SAME 36% track, so the bump box is always exactly as wide as a card —
-               at any viewport. Row tracks shared so rows 4-5 align across columns. */
+            /* Three columns, each full height; each lays out its own stack.
+               1: rank cards · 2: header / hero / bump · 3: agenda / disciplines. */
             grid-template-columns: minmax(440px, 36%) minmax(440px, 36%) 1fr;
-            grid-template-rows: repeat(5, 1fr);
+            grid-template-rows: 1fr;
             column-gap: var(--gap-stack);
-            row-gap: var(--gap-row);
         }
         .cards-stack {
             grid-column: 1;
-            grid-row: 1 / 6;
             display: grid;
             grid-template-rows: repeat(5, 1fr);
             gap: var(--gap-row);
             min-height: 0;
         }
-        /* Wrapper dissolves so the bump box is a direct shell-grid child sharing the row tracks. */
-        .open-right { display: contents; }
-        .bump-panel {
+        /* Middle column — page header (top), hero (floats to the actual middle), bump (bottom). */
+        .col-mid {
             grid-column: 2;
-            grid-row: 4 / 6;   /* bottom two rows — auto-aligned with cards #4 and #5 */
             min-height: 0;
+            display: grid;
+            grid-template-rows: repeat(5, 1fr);   /* aligns to the 5-card stack: header 1 · hero 2 · bump 2 */
+            gap: var(--gap-row);
         }
+        /* Right column — agenda (3 cards) over the disciplines panel (2 cards), same grid. */
+        .col-right {
+            grid-column: 3;
+            min-height: 0;
+            display: grid;
+            grid-template-rows: repeat(5, 1fr);
+            gap: var(--gap-row);
+        }
+        .bump-panel { grid-row: 4 / 6; min-height: 0; }
 
         .hold-card {
             display: grid;
@@ -873,6 +880,264 @@
         .hold-card.leader .total { font-size: clamp(3rem, 4.4vw, 4.75rem); }
         .hold-card .total-label  { margin-bottom: var(--space-1); }
         .hc-radar .radar         { width: 144px; height: 144px; }  /* 18×8 — up from 128 */
+
+        /* ===== Region A — AI-commentary hero (the wow-moment's home in G) =====
+           Col 2, rows 1-3 (the 617×555 zone alongside the leader cards). Reuses hud3's
+           .latest-panel wholesale; a slot wrapper owns grid-placement so renderLatest's
+           className rewrite can't clobber it. Commentary scaled up — it's the star here,
+           not a side panel. dashboard-011 wires the real Haiku LLM into this same node. */
+        .latest-hero-slot {
+            grid-row: 2 / 4;   /* two cards tall, between the header and the bump */
+            min-height: 0;
+            display: flex;
+        }
+
+        /* --- Region A · the wow widget ---------------------------------------------------
+           Text-as-hero: the AI commentary is the dominant element; the score demotes to a
+           result line. Inverted (warm charcoal in the cream field) + strong elevation =
+           the "widget pops out" feeling (F1-card reference). 8px radius kept for system
+           consistency — pop comes from the inversion + shadow, not a one-off radius.
+           SOLO content (path C): opponent, if any, lives in the AI commentary text itself.
+
+           Dark-mode color discipline (designparser elevation-system + wcag-contrast +
+           simultaneous-contrast): never pure black; warm off-white text (never pure white);
+           pairs chosen for THIS surface, not flipped 1:1; all text verified >=AA. */
+        .latest-hero-slot .latest-panel {
+            flex: 1; min-height: 0;
+            display: grid;
+            grid-template-rows: auto 1fr auto auto;
+            gap: 0;
+            padding: var(--space-6);
+            background: oklch(22% 0.02 40);
+            border-color: color-mix(in oklch, var(--team-color) 38%, oklch(36% 0.02 40));
+            box-shadow:
+                var(--shadow-high),
+                0 0 56px color-mix(in oklch, var(--team-color) 40%, transparent);
+        }
+        .latest-hero-slot .latest-panel.leader {
+            box-shadow:
+                var(--shadow-high),
+                0 0 72px color-mix(in oklch, var(--team-color) 50%, transparent);
+        }
+        .latest-hero-slot .latest-panel::before {
+            box-shadow: 0 1px 18px color-mix(in oklch, var(--team-color) 70%, transparent);
+        }
+
+        /* Header tag — discipline + time, F1 "RACE"-style chip row. */
+        .latest-hero-slot .lp-tag {
+            display: flex; justify-content: space-between; align-items: center;
+            font-family: var(--font-label); font-size: var(--text-xs);
+            font-weight: var(--w-bold); letter-spacing: var(--ls-wide); text-transform: uppercase;
+        }
+        .latest-hero-slot .lp-tag-disc {
+            display: inline-flex; align-items: center; gap: 0.6rem;
+            color: oklch(78% 0.02 70);
+        }
+        .latest-hero-slot .lp-tag-disc::before {
+            content: ""; width: 9px; height: 9px; border-radius: 50%;
+            background: var(--team-color);
+            box-shadow: 0 0 10px color-mix(in oklch, var(--team-color) 80%, transparent);
+        }
+        .latest-hero-slot .lp-tag-time {
+            font-family: var(--font-numeric); font-weight: var(--w-regular);
+            letter-spacing: var(--ls-normal); color: oklch(66% 0.02 70);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* THE HERO — commentary, large Fraunces italic. The wow. */
+        .latest-hero-slot .lp-commentary {
+            align-self: center;
+            margin: 0; padding: var(--space-4) 0;
+            font-family: var(--font-display); font-style: italic; font-weight: var(--w-regular);
+            font-size: clamp(1.75rem, 2.7vw, 2.75rem);
+            line-height: 1.18; letter-spacing: var(--ls-tight);
+            color: oklch(95% 0.012 85);
+            text-wrap: balance;
+        }
+        .latest-hero-slot .lp-commentary::before {
+            content: "\201C"; font-family: var(--font-display);
+            font-size: 1.1em; line-height: 0; vertical-align: -0.3em;
+            color: var(--team-color); margin-right: 0.05em;
+            text-shadow: 0 0 16px color-mix(in oklch, var(--team-color) 60%, transparent);
+        }
+
+        /* Result line — demoted: team · score · standing. */
+        .latest-hero-slot .lp-result {
+            display: flex; align-items: baseline; gap: var(--space-4);
+            padding-top: var(--space-3);
+            border-top: 1px solid oklch(36% 0.015 40);
+        }
+        .latest-hero-slot .lp-result-team {
+            font-family: var(--font-display); font-weight: var(--w-black);
+            font-size: var(--display-sm); color: oklch(96% 0.012 85);
+            letter-spacing: var(--ls-tight);
+        }
+        .latest-hero-slot .lp-result-score {
+            font-family: var(--font-numeric); font-weight: var(--w-bold);
+            font-size: var(--num-md); color: oklch(96% 0.012 85);
+            font-variant-numeric: tabular-nums; letter-spacing: var(--ls-tight);
+        }
+        .latest-hero-slot .lp-result-score i {
+            font-style: normal; font-size: 0.55em; opacity: 0.6; margin-left: 0.1em;
+        }
+        .latest-hero-slot .lp-result-standing {
+            margin-left: auto;
+            font-family: var(--font-numeric); font-weight: var(--w-bold);
+            font-size: var(--text-md); color: oklch(78% 0.02 70);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* AI placeholder note — tiny footer (dashboard-011 swaps in the real Haiku call). */
+        .latest-hero-slot .lp-ai-note {
+            padding-top: var(--space-2);
+            font-family: var(--font-label); font-size: var(--text-xs);
+            font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase;
+            color: oklch(64% 0.02 70);  /* >=4.5:1 on the charcoal — small-text AA floor */
+        }
+
+        /* Empty state on the dark surface. */
+        .latest-hero-slot .latest-panel.empty { grid-template-rows: auto 1fr; }
+        .latest-hero-slot .lp-empty  { color: oklch(70% 0.02 70); }
+        .latest-hero-slot .lp-label  { color: oklch(78% 0.02 70); }
+
+        /* ===== Region B · timeline — the day as a vertical 12→22 axis =====================
+           Col 3, rows 1-3 (~60%, aligned with cards 1-3). Light frosted — the hero stays the
+           single dark focal point. Hour ruler (12..22, one tick/hour) + a dot per program
+           event at its time + a "now" line tracking the wall clock, so you read where we are
+           in the day at a glance. Static SCHEDULE (includes non-scoring events too). */
+        .agenda {
+            grid-row: 1 / 4;   /* three cards tall, aligned with cards 1-3 */
+            min-height: 0;
+            display: flex; flex-direction: column; gap: var(--space-4);
+            padding: var(--space-5);
+            border-radius: 8px;
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
+            border: 1px solid var(--ink-border-soft);
+            box-shadow: var(--shadow-low);
+            overflow: hidden;
+        }
+        .agenda .ag-head {
+            font-family: var(--font-display); font-weight: var(--w-black);
+            font-size: var(--display-sm); letter-spacing: var(--ls-tight);
+            color: var(--bone); flex-shrink: 0;
+        }
+        /* Calendar track — hour grid behind, event boxes positioned absolutely by time. */
+        .tl { position: relative; flex: 1; min-height: 0; }
+        /* Faint hour grid line + label (the ruler). */
+        .tl-hour { position: absolute; left: 0; right: 0; transform: translateY(-50%); display: flex; align-items: center; gap: 6px; }
+        .tl-hour-lbl {
+            font-family: var(--font-label); font-size: var(--text-xs); font-weight: var(--w-bold);
+            color: var(--bone-muted); font-variant-numeric: tabular-nums;
+            width: 22px; text-align: right; flex-shrink: 0;
+        }
+        .tl-hour-line { flex: 1; height: 1px; background: var(--ink-border-soft); opacity: 0.55; }
+        /* Event box — placed at start, sized to duration. Sits over the grid in the right column. */
+        .tl-box {
+            position: absolute; left: 32px; right: 0;
+            background: var(--ink-card);  /* solid (brightest surface) so the shadow reads as lift, not a blend */
+            border: 1px solid var(--ink-border-soft);
+            border-left: 3px solid var(--bone-muted);
+            border-radius: 6px;
+            padding: 3px 8px 2px;
+            min-height: 21px;  /* keeps the shortest (30-min) box readable with the new top padding */
+            overflow: hidden;
+            display: flex; flex-direction: column; justify-content: flex-start; gap: 2px;
+            box-shadow: var(--shadow-low);  /* smallest shadow in the system — just a little lift */
+        }
+        .tl-box-title {
+            font-family: var(--font-label); font-weight: var(--w-bold);
+            font-size: var(--text-sm); color: var(--bone); line-height: 1.15;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .tl-box-time {
+            font-family: var(--font-label); font-size: var(--text-xs);
+            color: var(--bone-muted); font-variant-numeric: tabular-nums; line-height: 1;
+        }
+        .tl-box-menu {
+            font-family: var(--font-label); font-size: var(--text-xs);
+            color: var(--bone-muted); line-height: 1.3; margin-top: 1px;
+        }
+        /* Current box (now inside its window) — emphasised via border + brightness, same low shadow. */
+        .tl-box.is-now {
+            border-left-color: var(--bone);
+            background: var(--ink-card);
+            box-shadow: var(--shadow-low);
+        }
+        /* Now line — runs across the track at the current time. */
+        .tl-now { position: absolute; left: 22px; right: 0; transform: translateY(-50%); z-index: 3; height: 2px; }
+        .tl-now::before {
+            content: ""; position: absolute; left: 0; right: 0; height: 2px;
+            background: var(--live-red); border-radius: 2px;
+        }
+        .tl-now::after {
+            content: ""; position: absolute; left: 0; top: 50%; transform: translate(-50%, -50%);
+            width: 7px; height: 7px; border-radius: 50%; background: var(--live-red);
+        }
+
+        /* ===== Page header — MK40 + date · clock · LIVE (centred, above the hero) ===== */
+        .page-header {
+            grid-row: 1;   /* one card tall, aligned with card 1 */
+            min-height: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-2);
+            text-align: center;
+            padding: var(--space-4);
+            border-radius: 8px;
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
+            border: 1px solid var(--ink-border-soft);
+            box-shadow: var(--shadow-low);
+        }
+        .page-header .ph-title {
+            font-family: var(--font-display); font-weight: var(--w-black);
+            font-size: clamp(3.25rem, 4.6vw, 5.25rem); letter-spacing: var(--ls-tight);
+            color: var(--bone); line-height: 0.9;
+        }
+        .page-header .ph-meta {
+            display: flex; align-items: center; gap: var(--space-3);
+            font-family: var(--font-label); font-size: var(--text-sm);
+            font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase;
+            color: var(--bone-muted);
+        }
+        .page-header .ph-clock { font-variant-numeric: tabular-nums; }
+        .page-header .ph-sep { color: var(--bone-dim); }
+
+        /* ===== Disciplines panel (bottom-right) — placeholders; the numbers match the radar. ===== */
+        .disc-panel {
+            grid-row: 4 / 6;   /* two cards tall, aligned with cards 4-5 */
+            min-height: 0;
+            display: flex; flex-direction: column; gap: var(--space-3);
+            padding: var(--space-5);
+            border-radius: 8px;
+            background: color-mix(in oklch, var(--ink-card) 72%, transparent);
+            backdrop-filter: blur(16px) saturate(1.15);
+            border: 1px solid var(--ink-border-soft);
+            box-shadow: var(--shadow-low);
+            overflow: hidden;
+        }
+        .disc-panel .dp-head {
+            font-family: var(--font-display); font-weight: var(--w-black);
+            font-size: var(--display-sm); letter-spacing: var(--ls-tight);
+            color: var(--bone); flex-shrink: 0;
+        }
+        .disc-panel .dp-list {
+            display: flex; flex-direction: column; gap: var(--space-2);
+            flex: 1; min-height: 0; justify-content: center;
+        }
+        .disc-panel .dp-item { display: flex; align-items: center; gap: var(--space-3); }
+        /* Number chip — mirrors the radar vertex node (paper disc + dark number): the radar↔discipline key. */
+        .disc-panel .dp-num {
+            flex-shrink: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border-radius: 50%;
+            border: 1px solid var(--ink-border); background: var(--ink-card);
+            font-family: var(--font-label); font-size: var(--text-xs); font-weight: var(--w-bold);
+            color: var(--bone-muted);
+        }
+        .disc-panel .dp-name {
+            font-family: var(--font-label); font-weight: var(--w-bold);
+            font-size: var(--text-md); color: var(--bone);
+        }
     </style>
 </head>
 <body>
@@ -891,7 +1156,22 @@
         <div class="cards-stack" id="cards-row">
             <div class="state-message">Henter data…</div>
         </div>
-        <div class="open-right">
+        <div class="col-mid">
+            <div class="page-header">
+                <div class="ph-title">MK40</div>
+                <div class="ph-meta">
+                    <span class="ph-date" id="ph-date"></span>
+                    <span class="ph-sep">·</span>
+                    <span class="ph-clock" id="ph-clock"></span>
+                    <span class="live-pill">LIVE</span>
+                </div>
+            </div>
+            <div class="latest-hero-slot">
+                <div class="latest-panel empty" id="latest-panel">
+                    <div class="lp-tag"><span class="lp-label">Seneste resultat</span><span class="lp-tag-time"></span></div>
+                    <div class="lp-empty">Venter på første score</div>
+                </div>
+            </div>
             <div class="panel bump-panel">
                 <div class="panel-header">
                     <span class="title">Placering gennem aftenen</span>
@@ -901,6 +1181,10 @@
                     <svg class="bump-svg" id="bump-svg" preserveAspectRatio="none"></svg>
                 </div>
             </div>
+        </div>
+        <div class="col-right">
+            <div class="agenda" id="agenda"></div>
+            <div class="disc-panel" id="disc-panel"></div>
         </div>
     </div>
 
@@ -916,6 +1200,8 @@
         const bumpWrap = $("bump-wrap");
         const latestPanel = $("latest-panel");
         const discStrip = $("disc-strip");
+        const agenda = $("agenda");
+        const discPanel = $("disc-panel");
 
         function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
         function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c])); }
@@ -952,10 +1238,15 @@
             const leaderTotal = sortedByTotal[0]?.total ?? 0;
             const rankByKey = Object.fromEntries(sortedByTotal.map((x, i) => [x.team.team_key, i + 1]));
 
-            // G · Cards Horizontal — rank-sorted cards (left) + bump chart in the right gutter.
-            // Banner / latest / disc-strip renderers are retained below but not called.
+            // G · Cards Horizontal — rank-sorted cards (left) + AI-commentary hero (Region A,
+            // the wow-moment) + bump chart below it. Banner / disc-strip renderers retained
+            // below for Region B (right rail) — not wired yet, pending that decision.
+            renderHeader();
             renderCards(totals, matrix, disciplines, leaderKey, rankByKey);
+            renderLatest(scores, teams, disciplines, totals, leaderKey, leaderTeam, leaderTotal, rankByKey);
             renderBump(teams, scores);
+            renderAgenda();
+            renderDiscPanel(disciplines);
         }
 
         // ===== Banner =========================================================
@@ -1117,10 +1408,9 @@
                 svg += `<text class="rank-label" x="${(padL - 8).toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="end">#${r}</text>`;
             }
 
-            // Rank is a step function: a team holds its rank until a scoring event flips it.
-            // Hold flat, then a short "knee" transition INTO each event node — so crossings happen
-            // at the event (truthful) and read as deliberate steps, not gradual broadcast-swoosh.
-            const kneeFrac = 0.35; // 65% flat hold, 35% transition before the node
+            // Soft bump: smooth cubic curves through each team's rank-at-each-event points.
+            // Control handles sit at the midpoint x with the flanking y's, so lines flow gently
+            // instead of hard steps — crossings still land at the events, just softened.
             for (const team of teams) {
                 const colorVar = teamColorVar(team);
                 const pts = snapshots.map((snap, i) => ({
@@ -1131,8 +1421,8 @@
                 let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
                 for (let i = 1; i < pts.length; i++) {
                     const prev = pts[i - 1], cur = pts[i];
-                    const kneeX = cur.x - (cur.x - prev.x) * kneeFrac;
-                    d += ` L ${kneeX.toFixed(1)} ${prev.y.toFixed(1)} L ${cur.x.toFixed(1)} ${cur.y.toFixed(1)}`;
+                    const cx = (prev.x + cur.x) / 2;
+                    d += ` C ${cx.toFixed(1)} ${prev.y.toFixed(1)}, ${cx.toFixed(1)} ${cur.y.toFixed(1)}, ${cur.x.toFixed(1)} ${cur.y.toFixed(1)}`;
                 }
                 svg += `<path class="team-line" stroke="${colorVar}" d="${d}"/>`;
 
@@ -1160,9 +1450,8 @@
             if (!latest) {
                 latestPanel.className = "latest-panel empty";
                 latestPanel.style.removeProperty("--team-color");
-                $("lp-time").textContent = "";
                 latestPanel.innerHTML = `
-                    <div class="lp-header"><span class="lp-label">Seneste resultat</span><span class="lp-time"></span></div>
+                    <div class="lp-tag"><span class="lp-label">Seneste resultat</span><span class="lp-tag-time"></span></div>
                     <div class="lp-empty">Venter på første score</div>
                 `;
                 return;
@@ -1175,37 +1464,29 @@
             const rank = rankByKey[latest.team_key];
             const time = new Date(latest.score_timestamp).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
 
-            // Context line
-            let contextHtml;
-            if (isLeader) {
-                contextHtml = `<span>Position</span><strong class="lead">#1 · Fører med ${teamTotal} pt</strong>`;
-            } else {
-                const gap = leaderTotal - teamTotal;
-                contextHtml = `<span>Vs. ${esc(shortName(leaderTeam?.team_name ?? ""))}</span><strong class="behind">#${rank} · ${gap} pt bagud</strong>`;
-            }
+            // Standing — demoted to the result line (text is the hero now, not the score).
+            const standing = isLeader
+                ? `#1 · Fører`
+                : `#${rank} · −${leaderTotal - teamTotal} pt`;
 
-            // Mock AI commentary (placeholder for dashboard-011 LLM-calls)
+            // Mock AI commentary (placeholder for dashboard-011 LLM-calls).
+            // Path C: if a discipline was a duel, the opponent lives in THIS text, not in structured data.
             const commentary = mockCommentary(team, disc, latest.points, teamTotal, isLeader, leaderTeam, leaderTotal);
 
             latestPanel.className = "latest-panel has-event" + (isLeader ? " leader" : "");
             latestPanel.style.setProperty("--team-color", teamColorVar(team));
             latestPanel.innerHTML = `
-                <div class="lp-header">
-                    <span class="lp-label">Seneste resultat</span>
-                    <span class="lp-time" id="lp-time">${esc(time)}</span>
+                <div class="lp-tag">
+                    <span class="lp-tag-disc">${esc(disc?.discipline_name ?? "—")}</span>
+                    <span class="lp-tag-time">${esc(time)}</span>
                 </div>
-                <div class="lp-hero">
-                    <div class="lp-points">${latest.points}</div>
-                    <div class="lp-event-meta">
-                        <div class="lp-team">${esc(team?.team_name ?? "—")}</div>
-                        <div class="lp-discipline">${esc(disc?.discipline_name ?? "—")} <span style="opacity:0.55;margin-left:0.5rem">/${disc?.max_points ?? "?"}</span></div>
-                    </div>
+                <div class="lp-commentary">${esc(commentary)}</div>
+                <div class="lp-result">
+                    <span class="lp-result-team">${esc(team?.team_name ?? "—")}</span>
+                    <span class="lp-result-score">+${latest.points}<i>/${disc?.max_points ?? "?"}</i></span>
+                    <span class="lp-result-standing">${standing}</span>
                 </div>
-                <div class="lp-commentary">
-                    ${esc(commentary)}
-                    <span class="lp-commentary-tag">AI commentary · placeholder (dashboard-011 hooks Claude Haiku 4.5)</span>
-                </div>
-                <div class="lp-context">${contextHtml}</div>
+                <div class="lp-ai-note">AI commentary · placeholder · dashboard-011 → Haiku 4.5</div>
             `;
         }
 
@@ -1266,6 +1547,72 @@
                     </div>
                 `;
             }).join("");
+        }
+
+        // ===== Agenda — minimal program of the day ============================
+        // Static: the day program includes non-scoring events (arrival, food truck),
+        // so it is NOT DimDiscipline. The "now" row tracks the wall clock (time-of-day).
+        // Durations are best-guess ASSUMPTIONS (Mads corrects) — they drive box heights.
+        const SCHEDULE = [
+            { start: "12:30", end: "13:30", title: "Velkommen" },
+            { start: "13:30", end: "14:00", title: "Afgang til bowling" },
+            { start: "14:00", end: "16:00", title: "Bowling" },
+            { start: "18:00", end: "20:00", title: "Food Truck", menu: ["Cheeseburger", "Fried Chicken", "Veggie", "+ Fritter"] },
+            { start: "21:00", end: "22:00", title: "Musikquiz" },
+        ];
+        const toMin = t => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+
+        // Day calendar 12:00 → 22:00. Faint hour grid + an event BOX per item (placed by
+        // start, sized to duration) + a "now" line tracking the wall clock.
+        function renderAgenda() {
+            const T0 = 12 * 60, T1 = 22 * 60, span = T1 - T0;
+            const pct = m => (m - T0) / span * 100;
+            const clamp = p => Math.max(0, Math.min(100, p));
+            const now = new Date();
+            const nowMin = now.getHours() * 60 + now.getMinutes();
+            const nowPct = clamp(pct(nowMin));
+
+            let grid = "";
+            for (let h = 12; h <= 22; h++) {
+                grid += `<div class="tl-hour" style="top:${pct(h * 60).toFixed(2)}%"><span class="tl-hour-lbl">${h}</span><span class="tl-hour-line"></span></div>`;
+            }
+            const boxes = SCHEDULE.map(it => {
+                const s = toMin(it.start), e = it.end ? toMin(it.end) : s + 30;
+                const top = clamp(pct(s)), bot = clamp(pct(e));
+                const isNow = nowMin >= s && nowMin < e;
+                const timeStr = it.end ? `${it.start}–${it.end}` : it.start;
+                // Time line only fits in taller boxes (>=45 min); short boxes show the title alone.
+                const timeLine = (e - s) >= 45 ? `<span class="tl-box-time">${esc(timeStr)}</span>` : "";
+                const menuLine = it.menu ? `<span class="tl-box-menu">${it.menu.map(esc).join(" · ")}</span>` : "";
+                // Shrink each box 4px shy of its true end — a little air between blocks (visual only; grid stays truthful).
+                return `<div class="tl-box${isNow ? " is-now" : ""}" style="top:${top.toFixed(2)}%; height:calc(${(bot - top).toFixed(2)}% - 4px)">
+                    <span class="tl-box-title">${esc(it.title)}</span>${timeLine}${menuLine}
+                </div>`;
+            }).join("");
+
+            agenda.innerHTML = `
+                <div class="ag-head">Program</div>
+                <div class="tl">
+                    ${grid}
+                    ${boxes}
+                    <div class="tl-now" style="top:${nowPct.toFixed(2)}%"></div>
+                </div>
+            `;
+        }
+
+        // ===== Page header — MK40 + live date/clock ===========================
+        function renderHeader() {
+            const now = new Date();
+            $("ph-date").textContent = now.toLocaleDateString("da-DK", { day: "numeric", month: "short" }).replace(/\./g, "").toUpperCase();
+            $("ph-clock").textContent = now.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+        }
+
+        // ===== Disciplines panel — placeholders; numbers (1..N) match the radar vertices ====
+        function renderDiscPanel(disciplines) {
+            const items = disciplines.map((d, i) =>
+                `<div class="dp-item"><span class="dp-num">${i + 1}</span><span class="dp-name">${esc(d.discipline_name)}</span></div>`
+            ).join("");
+            discPanel.innerHTML = `<div class="dp-head">Discipliner</div><div class="dp-list">${items}</div>`;
         }
 
         // Re-render the bump chart when its container resizes (it sizes to viewBox at runtime).
