@@ -883,9 +883,10 @@
 
         /* ===== Region A — AI-commentary hero (the wow-moment's home in G) =====
            Col 2, rows 1-3 (the 617×555 zone alongside the leader cards). Reuses hud3's
-           .latest-panel wholesale; a slot wrapper owns grid-placement so renderLatest's
+           .latest-panel wholesale; a slot wrapper owns grid-placement so renderHero's
            className rewrite can't clobber it. Commentary scaled up — it's the star here,
-           not a side panel. dashboard-011 wires the real Haiku LLM into this same node. */
+           not a side panel. dashboard-011 wired the real Sonnet callout into this node
+           (Edge Function /callout, fired on each discipline-lock). */
         .latest-hero-slot {
             grid-row: 2 / 4;   /* two cards tall, between the header and the bump */
             min-height: 0;
@@ -904,8 +905,9 @@
            pairs chosen for THIS surface, not flipped 1:1; all text verified >=AA. */
         .latest-hero-slot .latest-panel {
             flex: 1; min-height: 0;
+            position: relative;
             display: grid;
-            grid-template-rows: auto 1fr auto auto;
+            grid-template-rows: auto 1fr auto;
             gap: 0;
             padding: var(--space-6);
             background: oklch(22% 0.02 40);
@@ -987,18 +989,40 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* AI placeholder note — tiny footer (dashboard-011 swaps in the real Haiku call). */
-        .latest-hero-slot .lp-ai-note {
-            padding-top: var(--space-2);
-            font-family: var(--font-label); font-size: var(--text-xs);
-            font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase;
-            color: oklch(64% 0.02 70);  /* >=4.5:1 on the charcoal — small-text AA floor */
-        }
-
         /* Empty state on the dark surface. */
         .latest-hero-slot .latest-panel.empty { grid-template-rows: auto 1fr; }
         .latest-hero-slot .lp-empty  { color: oklch(70% 0.02 70); }
         .latest-hero-slot .lp-label  { color: oklch(78% 0.02 70); }
+
+        /* --- Callout arrival (dashboard-011) --------------------------------------------
+           When a freshly-locked discipline's callout lands, the hero animates in ONCE:
+           the commentary fades + rises, and a soft team-color glow pulses around the panel.
+           Ceremonial, not broadcast — no flash, no bounce, no color blink (PRODUCT.md).
+           The glow rides a transient ::after overlay so the panel's base box-shadow
+           (and the .leader variant) is never overridden. */
+        @keyframes heroTextIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes heroArriveGlow {
+            0%, 100% { opacity: 0; }
+            40%      { opacity: 1; }
+        }
+        .latest-hero-slot .latest-panel::after {
+            content: ""; position: absolute; inset: 0; border-radius: inherit;
+            pointer-events: none; opacity: 0;
+            box-shadow: 0 0 92px color-mix(in oklch, var(--team-color) 55%, transparent);
+        }
+        .latest-hero-slot .latest-panel.lp-arrive::after {
+            animation: heroArriveGlow 750ms cubic-bezier(.2, .7, .2, 1);
+        }
+        .latest-hero-slot .lp-commentary.lp-fresh {
+            animation: heroTextIn 750ms cubic-bezier(.2, .7, .2, 1) both;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .latest-hero-slot .latest-panel.lp-arrive::after,
+            .latest-hero-slot .lp-commentary.lp-fresh { animation: none; }
+        }
 
         /* ===== Region B · timeline — the day as a vertical 12→22 axis =====================
            Col 3, rows 1-3 (~60%, aligned with cards 1-3). Light frosted — the hero stays the
@@ -1279,6 +1303,33 @@
 
         let lastData = null;
 
+        // ===== Hero callout state (dashboard-011) =============================
+        // En disciplin-LÅS (host flipper alle grenens rows is_final→true i én batch) fyrer
+        // ÉT callout om grenens VINDER. Dedup pr. disciplin; kald fejler stille (ADR-5).
+        const CALLOUT_URL = `${SUPABASE_URL}/functions/v1/callout`;
+        const CALLOUT_TIMEOUT_MS = 6000;
+        // ?demo=1 → lokal success-path-verifikation. Den ægte Edge Function har kun
+        // GitHub-Pages-origin i CORS, så et localhost-kald blokeres af browseren; stubben
+        // lader os se animation+dedup lokalt uden at røre funktionen.
+        const DEMO = new URLSearchParams(location.search).has("demo");
+
+        const lockedSeen = new Set();   // disciplin-keys vi allerede har fyret for (dedup)
+        let heroBaselineSeeded = false; // første poll seeder uden at fyre (ingen kold-start-burst)
+        let currentHero = null;         // malet hero-indhold (vinder + tekst)
+        let heroPaintKey = null;        // "discKey:rev" sidst malet → repaint/anim-guard
+        let heroRevision = 0;
+
+        // Fem sarkastiske fallbacks (Mads' valg): vist når AI fejler/timeouter ELLER ved
+        // kold-start. Hero'en bliver aldrig tom; AI er ren enhancement ovenpå (ADR-5).
+        const AI_FALLBACKS = [
+            "AI'en blev bedt om en kommentar. Den loggede ud i stedet.",
+            "Her skulle stå noget kløgtigt — men AI'en holdt fri.",
+            "Kommentatoren er udskiftet med en fejlmeddelelse. Ingen mærker forskel.",
+            "AI'en lovede en perle og leverede stilhed.",
+            "Maskinen tænkte længe og sagde så ingenting. Klassisk.",
+        ];
+        function fallbackCommentary() { return AI_FALLBACKS[Math.floor(Math.random() * AI_FALLBACKS.length)]; }
+
         async function fetchAll() {
             const [t, d, s] = await Promise.all([
                 supabase.from("DimTeam").select("*").order("team_key"),
@@ -1315,7 +1366,7 @@
             // below for Region B (right rail) — not wired yet, pending that decision.
             renderHeader();
             renderCards(totals, matrix, disciplines, leaderKey, rankByKey);
-            renderLatest(finalScores, teams, disciplines, totals, leaderKey, leaderTeam, leaderTotal, rankByKey);
+            syncHero({ disciplines, teams, scores, totals, leaderKey, leaderTeam, leaderTotal, rankByKey });
             renderBump(teams, finalScores);
             renderAgenda();
             renderDiscPanel(disciplines, teams, scores);
@@ -1524,11 +1575,182 @@
         }
 
         // ===== Seneste resultat + AI commentary ===============================
-        function renderLatest(scores, teams, disciplines, totals, leaderKey, leaderTeam, leaderTotal, rankByKey) {
-            const sortedDesc = [...scores].sort((a, b) => new Date(b.score_timestamp) - new Date(a.score_timestamp));
-            const latest = sortedDesc[0];
+        // ----- Lock detection ------------------------------------------------
+        // En gren er LÅST når den har mindst ét indtastet rå-tal OG alle indtastede
+        // rows er is_final (host låser hele grenen i én batch). Samme prædikat som
+        // renderDiscPanel/host bruger til 🔒.
+        function lockedDiscKeys(disciplines, scores) {
+            const locked = [];
+            for (const d of disciplines) {
+                const entered = scores.filter(s => s.discipline_key === d.discipline_key
+                    && s.raw_value !== null && s.raw_value !== undefined);
+                if (entered.length > 0 && entered.every(s => s.is_final)) locked.push(d.discipline_key);
+            }
+            return locked;
+        }
 
-            if (!latest) {
+        // Nyeste rå-tal-timestamp på en gren — bruges til at vælge den seneste lås når
+        // flere grene flipper i samme poll-interval (ét hero-felt → ét callout ad gangen).
+        function discLatestTs(discKey, scores) {
+            let max = 0;
+            for (const s of scores) {
+                if (s.discipline_key !== discKey || !s.score_timestamp) continue;
+                const t = new Date(s.score_timestamp).getTime();
+                if (t > max) max = t;
+            }
+            return max;
+        }
+        function pickMostRecentDisc(discKeys, scores) {
+            return discKeys.slice().sort((a, b) => discLatestTs(b, scores) - discLatestTs(a, scores))[0];
+        }
+
+        // ----- Hero field/payload builders -----------------------------------
+        // Vinderen (rank 1 fra computePlacements — samme funktion host skrev points med).
+        function discWinner(discKey, ctx) {
+            const disc = ctx.disciplines.find(d => d.discipline_key === discKey);
+            if (!disc) return null;
+            const discRows = ctx.scores.filter(s => s.discipline_key === discKey);
+            const placements = computePlacements(discRows, disc.sort_direction);
+            let winnerKey = null, winnerP = null;
+            for (const [teamKey, p] of placements) {
+                if (p.rank === 1) { winnerKey = teamKey; winnerP = p; break; }
+            }
+            if (winnerKey === null) return null;
+            const team = ctx.teams.find(t => t.team_key === winnerKey);
+            const row = discRows.find(s => s.team_key === winnerKey);
+            const teamTotal = ctx.totals.find(x => x.team.team_key === winnerKey)?.total ?? 0;
+            const isLeader = ctx.leaderTeam && winnerKey === ctx.leaderTeam.team_key;
+            return { disc, team, row, winnerP, teamTotal, isLeader, winnerKey };
+        }
+
+        // Display-felter til hero-noden (uafhængigt af callout-teksten).
+        function buildHeroFields(discKey, ctx) {
+            const w = discWinner(discKey, ctx);
+            if (!w) return null;
+            const time = w.row?.score_timestamp
+                ? new Date(w.row.score_timestamp).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
+                : "";
+            const rank = ctx.rankByKey[w.winnerKey];
+            const standing = w.isLeader ? "#1 · Fører" : `#${rank} · −${ctx.leaderTotal - w.teamTotal} pt`;
+            return {
+                discKey,
+                teamColorVar: teamColorVar(w.team),
+                discName: w.disc.discipline_name ?? "—",
+                time,
+                teamName: w.team?.team_name ?? "—",
+                points: w.winnerP?.points ?? w.row?.points ?? "?",
+                maxPoints: w.disc.max_points ?? "?",
+                standing,
+                isLeader: w.isLeader,
+            };
+        }
+
+        // Payload til Edge Function — eksakt kontrakt fra index.ts. tilnavn udelades
+        // (ingen DimTeam-kolonne endnu; funktionen håndterer fravær pænt — dashboard-018).
+        function buildPayload(discKey, ctx) {
+            const w = discWinner(discKey, ctx);
+            if (!w) return null;
+            return {
+                team: {
+                    name: w.team?.team_name,
+                    skabelsesberetning: w.team?.team_motto || undefined,
+                    members: w.team?.team_members || undefined,
+                },
+                discipline: { name: w.disc.discipline_name, type: w.disc.discipline_type },
+                points: w.winnerP?.points ?? w.row?.points,
+                rank: w.winnerP?.rank ?? 1,
+                raw_value: (w.row?.raw_value ?? undefined),
+                notes: w.row?.notes || undefined,
+                standings: {
+                    leader: ctx.leaderTeam?.team_name,
+                    gap: Math.max(0, (ctx.leaderTotal ?? 0) - w.teamTotal),
+                },
+            };
+        }
+
+        async function fetchCallout(payload) {
+            if (DEMO) {
+                await new Promise(r => setTimeout(r, 600));
+                return `DEMO · ${payload.team?.name ?? "Holdet"} tog ${payload.discipline?.name ?? "disciplinen"}.`;
+            }
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), CALLOUT_TIMEOUT_MS);
+            try {
+                const resp = await fetch(CALLOUT_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                        "apikey": SUPABASE_ANON_KEY,
+                    },
+                    body: JSON.stringify(payload),
+                    signal: ctrl.signal,
+                });
+                if (!resp.ok) throw new Error(`callout ${resp.status}`);
+                const data = await resp.json();
+                return String(data.callout ?? "").trim();
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        // ----- Hero sync (detect → dispatch → paint) -------------------------
+        function setHero(fields, text, animate) {
+            heroRevision++;
+            currentHero = { ...fields, text, animate, rev: heroRevision };
+        }
+
+        async function dispatchCallout(discKey, ctx) {
+            const fields = buildHeroFields(discKey, ctx);
+            if (!fields) return;
+            let text;
+            try {
+                text = await fetchCallout(buildPayload(discKey, ctx));
+            } catch {
+                text = "";   // ADR-5: fejl stille — scoretal står, sarkastisk fallback nedenfor
+            }
+            if (!text) text = fallbackCommentary();
+            setHero(fields, text, true);   // animér ind én gang
+            renderHero();
+        }
+
+        function syncHero(ctx) {
+            const lockedNow = new Set(lockedDiscKeys(ctx.disciplines, ctx.scores));
+
+            // Ryd grene der er låst op igen → en korrektions-genlås kan fyre på ny.
+            for (const k of [...lockedSeen]) if (!lockedNow.has(k)) lockedSeen.delete(k);
+
+            // Første poll: etablér baseline uden at fyre (undgå burst af stale callouts
+            // når TV'et åbnes midt i festen). Vis seneste låste resultat med fallback-tekst.
+            if (!heroBaselineSeeded) {
+                heroBaselineSeeded = true;
+                for (const k of lockedNow) lockedSeen.add(k);
+                if (lockedNow.size > 0) {
+                    const latest = pickMostRecentDisc([...lockedNow], ctx.scores);
+                    const fields = buildHeroFields(latest, ctx);
+                    if (fields) setHero(fields, fallbackCommentary(), false);
+                }
+                renderHero();
+                return;
+            }
+
+            // Nye låser siden sidst.
+            const fresh = [...lockedNow].filter(k => !lockedSeen.has(k));
+            if (fresh.length === 0) { renderHero(); return; }
+
+            // Markér alle nye som seen (ingen genfyring); fyr kun for den seneste lås.
+            fresh.forEach(k => lockedSeen.add(k));
+            const chosen = pickMostRecentDisc(fresh, ctx.scores);
+            dispatchCallout(chosen, ctx);   // async, fire-and-forget — pollen blokeres ikke
+            renderHero();                    // hold nuværende hero malet mens kaldet kører
+        }
+
+        // ----- Hero painter ---------------------------------------------------
+        // Maler KUN ved ændring (heroPaintKey-guard) → ingen re-animation hver 5s-poll.
+        function renderHero() {
+            if (!currentHero) {
+                if (heroPaintKey === "empty") return;
+                heroPaintKey = "empty";
                 latestPanel.className = "latest-panel empty";
                 latestPanel.style.removeProperty("--team-color");
                 latestPanel.innerHTML = `
@@ -1537,61 +1759,27 @@
                 `;
                 return;
             }
+            const h = currentHero;
+            const key = `${h.discKey}:${h.rev}`;
+            if (key === heroPaintKey) return;
+            const animate = !!h.animate;
+            heroPaintKey = key;
 
-            const team = teams.find(t => t.team_key === latest.team_key);
-            const disc = disciplines.find(d => d.discipline_key === latest.discipline_key);
-            const teamTotal = totals.find(x => x.team.team_key === latest.team_key)?.total ?? 0;
-            const isLeader = latest.team_key === leaderKey;
-            const rank = rankByKey[latest.team_key];
-            const time = new Date(latest.score_timestamp).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
-
-            // Standing — demoted to the result line (text is the hero now, not the score).
-            const standing = isLeader
-                ? `#1 · Fører`
-                : `#${rank} · −${leaderTotal - teamTotal} pt`;
-
-            // Mock AI commentary (placeholder for dashboard-011 LLM-calls).
-            // Path C: if a discipline was a duel, the opponent lives in THIS text, not in structured data.
-            const commentary = mockCommentary(team, disc, latest.points, teamTotal, isLeader, leaderTeam, leaderTotal);
-
-            latestPanel.className = "latest-panel has-event" + (isLeader ? " leader" : "");
-            latestPanel.style.setProperty("--team-color", teamColorVar(team));
+            latestPanel.className = "latest-panel has-event"
+                + (h.isLeader ? " leader" : "") + (animate ? " lp-arrive" : "");
+            latestPanel.style.setProperty("--team-color", h.teamColorVar);
             latestPanel.innerHTML = `
                 <div class="lp-tag">
-                    <span class="lp-tag-disc">${esc(disc?.discipline_name ?? "—")}</span>
-                    <span class="lp-tag-time">${esc(time)}</span>
+                    <span class="lp-tag-disc">${esc(h.discName)}</span>
+                    <span class="lp-tag-time">${esc(h.time)}</span>
                 </div>
-                <div class="lp-commentary">${esc(commentary)}</div>
+                <div class="lp-commentary${animate ? " lp-fresh" : ""}">${esc(h.text)}</div>
                 <div class="lp-result">
-                    <span class="lp-result-team">${esc(team?.team_name ?? "—")}</span>
-                    <span class="lp-result-score">+${latest.points}<i>/${disc?.max_points ?? "?"}</i></span>
-                    <span class="lp-result-standing">${standing}</span>
+                    <span class="lp-result-team">${esc(h.teamName)}</span>
+                    <span class="lp-result-score">+${h.points}<i>/${h.maxPoints}</i></span>
+                    <span class="lp-result-standing">${esc(h.standing)}</span>
                 </div>
-                <div class="lp-ai-note">AI commentary · placeholder · dashboard-011 → Haiku 4.5</div>
             `;
-        }
-
-        function mockCommentary(team, disc, points, teamTotal, isLeader, leaderTeam, leaderTotal) {
-            const teamShort = shortName(team?.team_name ?? "Holdet");
-            const leaderShort = shortName(leaderTeam?.team_name ?? "feltet");
-            const discName = disc?.discipline_name ?? "disciplinen";
-            const maxPts = disc?.max_points ?? 0;
-            const pctOfMax = maxPts > 0 ? points / maxPts : 0;
-            const gap = leaderTotal - teamTotal;
-
-            // Strong performance
-            if (pctOfMax >= 0.85) {
-                if (isLeader) return `${teamShort} tromler videre — ${points} af ${maxPts} i ${discName} sætter dem endnu mere fast på toppen.`;
-                return `${teamShort} ridder højt på ${points} i ${discName}, men ${leaderShort} holder fortsat føringen ${gap} pt foran.`;
-            }
-            // Decent
-            if (pctOfMax >= 0.5) {
-                if (isLeader) return `${teamShort} samler ${points} i ${discName} — føringen bliver sværere at indhente.`;
-                return `${teamShort} henter ${points} i ${discName} og kæmper sig op. Stadig ${gap} pt bag ${leaderShort}.`;
-            }
-            // Weak
-            if (isLeader) return `${teamShort} mistede momentum i ${discName} med kun ${points}, men holder stadig toppen.`;
-            return `Skuffende ${points} i ${discName} for ${teamShort}. ${leaderShort} løber fra dem — ${gap} pt foran nu.`;
         }
 
         // ===== Disciplin strip ================================================
