@@ -205,7 +205,7 @@
                         ${isLocked
                             ? `<button class="btn btn-unlock" data-action="unlock">Lås op</button>`
                             : `<button class="btn btn-save" data-action="save">Gem rettelser</button>
-                               <button class="btn btn-lock" data-action="lock" ${enteredCount === 0 ? "disabled" : ""}>Lås disciplin</button>`}
+                               <button class="btn btn-lock" data-action="lock" ${enteredCount < teams.length ? "disabled" : ""}>Lås disciplin</button>`}
                     </div>
                 </div>`;
             }
@@ -251,6 +251,12 @@
         async function lockDiscipline(discKey) {
             const disc = disciplines.find((d) => d.discipline_key === discKey);
             const rows = scores.filter((r) => r.discipline_key === discKey && r.raw_value !== null);
+            // Guard: alle hold skal have et resultat før låsning — ellers får manglende hold
+            // 0 point i totalen (knappen er også disabled, men dette dækker direkte-kald).
+            if (rows.length < teams.length) {
+                toast(`Alle ${teams.length} hold skal have et resultat før låsning (${rows.length}/${teams.length})`, true);
+                return;
+            }
             const placements = computePlacements(rows, disc.sort_direction);
             const updates = rows.map((r) => {
                 const p = placements.get(r.team_key);
