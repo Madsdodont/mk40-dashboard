@@ -1156,21 +1156,55 @@
         }
         .disc-panel .dp-list {
             display: flex; flex-direction: column; gap: var(--space-2);
-            flex: 1; min-height: 0; justify-content: center;
+            flex: 1; min-height: 0; justify-content: space-between;
         }
-        .disc-panel .dp-item { display: flex; align-items: center; gap: var(--space-3); }
+        /* One row per discipline: label (left) + live rå-bars (right). */
+        .disc-panel .dp-disc { display: flex; align-items: center; gap: var(--space-3); min-height: 0; }
+        .disc-panel .dp-disc.is-locked { opacity: 0.62; }
+        .disc-panel .dp-disc-label { flex: 0 0 40%; display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
         /* Number chip — mirrors the radar vertex node (paper disc + dark number): the radar↔discipline key. */
         .disc-panel .dp-num {
             flex-shrink: 0;
             display: inline-flex; align-items: center; justify-content: center;
-            width: 22px; height: 22px; border-radius: 50%;
+            width: 20px; height: 20px; border-radius: 50%;
             border: 1px solid var(--ink-border); background: var(--ink-card);
             font-family: var(--font-label); font-size: var(--text-xs); font-weight: var(--w-bold);
             color: var(--bone-muted);
         }
         .disc-panel .dp-name {
             font-family: var(--font-label); font-weight: var(--w-bold);
-            font-size: var(--text-md); color: var(--bone);
+            font-size: var(--text-sm); color: var(--bone);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .disc-panel .dp-status {
+            margin-left: auto; flex-shrink: 0; font-family: var(--font-numeric);
+            font-size: var(--text-xs); font-weight: var(--w-bold);
+        }
+        .disc-panel .dp-status.live { color: var(--live-red); }
+        .disc-panel .dp-status.locked { color: var(--bone-dim); }
+        .disc-panel .dp-status.idle { color: var(--ink-border); }
+        /* Bars: lodrette, vinder højest. Højde = rawToBarFraction (normaliseret pr. gren). */
+        .disc-panel .dp-bars {
+            flex: 1; display: flex; align-items: flex-end; gap: 3px;
+            height: 38px; min-width: 0;
+        }
+        .disc-panel .dp-bar {
+            flex: 1; height: 100%; position: relative;
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+        }
+        .disc-panel .dp-bar-fill {
+            width: 100%; height: var(--h, 0%); border-radius: 3px 3px 0 0;
+            background: var(--team-color); opacity: 0.55; transition: height 0.4s ease;
+        }
+        .disc-panel .dp-bar.lead .dp-bar-fill {
+            opacity: 1; box-shadow: 0 0 8px color-mix(in oklch, var(--team-color) 45%, transparent);
+        }
+        .disc-panel .dp-bar.empty .dp-bar-fill {
+            height: 3px; background: var(--ink-border-soft); opacity: 0.6; border-radius: 2px;
+        }
+        .disc-panel .dp-bar-val {
+            font-family: var(--font-numeric); font-size: 0.6rem; font-weight: var(--w-bold);
+            color: var(--bone-muted); line-height: 1; margin-bottom: 2px; white-space: nowrap;
         }
     </style>
 </head>
@@ -1225,6 +1259,7 @@
     <script type="module">
         import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+        import { computePlacements, rawToBarFraction } from "./score.js";
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const $ = id => document.getElementById(id);
@@ -1248,7 +1283,7 @@
             const [t, d, s] = await Promise.all([
                 supabase.from("DimTeam").select("*").order("team_key"),
                 supabase.from("DimDiscipline").select("*").order("discipline_key"),
-                supabase.from("FactScore").select("*").eq("is_final", true),
+                supabase.from("FactScore").select("*"),
             ]);
             if (t.error || d.error || s.error) throw new Error(t.error?.message || d.error?.message || s.error?.message);
             return { teams: t.data, disciplines: d.data, scores: s.data };
@@ -1257,8 +1292,11 @@
         function render(data) {
             lastData = data;
             const { teams, disciplines, scores } = data;
+            // Totals/cards/bump/latest/radar bevæger sig KUN på låste grene (Mads' beslutning
+            // 2026-06-07): provisoriske rå-tal lever udelukkende i den live disc-panel nedenfor.
+            const finalScores = scores.filter(r => r.is_final);
             const matrix = {};
-            for (const r of scores) {
+            for (const r of finalScores) {
                 if (!matrix[r.team_key]) matrix[r.team_key] = {};
                 matrix[r.team_key][r.discipline_key] = r.points;
             }
@@ -1277,10 +1315,10 @@
             // below for Region B (right rail) — not wired yet, pending that decision.
             renderHeader();
             renderCards(totals, matrix, disciplines, leaderKey, rankByKey);
-            renderLatest(scores, teams, disciplines, totals, leaderKey, leaderTeam, leaderTotal, rankByKey);
-            renderBump(teams, scores);
+            renderLatest(finalScores, teams, disciplines, totals, leaderKey, leaderTeam, leaderTotal, rankByKey);
+            renderBump(teams, finalScores);
             renderAgenda();
-            renderDiscPanel(disciplines);
+            renderDiscPanel(disciplines, teams, scores);
         }
 
         // ===== Banner =========================================================
@@ -1330,16 +1368,25 @@
             const sortedDesc = [...totals].sort((a, b) => b.total - a.total);
             const leaderTotal = sortedDesc[0]?.total ?? 0;
             const secondTotal = sortedDesc[1]?.total ?? leaderTotal;
+            // Der er kun en FØRER ved STRENGT forspring (>0 point OG foran nr. 2).
+            // 0-0-0 ved start eller top-uafgjort → ingen fører, ingen gap-linje.
+            const hasLeader = leaderTotal > 0 && leaderTotal > secondTotal;
+            const noScores = leaderTotal === 0;
             // Render in rank order so the stack reorders through the evening.
             const ordered = [...totals].sort((a, b) => rankByKey[a.team.team_key] - rankByKey[b.team.team_key]);
             cardsRow.innerHTML = ordered.map(x => {
-                const isLeader = x.team.team_key === leaderKey;
+                const isLeader = hasLeader && x.team.team_key === leaderKey;
                 const rank = rankByKey[x.team.team_key];
                 const teamScores = matrix[x.team.team_key] ?? {};
-                const badgeLeft = isLeader ? `<span class="lead-badge">FØRER</span>` : `<span>#${rank}</span>`;
-                const gapHtml = isLeader
-                    ? `<div class="gap">+${leaderTotal - secondTotal}<span class="gap-unit">PT FORSPRING</span></div>`
-                    : `<div class="gap">−${leaderTotal - x.total}<span class="gap-unit">PT BAGUD</span></div>`;
+                const behind = leaderTotal - x.total;
+                const badgeLeft = isLeader
+                    ? `<span class="lead-badge">FØRER</span>`
+                    : `<span>${noScores ? "–" : "#" + rank}</span>`;
+                let gapHtml = "";
+                if (noScores) gapHtml = "";
+                else if (isLeader) gapHtml = `<div class="gap">+${leaderTotal - secondTotal}<span class="gap-unit">PT FORSPRING</span></div>`;
+                else if (behind > 0) gapHtml = `<div class="gap">−${behind}<span class="gap-unit">PT BAGUD</span></div>`;
+                else gapHtml = `<div class="gap"><span class="gap-unit">LIGE</span></div>`;
                 return `
                     <div class="hold-card${isLeader ? " leader" : ""}" style="--team-color: ${teamColorVar(x.team)}">
                         <div class="hc-identity">
@@ -1659,12 +1706,47 @@
             $("ph-clock").textContent = now.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
         }
 
-        // ===== Disciplines panel — placeholders; numbers (1..N) match the radar vertices ====
-        function renderDiscPanel(disciplines) {
-            const items = disciplines.map((d, i) =>
-                `<div class="dp-item"><span class="dp-num">${i + 1}</span><span class="dp-name">${esc(d.discipline_name)}</span></div>`
-            ).join("");
-            discPanel.innerHTML = `<div class="dp-head">Discipliner</div><div class="dp-list">${items}</div>`;
+        // ===== Disciplines panel — LIVE rå-score-bars (dashboard-009) =========
+        // Per discipline: op til 5 lodrette bars med holdenes faktiske rå-tal, vinder
+        // højest, opdateret live efterhånden som kaptajnerne taster (provisorisk —
+        // uafhængigt af is_final). Numrene 1..N matcher fortsat radar-vertices.
+        // Dette er "følg-med"-fladen; totalen rører sig først når host LÅSER (renderCards).
+        function renderDiscPanel(disciplines, teams, allScores) {
+            const rows = disciplines.map((d, i) => {
+                const discRows = allScores.filter(s => s.discipline_key === d.discipline_key);
+                const entered = discRows.filter(s => s.raw_value !== null && s.raw_value !== undefined);
+                const isLocked = entered.length > 0 && discRows.every(s => s.is_final);
+                const placements = computePlacements(discRows, d.sort_direction);
+                const allRaws = entered.map(s => Number(s.raw_value));
+
+                const sorted = entered.map(s => {
+                    const team = teams.find(t => t.team_key === s.team_key);
+                    const p = placements.get(s.team_key);
+                    return { team, raw: Number(s.raw_value), rank: p.rank,
+                             frac: rawToBarFraction(Number(s.raw_value), allRaws, d.sort_direction) };
+                }).sort((a, b) => a.rank - b.rank);
+
+                const bars = sorted.map((x, idx) => `
+                    <div class="dp-bar${idx === 0 ? " lead" : ""}" style="--team-color:${teamColorVar(x.team)}; --h:${(x.frac * 100).toFixed(0)}%" title="${esc(x.team.team_name)}: ${esc(x.raw)}">
+                        <span class="dp-bar-val">${esc(x.raw)}</span>
+                        <span class="dp-bar-fill"></span>
+                    </div>`).join("");
+                const empties = Math.max(0, teams.length - sorted.length);
+                const padHtml = Array.from({ length: empties }, () =>
+                    `<div class="dp-bar empty"><span class="dp-bar-fill"></span></div>`).join("");
+
+                const status = isLocked
+                    ? `<span class="dp-status locked">🔒</span>`
+                    : entered.length > 0
+                        ? `<span class="dp-status live">${entered.length}/${teams.length}</span>`
+                        : `<span class="dp-status idle">–</span>`;
+
+                return `<div class="dp-disc${isLocked ? " is-locked" : ""}">
+                    <div class="dp-disc-label"><span class="dp-num">${i + 1}</span><span class="dp-name">${esc(d.discipline_name)}</span>${status}</div>
+                    <div class="dp-bars">${bars}${padHtml}</div>
+                </div>`;
+            }).join("");
+            discPanel.innerHTML = `<div class="dp-head">Discipliner — live</div><div class="dp-list">${rows}</div>`;
         }
 
         // Re-render the bump chart when its container resizes (it sizes to viewBox at runtime).
