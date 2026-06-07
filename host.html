@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>mk40 — Host / Dommer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900&family=JetBrains+Mono:wght@500;700;800&display=swap">
+    <style>
+        :root {
+            --ink-void: oklch(94% 0.012 60);
+            --ink-deep: oklch(97% 0.008 60);
+            --ink-card: oklch(99% 0.005 60);
+            --ink-border-soft: oklch(88% 0.012 60);
+            --ink-border: oklch(75% 0.012 60);
+            --bone: oklch(20% 0.014 30);
+            --bone-muted: oklch(40% 0.014 30);
+            --bone-dim: oklch(58% 0.012 30);
+            --ok-green: oklch(55% 0.15 150);
+            --wait-amber: oklch(60% 0.13 75);
+            --team-rød: oklch(58% 0.22 5);
+            --team-blå: oklch(42% 0.20 258);
+            --team-grøn: oklch(50% 0.18 145);
+            --team-gul: oklch(68% 0.18 65);
+            --team-sorthvid: oklch(52% 0.18 295);
+            --font-display: "Fraunces", Georgia, serif;
+            --font-label: "Segoe UI", system-ui, sans-serif;
+            --font-numeric: "JetBrains Mono", ui-monospace, monospace;
+            --shadow-low: 0 1px 2px oklch(20% 0.02 30 / 0.08), 0 2px 6px oklch(20% 0.02 30 / 0.06);
+            --shadow-medium: 0 2px 4px oklch(20% 0.02 30 / 0.10), 0 8px 24px oklch(20% 0.02 30 / 0.08);
+            --w-regular: 600; --w-bold: 700; --w-black: 900;
+            --ls-label: 0.12em; --ls-tight: -0.02em;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            background: var(--ink-void); color: var(--bone);
+            font-family: var(--font-label); min-height: 100vh; -webkit-font-smoothing: antialiased;
+        }
+        /* iPad landscape: bredt canvas → giv plads til 2-3 kolonner. */
+        .wrap { max-width: 1280px; margin: 0 auto; padding: 0 0 calc(4rem + env(safe-area-inset-bottom)); }
+        .head {
+            position: sticky; top: 0; z-index: 10; background: var(--bone); color: var(--ink-card);
+            padding: calc(1rem + env(safe-area-inset-top)) 1.25rem 1rem; box-shadow: var(--shadow-medium);
+            display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;
+        }
+        .head h1 { font-family: var(--font-display); font-weight: var(--w-black); font-size: 1.4rem; margin: 0; letter-spacing: var(--ls-tight); }
+        .head .sub { font-size: 0.75rem; letter-spacing: var(--ls-label); text-transform: uppercase; opacity: 0.7; font-weight: var(--w-bold); }
+        .head .conn { margin-left: auto; font-size: 0.75rem; font-family: var(--font-numeric); opacity: 0.8; }
+
+        /* auto-fit grid: 1 kolonne på telefon, 2-3 på iPad landscape — ingen media-query nødvendig.
+           min 440px holder hver disciplin-tabel læselig. align-items:start så kort ikke strækkes. */
+        .list { padding: 1rem 1rem 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 1rem; align-items: start; }
+        .disc { break-inside: avoid; }
+        .disc { background: var(--ink-card); border: 1px solid var(--ink-border-soft); border-radius: 12px; box-shadow: var(--shadow-low); overflow: hidden; }
+        .disc.locked { border-color: color-mix(in oklch, var(--ok-green) 45%, var(--ink-border-soft)); }
+        .disc-top { padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.6rem; border-bottom: 1px solid var(--ink-border-soft); }
+        .disc-top h2 { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 1.15rem; margin: 0; flex: 1; }
+        .count-chip { font-family: var(--font-numeric); font-size: 0.8rem; font-weight: var(--w-bold); color: var(--bone-muted); }
+        .count-chip.full { color: var(--ok-green); }
+        .lock-tag { font-size: 0.7rem; font-weight: var(--w-bold); color: var(--ok-green); letter-spacing: var(--ls-label); text-transform: uppercase; }
+
+        table { width: 100%; border-collapse: collapse; }
+        td, th { padding: 0.5rem 1rem; text-align: left; }
+        thead th { font-size: 0.62rem; letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--bone-dim); font-weight: var(--w-bold); }
+        tbody tr { border-top: 1px solid var(--ink-border-soft); }
+        tbody tr.pending td { color: var(--bone-dim); }
+        .rank-cell { font-family: var(--font-numeric); font-weight: var(--w-black); font-size: 1.05rem; width: 2.2rem; color: var(--team-color, var(--bone)); }
+        .team-cell { font-weight: var(--w-bold); }
+        .team-dot { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--team-color); margin-right: 0.45rem; vertical-align: -1px; }
+        .raw-cell input {
+            width: 5.5rem; font-family: var(--font-numeric); font-size: 1rem; text-align: right;
+            min-height: 40px; padding: 0.4rem 0.55rem; border: 1.5px solid var(--ink-border); border-radius: 7px;
+            background: var(--ink-deep); color: var(--bone); -webkit-appearance: none; appearance: none;
+        }
+        .raw-cell input:disabled { background: transparent; border-color: transparent; color: var(--bone-muted); text-align: right; }
+        .raw-cell input:focus { outline: none; border-color: var(--bone); }
+        .pts-cell { font-family: var(--font-numeric); font-weight: var(--w-bold); width: 4rem; text-align: right; }
+        .note-cell { font-size: 0.78rem; color: var(--bone-dim); max-width: 12rem; }
+
+        .disc-foot { padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.6rem; }
+        .hint { font-size: 0.72rem; color: var(--bone-dim); flex: 1; }
+        .btn {
+            font-family: var(--font-label); font-weight: var(--w-bold); font-size: 0.9rem;
+            min-height: 44px; padding: 0.55rem 1.25rem; border: none; border-radius: 8px; cursor: pointer;
+            box-shadow: var(--shadow-low); transition: transform 0.08s, opacity 0.2s;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-lock { background: var(--ok-green); color: oklch(98% 0.01 60); }
+        .btn-unlock { background: transparent; color: var(--bone-muted); border: 1.5px solid var(--ink-border); box-shadow: none; }
+        .btn-save { background: var(--bone); color: var(--ink-card); }
+
+        .state-msg { padding: 3rem 1.5rem; text-align: center; color: var(--bone-muted); }
+        .state-msg.error { color: var(--team-rød); }
+        .toast {
+            position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(2rem);
+            background: var(--bone); color: var(--ink-card); font-weight: var(--w-bold); font-size: 0.85rem;
+            padding: 0.7rem 1.2rem; border-radius: 999px; box-shadow: var(--shadow-medium);
+            opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 50;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.error { background: var(--team-rød); }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="head">
+            <h1>Host · Dommer</h1>
+            <span class="sub">Kongerigernes Kamp</span>
+            <span class="conn" id="conn">●</span>
+        </div>
+        <div id="content"><div class="state-msg">Indlæser…</div></div>
+    </div>
+    <div id="toast" class="toast"></div>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+        import { computePlacements } from "./score.js";
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const POLL_MS = 5000;
+        const contentEl = document.getElementById("content");
+        const connEl = document.getElementById("conn");
+        const toastEl = document.getElementById("toast");
+
+        function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
+        function esc(s) { return s == null ? "" : String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+        let toastTimer;
+        function toast(msg, isError = false) {
+            clearTimeout(toastTimer);
+            toastEl.textContent = msg;
+            toastEl.className = "toast show" + (isError ? " error" : "");
+            toastTimer = setTimeout(() => { toastEl.className = "toast"; }, 2200);
+        }
+
+        let teams = [], disciplines = [], scores = [];
+
+        async function load() {
+            const [t, d, s] = await Promise.all([
+                supabase.from("DimTeam").select("*").order("team_key"),
+                supabase.from("DimDiscipline").select("*").order("discipline_key"),
+                supabase.from("FactScore").select("*"),
+            ]);
+            if (t.error) throw new Error(t.error.message);
+            if (d.error) throw new Error(d.error.message);
+            if (s.error) throw new Error(s.error.message);
+            teams = t.data; disciplines = d.data; scores = s.data;
+        }
+
+        const teamById = (k) => teams.find((t) => t.team_key === k);
+
+        function render() {
+            let html = `<div class="list">`;
+            for (const disc of disciplines) {
+                const rows = scores.filter((r) => r.discipline_key === disc.discipline_key);
+                const enteredCount = rows.filter((r) => r.raw_value !== null && r.raw_value !== undefined).length;
+                const isLocked = rows.length > 0 && rows.every((r) => r.is_final) && enteredCount > 0;
+                const placements = computePlacements(rows, disc.sort_direction);
+
+                // Rangér de indtastede hold; ikke-indtastede hold listes nederst som "afventer".
+                // Samme "har tastet"-predikat som computePlacements (både null og undefined ude).
+                const hasRaw = (r) => r && r.raw_value !== null && r.raw_value !== undefined;
+                const enteredTeams = teams
+                    .map((tm) => ({ tm, row: rows.find((r) => r.team_key === tm.team_key) }))
+                    .filter((x) => hasRaw(x.row))
+                    .sort((a, b) => (placements.get(a.tm.team_key).rank - placements.get(b.tm.team_key).rank));
+                const pendingTeams = teams.filter((tm) => !hasRaw(rows.find((r) => r.team_key === tm.team_key)));
+
+                let bodyRows = "";
+                for (const { tm, row } of enteredTeams) {
+                    const p = placements.get(tm.team_key);
+                    const teamVar = `var(--team-${cssVarSafe(tm.team_color)})`;
+                    bodyRows += `<tr style="--team-color:${teamVar}">
+                        <td class="rank-cell">${p.rank}.</td>
+                        <td class="team-cell"><span class="team-dot"></span>${esc(tm.team_name)}</td>
+                        <td class="raw-cell"><input type="number" step="any" inputmode="decimal"
+                            value="${esc(row.raw_value)}" data-score-id="${row.score_id}" ${isLocked ? "disabled" : ""}></td>
+                        <td class="pts-cell">${p.points} pt</td>
+                        <td class="note-cell">${esc(row.notes ?? "")}</td>
+                    </tr>`;
+                }
+                for (const tm of pendingTeams) {
+                    bodyRows += `<tr class="pending"><td class="rank-cell">–</td>
+                        <td class="team-cell">${esc(tm.team_name)}</td>
+                        <td class="raw-cell">afventer</td><td class="pts-cell">–</td><td class="note-cell"></td></tr>`;
+                }
+
+                const countClass = enteredCount === teams.length ? "count-chip full" : "count-chip";
+                const dirHint = disc.sort_direction === "asc" ? "lavest vinder" : "højest vinder";
+                html += `<div class="disc ${isLocked ? "locked" : ""}" data-disc="${disc.discipline_key}">
+                    <div class="disc-top">
+                        <h2>${esc(disc.discipline_name)}</h2>
+                        ${isLocked ? `<span class="lock-tag">🔒 Låst</span>` : ""}
+                        <span class="${countClass}">${enteredCount}/${teams.length}</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>#</th><th>Hold</th><th>Resultat</th><th>Point</th><th>Note</th></tr></thead>
+                        <tbody>${bodyRows}</tbody>
+                    </table>
+                    <div class="disc-foot">
+                        <span class="hint">${esc(disc.discipline_type)} · ${dirHint}${isLocked ? " · point tæller i totalen" : enteredCount < teams.length ? " · mangler hold før låsning" : " · klar til låsning"}</span>
+                        ${isLocked
+                            ? `<button class="btn btn-unlock" data-action="unlock">Lås op</button>`
+                            : `<button class="btn btn-save" data-action="save">Gem rettelser</button>
+                               <button class="btn btn-lock" data-action="lock" ${enteredCount === 0 ? "disabled" : ""}>Lås disciplin</button>`}
+                    </div>
+                </div>`;
+            }
+            html += `</div>`;
+            contentEl.innerHTML = html;
+            wire();
+        }
+
+        function wire() {
+            for (const card of contentEl.querySelectorAll(".disc")) {
+                const discKey = Number(card.dataset.disc);
+                for (const btn of card.querySelectorAll("[data-action]")) {
+                    const action = btn.dataset.action;
+                    btn.addEventListener("click", () => {
+                        if (action === "save") saveEdits(card);
+                        else if (action === "lock") lockDiscipline(discKey);
+                        else if (action === "unlock") unlockDiscipline(discKey);
+                    });
+                }
+            }
+        }
+
+        // Host retter en eller flere rå-værdier (slåfejl-validering).
+        async function saveEdits(card) {
+            const inputs = [...card.querySelectorAll(".raw-cell input[data-score-id]")];
+            const updates = [];
+            for (const inp of inputs) {
+                const scoreId = Number(inp.dataset.scoreId);
+                const orig = scores.find((r) => r.score_id === scoreId);
+                const newVal = inp.value.trim() === "" ? null : Number(inp.value);
+                if (orig && Number(orig.raw_value) !== newVal) {
+                    updates.push(supabase.from("FactScore").update({ raw_value: newVal }).eq("score_id", scoreId));
+                }
+            }
+            if (updates.length === 0) { toast("Ingen ændringer"); return; }
+            const results = await Promise.all(updates);
+            if (results.some((r) => r.error)) { toast("Fejl ved gem", true); return; }
+            toast(`${updates.length} rettelse(r) gemt`);
+            await refresh();
+        }
+
+        // Lås: udregn placeringer fra rå-tal, skriv points + is_final på de indtastede rækker.
+        async function lockDiscipline(discKey) {
+            const disc = disciplines.find((d) => d.discipline_key === discKey);
+            const rows = scores.filter((r) => r.discipline_key === discKey && r.raw_value !== null);
+            const placements = computePlacements(rows, disc.sort_direction);
+            const updates = rows.map((r) => {
+                const p = placements.get(r.team_key);
+                return supabase.from("FactScore").update({ points: p.points, is_final: true }).eq("score_id", r.score_id);
+            });
+            const results = await Promise.all(updates);
+            if (results.some((r) => r.error)) { toast("Fejl ved låsning", true); console.error(results); return; }
+            toast(`${esc(disc.discipline_name)} låst — point tæller nu`);
+            await refresh();
+        }
+
+        // Lås op: nulstil is_final + points → grenen bliver provisorisk igen.
+        async function unlockDiscipline(discKey) {
+            const { error } = await supabase.from("FactScore")
+                .update({ is_final: false, points: null }).eq("discipline_key", discKey);
+            if (error) { toast("Fejl ved oplåsning", true); return; }
+            toast("Disciplin låst op");
+            await refresh();
+        }
+
+        function focusInsideContent() {
+            const a = document.activeElement;
+            return a && a.tagName === "INPUT" && contentEl.contains(a);
+        }
+
+        async function refresh(force = false) {
+            try {
+                await load();
+                connEl.style.color = "var(--ok-green)";
+                // Re-render ikke mens host taster i et felt (ville smide fokus/indtastning).
+                if (force || !focusInsideContent()) render();
+            } catch (err) {
+                connEl.style.color = "var(--team-rød)";
+                if (force) contentEl.innerHTML = `<div class="state-msg error">Fejl: ${esc(err.message)}</div>`;
+            }
+        }
+
+        refresh(true);
+        setInterval(() => refresh(false), POLL_MS);
+    </script>
+</body>
+</html>

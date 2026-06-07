@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mk40 — QR-koder til kaptajner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900&family=JetBrains+Mono:wght@500;700&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --ink-void: oklch(94% 0.012 60);
+            --ink-card: oklch(99% 0.005 60);
+            --ink-border-soft: oklch(88% 0.012 60);
+            --ink-border: oklch(75% 0.012 60);
+            --bone: oklch(20% 0.014 30);
+            --bone-muted: oklch(40% 0.014 30);
+            --bone-dim: oklch(58% 0.012 30);
+            --team-rød: oklch(58% 0.22 5);
+            --team-blå: oklch(42% 0.20 258);
+            --team-grøn: oklch(50% 0.18 145);
+            --team-gul: oklch(68% 0.18 65);
+            --team-sorthvid: oklch(52% 0.18 295);
+            --font-display: "Fraunces", Georgia, serif;
+            --font-label: "Segoe UI", system-ui, sans-serif;
+            --font-numeric: "JetBrains Mono", ui-monospace, monospace;
+            --shadow-low: 0 1px 2px oklch(20% 0.02 30 / 0.08), 0 2px 6px oklch(20% 0.02 30 / 0.06);
+            --w-bold: 700; --w-black: 900; --ls-label: 0.12em; --ls-tight: -0.02em;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            background: var(--ink-void); color: var(--bone);
+            font-family: var(--font-label); -webkit-font-smoothing: antialiased;
+        }
+        .wrap { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+        h1 { font-family: var(--font-display); font-weight: var(--w-black); font-size: 2rem; letter-spacing: var(--ls-tight); margin: 0 0 0.25rem; }
+        .lede { color: var(--bone-muted); margin: 0 0 1.5rem; font-size: 0.95rem; }
+        .base-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .base-row label { font-size: 0.72rem; letter-spacing: var(--ls-label); text-transform: uppercase; font-weight: var(--w-bold); color: var(--bone-dim); }
+        .base-row input { flex: 1; min-width: 18rem; font-family: var(--font-numeric); font-size: 0.85rem; padding: 0.5rem 0.7rem; border: 1.5px solid var(--ink-border); border-radius: 8px; background: var(--ink-card); color: var(--bone); }
+        .print-btn { font-family: var(--font-label); font-weight: var(--w-bold); padding: 0.5rem 1.1rem; border: none; border-radius: 8px; background: var(--bone); color: var(--ink-card); cursor: pointer; box-shadow: var(--shadow-low); }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
+        .qr-card {
+            background: var(--ink-card); border: 1px solid var(--ink-border-soft); border-top: 6px solid var(--team-color, var(--bone));
+            border-radius: 12px; box-shadow: var(--shadow-low); padding: 1.25rem; text-align: center;
+            break-inside: avoid; page-break-inside: avoid;
+        }
+        .qr-card.host { border-top-color: var(--bone); }
+        .qr-card .kicker { font-size: 0.7rem; letter-spacing: var(--ls-label); text-transform: uppercase; font-weight: var(--w-bold); color: var(--team-color, var(--bone-muted)); margin: 0 0 0.2rem; }
+        .qr-card h2 { font-family: var(--font-display); font-weight: var(--w-black); font-size: 1.3rem; line-height: 1.05; margin: 0 0 0.9rem; letter-spacing: var(--ls-tight); }
+        .qr-box { display: inline-flex; padding: 0.6rem; background: #fff; border-radius: 8px; }
+        .qr-box img, .qr-box canvas { display: block; }
+        .qr-url { font-family: var(--font-numeric); font-size: 0.62rem; color: var(--bone-dim); margin: 0.7rem 0 0; word-break: break-all; }
+
+        .state-msg { padding: 2rem 0; color: var(--bone-muted); }
+        .state-msg.error { color: var(--team-rød); }
+
+        @media print {
+            body { background: #fff; }
+            .no-print { display: none !important; }
+            .wrap { max-width: none; padding: 0.5cm; }
+            .qr-card { box-shadow: none; border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>Kongerigernes Kamp — kaptajn-koder</h1>
+        <p class="lede">Hvert hold scanner sin kode → kommer direkte til holdets indtastnings-side. Host-koden er til dommeren. Print arket og læg en kode ved hver station, eller giv kaptajnerne deres egen.</p>
+        <div class="base-row no-print">
+            <label for="base">Base-URL</label>
+            <input id="base" type="text" spellcheck="false">
+            <button class="print-btn" onclick="window.print()">Print</button>
+        </div>
+        <div id="grid" class="grid"><div class="state-msg">Indlæser hold…</div></div>
+    </div>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const gridEl = document.getElementById("grid");
+        const baseInput = document.getElementById("base");
+
+        function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
+        function esc(s) { return s == null ? "" : String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+
+        // Base = mappen hvor qr.html ligger. Når serveret fra GitHub Pages bliver det den
+        // offentlige URL som telefonerne kan ramme. Lokalt bliver det localhost (kun til preview).
+        const defaultBase = new URL(".", location.href).href;
+        baseInput.value = defaultBase;
+
+        // Fallback-hold hvis DB-fetch fejler — arket skal altid kunne printes.
+        const FALLBACK_TEAMS = [
+            { team_key: 1, team_color: "rød",       team_name: "Kongeriget Røde Rødder" },
+            { team_key: 2, team_color: "blå",       team_name: "Det Blå Imperium" },
+            { team_key: 3, team_color: "grøn",      team_name: "Den Grønne Pagt" },
+            { team_key: 4, team_color: "gul",       team_name: "Gyldne Riger" },
+            { team_key: 5, team_color: "sort/hvid", team_name: "Den Sorte Cirkel" },
+        ];
+
+        let teams = FALLBACK_TEAMS;
+
+        async function loadTeams() {
+            try {
+                const { data, error } = await supabase.from("DimTeam").select("team_key, team_color, team_name").order("team_key");
+                if (!error && data && data.length) teams = data;
+            } catch { /* behold fallback */ }
+        }
+
+        function render() {
+            const base = baseInput.value.trim().replace(/\/?$/, "/");
+            gridEl.innerHTML = "";
+
+            for (const t of teams) {
+                const url = `${base}kaptajn.html?team=${t.team_key}`;
+                const teamVar = `var(--team-${cssVarSafe(t.team_color)})`;
+                const card = document.createElement("div");
+                card.className = "qr-card";
+                card.style.setProperty("--team-color", teamVar);
+                card.innerHTML = `<p class="kicker">Hold ${t.team_key} · Kaptajn</p>
+                    <h2>${esc(t.team_name)}</h2>
+                    <div class="qr-box"></div>
+                    <p class="qr-url">${esc(url)}</p>`;
+                gridEl.appendChild(card);
+                new QRCode(card.querySelector(".qr-box"), { text: url, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
+            }
+
+            // Host-kort
+            const hostUrl = `${base}host.html`;
+            const hostCard = document.createElement("div");
+            hostCard.className = "qr-card host";
+            hostCard.innerHTML = `<p class="kicker">Dommer</p><h2>Host / Lås</h2><div class="qr-box"></div><p class="qr-url">${esc(hostUrl)}</p>`;
+            gridEl.appendChild(hostCard);
+            new QRCode(hostCard.querySelector(".qr-box"), { text: hostUrl, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
+        }
+
+        baseInput.addEventListener("change", render);
+        await loadTeams();
+        render();
+    </script>
+</body>
+</html>

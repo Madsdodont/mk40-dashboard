@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+    <title>mk40 — Kaptajn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900&family=JetBrains+Mono:wght@500;700;800&display=swap">
+    <style>
+        :root {
+            /* Paper palette + team colors + fonts — delt med cards-h.html (canonical). */
+            --ink-void: oklch(94% 0.012 60);
+            --ink-deep: oklch(97% 0.008 60);
+            --ink-card: oklch(99% 0.005 60);
+            --ink-elevated: oklch(96% 0.010 60);
+            --ink-border-soft: oklch(88% 0.012 60);
+            --ink-border: oklch(75% 0.012 60);
+            --bone: oklch(20% 0.014 30);
+            --bone-muted: oklch(40% 0.014 30);
+            --bone-dim: oklch(58% 0.012 30);
+            --ok-green: oklch(55% 0.15 150);
+            --wait-amber: oklch(60% 0.13 75);
+            --team-rød: oklch(58% 0.22 5);
+            --team-blå: oklch(42% 0.20 258);
+            --team-grøn: oklch(50% 0.18 145);
+            --team-gul: oklch(68% 0.18 65);
+            --team-sorthvid: oklch(52% 0.18 295);
+            --font-display: "Fraunces", Georgia, serif;
+            --font-label: "Segoe UI", system-ui, sans-serif;
+            --font-numeric: "JetBrains Mono", ui-monospace, monospace;
+            --shadow-low: 0 1px 2px oklch(20% 0.02 30 / 0.08), 0 2px 6px oklch(20% 0.02 30 / 0.06);
+            --shadow-medium: 0 2px 4px oklch(20% 0.02 30 / 0.10), 0 8px 24px oklch(20% 0.02 30 / 0.08);
+            --w-regular: 600; --w-bold: 700; --w-black: 900;
+            --ls-label: 0.12em; --ls-tight: -0.02em;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            background: var(--ink-void);
+            color: var(--bone);
+            font-family: var(--font-label);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* iPhone: respektér safe-area (notch + home-indicator). Bund-padding holder
+           sidste kort fri af home-baren; toast får samme sikkerhedsafstand. */
+        .wrap { max-width: 540px; margin: 0 auto; padding: 0 0 calc(4rem + env(safe-area-inset-bottom)); }
+
+        /* ===== Team header ===== */
+        .team-head {
+            position: sticky; top: 0; z-index: 10;
+            background: var(--team-color, var(--bone));
+            color: oklch(98% 0.01 60);
+            /* Top-padding inkl. notch så titlen aldrig gemmer sig under statusbaren. */
+            padding: calc(1.1rem + env(safe-area-inset-top)) 1.25rem 1rem;
+            box-shadow: var(--shadow-medium);
+        }
+        .team-head .kicker {
+            font-size: 0.7rem; letter-spacing: var(--ls-label); text-transform: uppercase;
+            font-weight: var(--w-bold); opacity: 0.85; margin: 0 0 0.15rem;
+        }
+        .team-head h1 {
+            font-family: var(--font-display); font-weight: var(--w-black);
+            font-size: 1.6rem; line-height: 1.05; margin: 0; letter-spacing: var(--ls-tight);
+        }
+        .team-head .progress {
+            margin-top: 0.6rem; font-size: 0.8rem; font-weight: var(--w-bold);
+            font-family: var(--font-numeric); opacity: 0.92;
+        }
+
+        /* ===== Discipline cards ===== */
+        .list { padding: 1rem 1rem 0; display: flex; flex-direction: column; gap: 0.85rem; }
+        .disc {
+            background: var(--ink-card); border: 1px solid var(--ink-border-soft);
+            border-radius: 12px; box-shadow: var(--shadow-low); overflow: hidden;
+        }
+        .disc-top { padding: 0.9rem 1rem 0.75rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+        .disc-name { flex: 1; }
+        .disc-name h2 {
+            font-family: var(--font-display); font-weight: var(--w-bold);
+            font-size: 1.15rem; margin: 0; line-height: 1.1;
+        }
+        .disc-hint {
+            font-size: 0.72rem; color: var(--bone-dim); margin-top: 0.2rem;
+            display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;
+        }
+        .type-badge {
+            font-size: 0.62rem; letter-spacing: var(--ls-label); text-transform: uppercase;
+            font-weight: var(--w-bold); color: var(--bone-muted);
+            border: 1px solid var(--ink-border-soft); border-radius: 999px; padding: 0.1rem 0.5rem;
+        }
+        .status-chip {
+            font-size: 0.7rem; font-weight: var(--w-bold); white-space: nowrap;
+            padding: 0.25rem 0.55rem; border-radius: 999px; align-self: flex-start;
+        }
+        .status-chip.missing { background: oklch(92% 0.012 60); color: var(--bone-dim); }
+        .status-chip.entered { background: color-mix(in oklch, var(--wait-amber) 18%, transparent); color: var(--wait-amber); }
+        .status-chip.locked  { background: color-mix(in oklch, var(--ok-green) 18%, transparent); color: var(--ok-green); }
+
+        .disc-body { padding: 0 1rem 1rem; }
+        .field-row { display: flex; gap: 0.5rem; align-items: stretch; }
+        input[type="number"], input[type="text"] {
+            width: 100%; font-family: var(--font-numeric); font-size: 1.15rem;
+            min-height: 48px; padding: 0.7rem 0.8rem; border: 1.5px solid var(--ink-border);
+            border-radius: 9px; background: var(--ink-deep); color: var(--bone);
+            -webkit-appearance: none; appearance: none;
+        }
+        /* 16px = iOS' grænse: under den auto-zoomer Safari ved fokus. Hold note-feltet >=16px. */
+        input[type="text"] { font-family: var(--font-label); font-size: 1rem; }
+        input:focus { outline: none; border-color: var(--team-color, var(--bone)); }
+        .note-input { margin-top: 0.5rem; }
+        .save-btn {
+            font-family: var(--font-label); font-weight: var(--w-bold); font-size: 1rem;
+            min-height: 48px; padding: 0.7rem 1.25rem; border: none; border-radius: 9px; white-space: nowrap;
+            background: var(--team-color, var(--bone)); color: oklch(98% 0.01 60);
+            box-shadow: var(--shadow-low); cursor: pointer; transition: transform 0.08s, opacity 0.2s;
+        }
+        .save-btn:active { transform: scale(0.96); }
+        .save-btn:disabled { opacity: 0.45; }
+        .save-btn.saved { background: var(--ok-green); }
+
+        .locked-result {
+            display: flex; align-items: baseline; gap: 0.6rem;
+            padding: 0.4rem 0; font-family: var(--font-numeric);
+        }
+        .locked-result .place { font-size: 1.6rem; font-weight: var(--w-black); color: var(--team-color, var(--bone)); }
+        .locked-result .pts { font-size: 1rem; font-weight: var(--w-bold); color: var(--bone-muted); }
+        .locked-result .raw { font-size: 0.78rem; color: var(--bone-dim); margin-left: auto; }
+
+        .state-msg { padding: 3rem 1.5rem; text-align: center; color: var(--bone-muted); }
+        .state-msg.error { color: var(--team-rød); }
+
+        .toast {
+            position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(2rem);
+            background: var(--bone); color: var(--ink-card); font-weight: var(--w-bold);
+            font-size: 0.85rem; padding: 0.7rem 1.2rem; border-radius: 999px;
+            box-shadow: var(--shadow-medium); opacity: 0; pointer-events: none;
+            transition: opacity 0.25s, transform 0.25s; z-index: 50;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.error { background: var(--team-rød); }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div id="content"><div class="state-msg">Indlæser…</div></div>
+    </div>
+    <div id="toast" class="toast"></div>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const POLL_MS = 5000;
+
+        // ?team=N — hvilket hold denne kaptajn tilhører.
+        const teamKey = Number(new URLSearchParams(location.search).get("team"));
+        const contentEl = document.getElementById("content");
+        const toastEl = document.getElementById("toast");
+
+        const PLACE_LABEL = { 10: "1.", 7: "2.", 5: "3.", 3: "4.", 1: "5." };
+
+        function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
+        const hasRaw = (r) => r && r.raw_value !== null && r.raw_value !== undefined;
+        function esc(s) {
+            if (s == null) return "";
+            return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+        let toastTimer;
+        function toast(msg, isError = false) {
+            clearTimeout(toastTimer);
+            toastEl.textContent = msg;
+            toastEl.className = "toast show" + (isError ? " error" : "");
+            toastTimer = setTimeout(() => { toastEl.className = "toast"; }, 2200);
+        }
+
+        let team = null;
+        let disciplines = [];
+        let myScores = {}; // discipline_key → row
+
+        async function load() {
+            const [teamRes, discRes, scoreRes] = await Promise.all([
+                supabase.from("DimTeam").select("*").eq("team_key", teamKey).single(),
+                supabase.from("DimDiscipline").select("*").order("discipline_key"),
+                supabase.from("FactScore").select("*").eq("team_key", teamKey),
+            ]);
+            if (teamRes.error) throw new Error(teamRes.error.message);
+            if (discRes.error) throw new Error(discRes.error.message);
+            if (scoreRes.error) throw new Error(scoreRes.error.message);
+            team = teamRes.data;
+            disciplines = discRes.data;
+            myScores = {};
+            for (const r of scoreRes.data) myScores[r.discipline_key] = r;
+        }
+
+        function render() {
+            const teamVar = `var(--team-${cssVarSafe(team.team_color)})`;
+            const doneCount = disciplines.filter((d) => hasRaw(myScores[d.discipline_key])).length;
+
+            let html = `<div class="team-head" style="--team-color:${teamVar}">
+                <p class="kicker">Kaptajn · Kongerigernes Kamp</p>
+                <h1>${esc(team.team_name)}</h1>
+                <div class="progress">${doneCount} / ${disciplines.length} grene tastet</div>
+            </div><div class="list">`;
+
+            for (const d of disciplines) {
+                const row = myScores[d.discipline_key];
+                const dir = d.sort_direction === "asc" ? "Lavest vinder" : "Højest vinder";
+                let status, body;
+
+                if (row && row.is_final) {
+                    const place = PLACE_LABEL[row.points] ?? "–";
+                    status = `<span class="status-chip locked">🔒 Låst</span>`;
+                    body = `<div class="locked-result">
+                        <span class="place">${place} plads</span>
+                        <span class="pts">${row.points ?? "–"} point</span>
+                        <span class="raw">dit resultat: ${esc(row.raw_value ?? "–")}</span>
+                    </div>`;
+                } else if (hasRaw(row)) {
+                    status = `<span class="status-chip entered">✅ Tastet</span>`;
+                    body = inputBody(d, row);
+                } else {
+                    status = `<span class="status-chip missing">⬜ Mangler</span>`;
+                    body = inputBody(d, row);
+                }
+
+                html += `<div class="disc" style="--team-color:${teamVar}" data-disc="${d.discipline_key}">
+                    <div class="disc-top">
+                        <div class="disc-name">
+                            <h2>${esc(d.discipline_name)}</h2>
+                            <div class="disc-hint"><span class="type-badge">${esc(d.discipline_type)}</span><span>${dir}</span></div>
+                        </div>
+                        ${status}
+                    </div>
+                    <div class="disc-body">${body}</div>
+                </div>`;
+            }
+            html += `</div>`;
+            contentEl.innerHTML = html;
+            wireInputs();
+        }
+
+        function inputBody(d, row) {
+            const rawVal = row?.raw_value ?? "";
+            const noteVal = row?.notes ?? "";
+            const btnLabel = row ? "Opdatér" : "Gem";
+            return `<div class="field-row">
+                    <input type="number" inputmode="decimal" step="any" class="raw-input"
+                           placeholder="Holdets resultat" value="${esc(rawVal)}">
+                    <button class="save-btn" type="button">${btnLabel}</button>
+                </div>
+                <input type="text" class="note-input raw-note" placeholder="Note (valgfri) — drama til storskærmen" value="${esc(noteVal)}">`;
+        }
+
+        function wireInputs() {
+            for (const card of contentEl.querySelectorAll(".disc")) {
+                const btn = card.querySelector(".save-btn");
+                if (!btn) continue;
+                const discKey = Number(card.dataset.disc);
+                btn.addEventListener("click", () => submit(card, discKey, btn));
+            }
+        }
+
+        async function submit(card, discKey, btn) {
+            const rawInput = card.querySelector(".raw-input");
+            const noteInput = card.querySelector(".raw-note");
+            const rawValue = rawInput.value.trim();
+            if (rawValue === "") { toast("Indtast et resultat først", true); rawInput.focus(); return; }
+
+            btn.disabled = true;
+            const payload = {
+                team_key: teamKey,
+                discipline_key: discKey,
+                round_number: 1,
+                raw_value: Number(rawValue),
+                notes: noteInput.value.trim() || null,
+            };
+            // Upsert på (team, disciplin, runde): idempotent re-submit, rører ikke is_final/points.
+            const { error } = await supabase
+                .from("FactScore")
+                .upsert(payload, { onConflict: "team_key,discipline_key,round_number" });
+
+            if (error) {
+                btn.disabled = false;
+                toast("Kunne ikke gemme — prøv igen", true);
+                console.error(error);
+                return;
+            }
+            btn.classList.add("saved");
+            btn.textContent = "Gemt ✓";
+            toast("Resultat gemt");
+            await refresh(true);
+        }
+
+        // Skip poll-re-render mens kaptajnen taster i et felt — ellers smider 5s-pollen
+        // fokus + det indtastede væk midt i indtastningen.
+        function focusInsideContent() {
+            const a = document.activeElement;
+            return a && (a.tagName === "INPUT") && contentEl.contains(a);
+        }
+
+        async function refresh(force = false) {
+            try {
+                await load();
+                if (force || !focusInsideContent()) render();
+            } catch (err) {
+                if (force) contentEl.innerHTML = `<div class="state-msg error">Fejl: ${esc(err.message)}</div>`;
+            }
+        }
+
+        async function init() {
+            if (!teamKey) {
+                contentEl.innerHTML = `<div class="state-msg error">Mangler ?team=N i URL'en.<br>Scan dit holds QR-kode.</div>`;
+                return;
+            }
+            await refresh(true);
+            setInterval(() => refresh(false), POLL_MS);
+        }
+
+        init();
+    </script>
+</body>
+</html>
