@@ -962,6 +962,15 @@
             color: var(--team-color); margin-right: 0.05em;
             text-shadow: 0 0 16px color-mix(in oklch, var(--team-color) 60%, transparent);
         }
+        /* Lock-SUMMARY is long prose — Fraunces italic is for headlines/short callouts, not
+           a 2-3 sentence block. Switch to Segoe (sharp, native) for readability (dashboard-020). */
+        .latest-hero-slot .lp-commentary.is-summary {
+            font-family: var(--font-label); font-style: normal; font-weight: var(--w-regular);
+            font-size: clamp(1.35rem, 2vw, 2rem);
+            line-height: 1.34; letter-spacing: var(--ls-normal);
+            text-wrap: pretty;
+        }
+        .latest-hero-slot .lp-commentary.is-summary::before { display: none; }
 
         /* Result line — demoted: team · score · standing. */
         .latest-hero-slot .lp-result {
@@ -1069,17 +1078,13 @@
             box-shadow: 0 0 14px color-mix(in oklch, var(--team-color) 80%, transparent);
         }
         .hero-overlay .ov-status { color: oklch(64% 0.02 70); }
+        /* Summary is long prose → Segoe (sharp, native), not Fraunces italic. Readable over
+           2-3 sentences; the Fraunces display voice stays on the headlines/short callouts. */
         .hero-overlay .ov-commentary {
             align-self: center; margin: 0;
-            font-family: var(--font-display); font-style: italic; font-weight: var(--w-regular);
-            font-size: clamp(2rem, 3.6vw, 3.8rem); line-height: 1.16; letter-spacing: var(--ls-tight);
-            color: oklch(95% 0.012 85); text-wrap: balance;
-        }
-        .hero-overlay .ov-commentary::before {
-            content: "\201C"; font-family: var(--font-display);
-            font-size: 1.05em; line-height: 0; vertical-align: -0.3em;
-            color: var(--team-color); margin-right: 0.05em;
-            text-shadow: 0 0 18px color-mix(in oklch, var(--team-color) 60%, transparent);
+            font-family: var(--font-label); font-style: normal; font-weight: var(--w-regular);
+            font-size: clamp(1.5rem, 2.5vw, 2.5rem); line-height: 1.38; letter-spacing: var(--ls-normal);
+            color: oklch(96% 0.012 85); text-wrap: pretty;
         }
         .hero-overlay .ov-results {
             display: flex; flex-direction: column; gap: 0.55rem;
@@ -1954,7 +1959,7 @@
                     <span class="lp-tag-disc">${esc(h.discName)}</span>
                     <span class="lp-tag-time">${esc(timeTag)}</span>
                 </div>
-                <div class="lp-commentary${animate ? " lp-fresh" : ""}">${esc(h.text)}</div>
+                <div class="lp-commentary${animate ? " lp-fresh" : ""}${h.kind === "lock" ? " is-summary" : ""}">${esc(h.text)}</div>
                 <div class="lp-result">
                     <span class="lp-result-team">${esc(h.teamName)}</span>
                     <span class="lp-result-score">${scoreCell}</span>
