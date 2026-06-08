@@ -60,16 +60,20 @@ Tone pr. disciplin-type:
 Find aldrig på fakta.`;
 
 // MODE "score" — provisorisk, terse, gerne relativt til de andre indmeldte.
-const SCORE_PROMPT = `Du er kommentator-stemmen på en privat 40-års fødselsdags-scoretavle. Et hold har netop meldt et RÅ-resultat ind i en disciplin der STADIG er i gang — ikke alle fem hold har spillet endnu. Skriv ÉN kort, mundret dansk sætning (max ~95 tegn) som en løbende, levende kommentar til scoren. Sammenlign gerne RELATIVT med de hold der allerede har meldt ind ("marginalt bedre end de gule", "lægger sig foran feltet", "må se de andre i øjnene") — det er netop den slags relative beat der holder tavlen levende.
+const SCORE_PROMPT = `Du er kommentator-stemmen på en privat 40-års fødselsdags-scoretavle. Et hold har netop meldt et RÅ-resultat ind i en disciplin der STADIG er i gang — ikke alle fem hold har spillet endnu. Skriv ÉN kort, mundret dansk sætning (max ~110 tegn) som en løbende, levende kommentar til scoren.
+
+HOLDETS EGEN NOTE ER DIN VIGTIGSTE KILDE. Hvis der følger en note med (holdets egen beskrivelse af hvad der skete på stationen, fx "Sindsyge pile fra AC"), så er DEN næsten altid den bedste vinkel. Byg kommentaren rundt om den menneskelige detalje — navnet, situationen, anekdoten. Navne og detaljer der står i NOTEN må du gerne bruge direkte; det er holdets egen historie, ikke noget du finder på. En note slår altid tør statistik. Den relative stilling er så krydderi, ikke hovedret.
+
+Når der INGEN note er, så læn dig på den relative stilling i stedet: sammenlign med de hold der allerede har meldt ind ("marginalt bedre end de gule", "lægger sig foran feltet", "må se de andre i øjnene").
 
 ${BRAND_VOICE}
 
-PROVISORISK: der er INGEN endelig placering og INGEN point endnu. Tal aldrig om "point", "vinder" eller "fører" — kun om rå-resultatet og hvordan det står lige nu mod dem der har spillet indtil videre. Returnér KUN kommentaren — ingen anførselstegn, ingen forklaring, ingen overskrift.`;
+PROVISORISK: der er INGEN endelig placering og INGEN point endnu. Tal aldrig om "point", "vinder" eller "fører" — kun om rå-resultatet, holdets note, og hvordan det står lige nu. Returnér KUN kommentaren — ingen anførselstegn, ingen forklaring, ingen overskrift.`;
 
 // MODE "lock" — disciplinen afsluttet, federe opsummering der væver de løbende beats sammen.
 const LOCK_PROMPT = `Du er kommentator-stemmen på en privat 40-års fødselsdags-scoretavle. En disciplin er netop AFSLUTTET og låst — alle fem hold har spillet, placeringerne er afgjort. Skriv en kort, fed opsummering på to-tre danske sætninger (max ~240 tegn): disciplinens fortælling — hvem tog den, hvordan, og hvad det betyder for stillingen. Opsummeringen vises som et stort overlay midt på skærmen, så den må gerne være lidt mere fortællende end en enkelt linje.
 
-Du får de fem resultater i rang-orden OG de løbende kommentarer der faldt undervejs. Væv gerne en tråd fra de løbende kommentarer ind — men KUN hvis det kan være inden for længden. Hellere kortere og skarpere end at proppe alt ind.
+Du får de fem resultater i rang-orden (nogle med holdets EGEN note om hvad der skete) OG de løbende kommentarer der faldt undervejs. Holdenes egne noter og de løbende kommentarer er din bedste kilde til farve og personlige detaljer — væv gerne en tråd fra dem ind (navne og detaljer fra noterne må du bruge direkte), men KUN hvis det kan være inden for længden. Hellere kortere og skarpere end at proppe alt ind.
 
 ${BRAND_VOICE}
 
@@ -94,6 +98,7 @@ function buildScoreMessage(p: Record<string, unknown>): string {
   if (skabelsesberetning) lines.push(`Skabelsesberetning: ${skabelsesberetning}`);
   lines.push(`Disciplin: ${disc.name ?? "ukendt"} (type: ${disc.type ?? "ukendt"}, ${dirWord(disc.sort_direction)})`);
   lines.push(`Dette holds rå-resultat (netop meldt ind): ${p.raw_value ?? "?"}`);
+  if (p.notes) lines.push(`>>> HOLDETS EGEN NOTE (brug denne som hovedvinkel): "${p.notes}"`);
   if (enteredSoFar.length > 1) {
     const others = enteredSoFar
       .map((e) => `${(e as Record<string, unknown>).name}: ${(e as Record<string, unknown>).raw_value}`)
@@ -105,7 +110,6 @@ function buildScoreMessage(p: Record<string, unknown>): string {
   if (p.provisional_rank && p.entered_count) {
     lines.push(`Står midlertidigt som nr. ${p.provisional_rank} af ${p.entered_count} indmeldte (af ${p.total_teams ?? 5} hold i alt).`);
   }
-  if (p.notes) lines.push(`Note: ${p.notes}`);
 
   return `Kommentér denne netop-indmeldte score (disciplinen kører stadig):\n\n${lines.join("\n")}`;
 }
@@ -121,7 +125,8 @@ function buildLockMessage(p: Record<string, unknown>): string {
   lines.push(`Endelige resultater (rang-orden):`);
   for (const r of results) {
     const rr = r as Record<string, unknown>;
-    lines.push(`  ${rr.rank}. ${rr.name} — rå ${rr.raw_value}, ${rr.points} point`);
+    lines.push(`  ${rr.rank}. ${rr.name} — rå ${rr.raw_value}, ${rr.points} point` +
+      (rr.notes ? ` — holdets note: "${rr.notes}"` : ""));
   }
   lines.push(
     `Samlet stilling efter denne disciplin: fører er ${standings.leader ?? "ukendt"}` +
