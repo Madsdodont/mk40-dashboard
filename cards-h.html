@@ -881,10 +881,10 @@
         .hc-radar    { display: flex; align-items: center; justify-content: center; }
 
         /* TOTAL scaled down for the shorter horizontal card; radar sits to its right. */
-        .hold-card .total        { font-size: clamp(2.5rem, 3.4vw, 3.75rem); margin-top: 0; }
-        .hold-card.leader .total { font-size: clamp(3rem, 4.4vw, 4.75rem); }
+        .hold-card .total        { font-size: clamp(6rem, 11vw, 17.5rem); margin-top: 0; }   /* EFFECTIVE rule (overrides l.396) — TEST 280px (06-14) */
+        .hold-card.leader .total { font-size: clamp(6.5rem, 12vw, 18.5rem); }                 /* EFFECTIVE — TEST leader 296px */
         .hold-card .total-label  { margin-bottom: var(--space-1); }
-        .hc-radar .radar         { width: 144px; height: 144px; }  /* 18×8 — up from 128 */
+        .hc-radar .radar         { width: 296px; height: 296px; }  /* EFFECTIVE rule (overrides l.434) — TEST 296px (06-14) */
 
         /* ===== Region A — AI-commentary hero (the wow-moment's home in G) =====
            Col 2, rows 1-3 (the 617×555 zone alongside the leader cards). Reuses hud3's
@@ -957,7 +957,7 @@
             align-self: center;
             margin: 0; padding: var(--space-4) 0;
             font-family: var(--font-label); font-style: normal; font-weight: var(--w-regular);
-            font-size: clamp(1.5rem, 2.3vw, 2.4rem);
+            font-size: clamp(1.875rem, 2.8vw, 3.25rem);   /* EFFECTIVE callout (overrides l.629) — bumped → 52px (06-14) */
             line-height: 1.3; letter-spacing: var(--ls-normal);
             color: oklch(95% 0.012 85);
             text-wrap: pretty;
@@ -970,7 +970,7 @@
         }
         /* Lock-SUMMARY is the longest text → size it down a touch from the base. */
         .latest-hero-slot .lp-commentary.is-summary {
-            font-size: clamp(1.3rem, 1.9vw, 1.95rem);
+            font-size: clamp(1.625rem, 2.3vw, 2.75rem);   /* lock-summary bumped → 44px (06-14) */
             line-height: 1.35;
         }
 
