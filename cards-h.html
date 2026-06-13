@@ -78,19 +78,21 @@
             /* Type scale — role-zoned: text=Segoe UI · display=Fraunces · num=JetBrains Mono.
                Token values match the dominant existing sizes, so this collapses the COUNT
                (~30 sizes -> 10) without shifting the look. ~1.25 Major Third where it carries hierarchy. */
-            /* Sized for native 4K (4096px) @ 100% browser zoom — viewport-driven, caps tuned so
-               text fills the panels from the sofa without zoom (06-13). vw drives growth; maxes
-               are the effective sizes on the TV. Mins protect a laptop viewport. */
-            --text-xs:    clamp(0.875rem, 0.85vw, 1.625rem);   /* up to 26px */
-            --text-sm:    clamp(0.9375rem, 0.95vw, 1.75rem);   /* up to 28px */
-            --text-md:    clamp(1.0625rem, 1.1vw, 2rem);       /* up to 32px */
-            --display-sm: clamp(1.125rem, 1.5vw, 2.75rem);     /* up to 44px */
-            --display-md: clamp(1.25rem, 1.9vw, 3.5rem);       /* up to 56px */
-            --num-sm:     clamp(0.75rem, 0.9vw, 1.625rem);     /* up to 26px */
-            --num-md:     clamp(1.25rem, 1.8vw, 3rem);         /* up to 48px */
-            --num-lg:     clamp(2rem, 3.4vw, 5.5rem);          /* up to 88px */
-            --num-xl:     clamp(3.5rem, 6vw, 7.5rem);          /* up to 120px (totals) */
-            --num-2xl:    clamp(4.5rem, 7.5vw, 9.5rem);        /* up to 152px (hero points) */
+            /* Type ladder — explicit reading-order tiers, sized for native 4K @ 100% zoom.
+               Dynamic range preserved so hierarchy holds (the floor-only bump on 06-13 flattened
+               it). Maxes ARE the effective TV sizes; vw drives growth; mins protect a laptop view.
+               Reinforced by weight + colour (bone/bone-muted/bone-dim) + family — not size alone.
+               T4 micro 22 · T3 26-28 · T2 44 · T2+ 56 · T1 104 · T1+ 132. */
+            --text-xs:    clamp(0.8125rem, 0.7vw, 1.375rem);   /* T4 micro: TOTAL, PT, times, rank# → 22px */
+            --text-sm:    clamp(0.875rem, 0.8vw, 1.625rem);    /* T3 minor: disc-name              → 26px */
+            --text-md:    clamp(1rem, 0.85vw, 1.75rem);        /* T3 body / motto (quiet flavour)  → 28px */
+            --num-sm:     clamp(0.875rem, 0.8vw, 1.625rem);    /* T3 gap-to-leader (+1pt)          → 26px */
+            --display-sm: clamp(1.375rem, 1.5vw, 2.75rem);     /* T2 team name · panel heads       → 44px */
+            --display-md: clamp(1.625rem, 1.9vw, 3.5rem);      /* T2+ leader name (amplified)      → 56px */
+            --num-md:     clamp(1.5rem, 1.5vw, 2.5rem);        /* T2/3 hero points (small)         → 40px */
+            --num-lg:     clamp(2.5rem, 2.6vw, 4.5rem);        /* T1/2 hero points                 → 72px */
+            --num-xl:     clamp(3.5rem, 4.5vw, 6.5rem);        /* T1 total — the score, dominant   → 104px */
+            --num-2xl:    clamp(4.5rem, 5.5vw, 8.25rem);       /* T1+ leader total (amplified)     → 132px */
             /* Weights - 3 (800 merged into bold) */
             --w-regular: 600;  --w-bold: 700;  --w-black: 900;
             /* Letter-spacing - 4 */
