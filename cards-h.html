@@ -1109,6 +1109,11 @@
            event at its time + a "now" line tracking the wall clock, so you read where we are
            in the day at a glance. Static SCHEDULE (includes non-scoring events too). */
         .agenda {
+            /* Compact type-zone: the agenda is a dense time-proportional timeline (event boxes
+               sized by duration), so the global text-token bump (06-13) overflowed short slots.
+               Scope the tokens back to their compact pre-bump values here — reference panel, not
+               a glance-headline. Cascades to every .tl-* child. */
+            --text-xs: 0.6875rem; --text-sm: 0.75rem; --text-md: 0.875rem;
             grid-row: 1 / 4;   /* three cards tall, aligned with cards 1-3 */
             min-height: 0;
             display: flex; flex-direction: column; gap: var(--space-4);
@@ -1264,7 +1269,7 @@
         /* One row per discipline: label (left) + live rå-bars (right). */
         .disc-panel .dp-disc { display: flex; align-items: center; gap: var(--space-3); min-height: 0; }
         .disc-panel .dp-disc.is-locked { opacity: 0.62; }
-        .disc-panel .dp-disc-label { flex: 0 0 40%; display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+        .disc-panel .dp-disc-label { flex: 0 0 50%; display: flex; align-items: center; gap: var(--space-2); min-width: 0; }  /* 40→50% so bigger disc names don't truncate (06-13) */
         /* Number chip — mirrors the radar vertex node (paper disc + dark number): the radar↔discipline key. */
         .disc-panel .dp-num {
             flex-shrink: 0;
