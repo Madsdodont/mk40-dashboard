@@ -363,14 +363,14 @@
 
         .hold-card .name {
             font-family: var(--font-display); font-weight: var(--w-bold);
-            font-size: var(--display-sm);
+            font-size: clamp(1.5rem, 1.65vw, 3rem);   /* T2 leading-area name — slight bump over display-sm → 48px (06-14) */
             line-height: 1.0; color: var(--bone);
             letter-spacing: var(--ls-tight); margin-top: var(--space-2);  /* 8px — related to badge above */
             text-wrap: balance;
         }
         .hold-card.leader .name {
             font-weight: var(--w-black);
-            font-size: var(--display-md);
+            font-size: clamp(1.875rem, 2.1vw, 3.875rem);   /* leader name amplified → 62px (06-14) */
         }
 
         .hold-card .motto {
@@ -395,7 +395,7 @@
         }
         .hold-card .total {
             font-family: var(--font-numeric); font-weight: var(--w-bold);
-            font-size: var(--num-xl);
+            font-size: clamp(4rem, 7vw, 9.75rem);   /* T1 leading-area score — dominant on the TV → 156px (06-14) */
             color: var(--bone-muted); line-height: 0.9;
             margin-top: 0.15rem;
             font-variant-numeric: tabular-nums;
@@ -405,7 +405,7 @@
         .hold-card.leader .total {
             color: var(--bone);
             font-weight: var(--w-bold);
-            font-size: var(--num-2xl);
+            font-size: clamp(5rem, 8.5vw, 12rem);   /* leader score amplified → 192px (06-14) */
             text-shadow: 0 0 32px color-mix(in oklch, var(--team-color) 60%, transparent);
         }
 
@@ -431,7 +431,7 @@
         }
         .hold-card.leader .radar-row { border-top-color: color-mix(in oklch, var(--team-color) 45%, transparent); }
 
-        .hold-card .radar { width: 152px; height: 152px; flex-shrink: 0; }  /* 19×8 — snapped to 8pt grid */
+        .hold-card .radar { width: 220px; height: 220px; flex-shrink: 0; }  /* 152→220 — leading-area viz readable on TV (06-14) */
         .hold-card .radar .axis { stroke: var(--ink-border); stroke-width: 1; }
         .hold-card .radar .ring { stroke: var(--ink-border); stroke-width: 1; fill: none; opacity: 0.55; }
         .hold-card .radar .polygon {
@@ -451,7 +451,7 @@
             fill: var(--ink-card); stroke: var(--ink-border); stroke-width: 1;
         }
         .hold-card .radar .axis-num {
-            font-family: var(--font-numeric); font-size: clamp(0.75rem, 0.8vw, 1rem);  /* 12→16px radar nums (was 9px; 06-13) */
+            font-family: var(--font-numeric); font-size: clamp(1rem, 1vw, 1.5rem);  /* radar nums — scaled with bigger radar → 24px (06-14) */
             font-weight: var(--w-bold); fill: var(--bone-muted); text-anchor: middle;
         }
 
@@ -537,7 +537,7 @@
         .bump-svg .team-end-dot { stroke: var(--ink-card); stroke-width: 2.5; }
         .bump-svg .team-end-label {
             font-family: var(--font-display); font-weight: var(--w-bold);
-            font-size: clamp(1rem, 1.2vw, 1.375rem); letter-spacing: var(--ls-tight);  /* 16→22px bump team labels (was 14px; 06-13) */
+            font-size: clamp(1.375rem, 1.7vw, 2rem); letter-spacing: var(--ls-tight);  /* bump team labels → 32px (06-14) */
         }
 
         /* ===== Seneste + AI commentary panel ===== */
@@ -630,7 +630,7 @@
             padding: 1rem 1.5rem 0.5rem 1.5rem;
             font-family: var(--font-display); font-style: italic;
             font-weight: var(--w-regular);
-            font-size: clamp(0.95rem, 1.1vw, 1.25rem);
+            font-size: clamp(1.5rem, 2.1vw, 3rem);   /* the wow-callout — hero focal text → 48px (06-14) */
             line-height: 1.35;
             color: var(--bone);
             text-wrap: balance;
@@ -1118,7 +1118,7 @@
                sized by duration), so the global text-token bump (06-13) overflowed short slots.
                Scope the tokens back to their compact pre-bump values here — reference panel, not
                a glance-headline. Cascades to every .tl-* child. */
-            --text-xs: clamp(0.6875rem, 0.55vw, 1.0625rem); --text-sm: clamp(0.75rem, 0.6vw, 1.1875rem); --text-md: clamp(0.875rem, 0.7vw, 1.375rem);
+            --text-xs: clamp(0.75rem, 0.6vw, 1.1875rem); --text-sm: clamp(0.875rem, 0.75vw, 1.375rem); --text-md: clamp(1rem, 0.8vw, 1.5rem);  /* agenda content ≈ "Afsluttet" 22px (06-14) */
             grid-row: 1 / 4;   /* three cards tall, aligned with cards 1-3 */
             min-height: 0;
             display: flex; flex-direction: column; gap: var(--space-4);
@@ -1316,7 +1316,7 @@
             height: 3px; background: var(--ink-border-soft); opacity: 0.6; border-radius: 2px;
         }
         .disc-panel .dp-bar-val {
-            font-family: var(--font-numeric); font-size: clamp(0.75rem, 0.85vw, 1rem); font-weight: var(--w-bold);  /* 12→16px disc-bar vals (was 9.6px; 06-13) */
+            font-family: var(--font-numeric); font-size: clamp(1rem, 1vw, 1.375rem); font-weight: var(--w-bold);  /* disc-bar vals → 22px (06-14) */
             color: var(--bone-muted); line-height: 1; margin-bottom: 2px; white-space: nowrap;
         }
     </style>
