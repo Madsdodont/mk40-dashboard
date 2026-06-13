@@ -78,9 +78,9 @@
             /* Type scale — role-zoned: text=Segoe UI · display=Fraunces · num=JetBrains Mono.
                Token values match the dominant existing sizes, so this collapses the COUNT
                (~30 sizes -> 10) without shifting the look. ~1.25 Major Third where it carries hierarchy. */
-            --text-xs:    0.6875rem;
-            --text-sm:    0.75rem;
-            --text-md:    0.875rem;
+            --text-xs:    clamp(0.875rem, 1vw, 1.125rem);      /* 14→18px — TV-readable floor (was 11px fixed; 06-13) */
+            --text-sm:    clamp(0.9375rem, 1.1vw, 1.25rem);    /* 15→20px (was 12px fixed) */
+            --text-md:    clamp(1.0625rem, 1.25vw, 1.4375rem); /* 17→23px (was 14px fixed) */
             --display-sm: clamp(1.125rem, 1.4vw, 1.625rem);
             --display-md: clamp(1.25rem, 1.7vw, 2rem);
             --num-sm:     clamp(0.75rem, 0.9vw, 0.9375rem);
@@ -446,7 +446,7 @@
             fill: var(--ink-card); stroke: var(--ink-border); stroke-width: 1;
         }
         .hold-card .radar .axis-num {
-            font-family: var(--font-numeric); font-size: 9px;
+            font-family: var(--font-numeric); font-size: clamp(0.75rem, 0.8vw, 1rem);  /* 12→16px radar nums (was 9px; 06-13) */
             font-weight: var(--w-bold); fill: var(--bone-muted); text-anchor: middle;
         }
 
@@ -521,7 +521,7 @@
             stroke: var(--ink-border-soft); stroke-width: 1; stroke-dasharray: 2 5;
         }
         .bump-svg .rank-label {
-            font-family: var(--font-numeric); font-size: 12px;
+            font-family: var(--font-numeric); font-size: clamp(0.875rem, 1vw, 1.1875rem);  /* 14→19px bump rank (was 12px; 06-13) */
             font-weight: var(--w-bold); fill: var(--bone-dim);
             letter-spacing: var(--ls-normal);
         }
@@ -532,7 +532,7 @@
         .bump-svg .team-end-dot { stroke: var(--ink-card); stroke-width: 2.5; }
         .bump-svg .team-end-label {
             font-family: var(--font-display); font-weight: var(--w-bold);
-            font-size: 14px; letter-spacing: var(--ls-tight);
+            font-size: clamp(1rem, 1.2vw, 1.375rem); letter-spacing: var(--ls-tight);  /* 16→22px bump team labels (was 14px; 06-13) */
         }
 
         /* ===== Seneste + AI commentary panel ===== */
@@ -1306,7 +1306,7 @@
             height: 3px; background: var(--ink-border-soft); opacity: 0.6; border-radius: 2px;
         }
         .disc-panel .dp-bar-val {
-            font-family: var(--font-numeric); font-size: 0.6rem; font-weight: var(--w-bold);
+            font-family: var(--font-numeric); font-size: clamp(0.75rem, 0.85vw, 1rem); font-weight: var(--w-bold);  /* 12→16px disc-bar vals (was 9.6px; 06-13) */
             color: var(--bone-muted); line-height: 1; margin-bottom: 2px; white-space: nowrap;
         }
     </style>
