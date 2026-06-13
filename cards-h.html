@@ -451,7 +451,7 @@
             fill: var(--ink-card); stroke: var(--ink-border); stroke-width: 1;
         }
         .hold-card .radar .axis-num {
-            font-family: var(--font-numeric); font-size: clamp(1rem, 1vw, 1.5rem);  /* radar nums — scaled with bigger radar → 24px (06-14) */
+            font-family: var(--font-numeric); font-size: 9px;  /* viewBox user-units (×2.47 → ~22px screen) — matches disc-section number, fits the node disc w/ padding (06-14) */
             font-weight: var(--w-bold); fill: var(--bone-muted); text-anchor: middle;
         }
 
@@ -881,8 +881,8 @@
         .hc-radar    { display: flex; align-items: center; justify-content: center; }
 
         /* TOTAL scaled down for the shorter horizontal card; radar sits to its right. */
-        .hold-card .total        { font-size: clamp(6rem, 11vw, 17.5rem); margin-top: 0; }   /* EFFECTIVE rule (overrides l.396) — TEST 280px (06-14) */
-        .hold-card.leader .total { font-size: clamp(6.5rem, 12vw, 18.5rem); }                 /* EFFECTIVE — TEST leader 296px */
+        .hold-card .total        { font-size: clamp(5rem, 9vw, 14rem); margin-top: 0; }   /* EFFECTIVE — 224px, balanced w/ radar (06-14) */
+        .hold-card.leader .total { font-size: clamp(5.5rem, 9.5vw, 15rem); }              /* EFFECTIVE — leader 240px */
         .hold-card .total-label  { margin-bottom: var(--space-1); }
         .hc-radar .radar         { width: 296px; height: 296px; }  /* EFFECTIVE rule (overrides l.434) — TEST 296px (06-14) */
 
@@ -1600,7 +1600,7 @@
                 const ang = (i / N) * 2 * Math.PI - Math.PI / 2;
                 const nx = (cx + maxR * Math.cos(ang)).toFixed(2);
                 const ny = (cy + maxR * Math.sin(ang)).toFixed(2);
-                nodes += `<circle class="axis-node" cx="${nx}" cy="${ny}" r="8"/>`;
+                nodes += `<circle class="axis-node" cx="${nx}" cy="${ny}" r="7"/>`;  /* tighter disc → ~4px padding around the number (06-14) */
                 nodes += `<text class="axis-num" x="${nx}" y="${ny}" dy="0.34em">${i + 1}</text>`;
             }
 
