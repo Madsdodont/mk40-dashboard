@@ -19,11 +19,11 @@
             --bone-dim: oklch(58% 0.012 30);
             --ok-green: oklch(55% 0.15 150);
             --wait-amber: oklch(60% 0.13 75);
-            --team-rød: oklch(58% 0.22 5);
-            --team-blå: oklch(42% 0.20 258);
+            --team-pink: oklch(58% 0.22 5);
+            --team-navy: oklch(42% 0.20 258);
             --team-grøn: oklch(50% 0.18 145);
-            --team-gul: oklch(68% 0.18 65);
-            --team-sorthvid: oklch(52% 0.18 295);
+            --team-orange: oklch(68% 0.18 65);
+            --team-lilla: oklch(52% 0.18 295);
             --font-display: "Fraunces", Georgia, serif;
             --font-label: "Segoe UI", system-ui, sans-serif;
             --font-numeric: "JetBrains Mono", ui-monospace, monospace;
@@ -93,7 +93,7 @@
         .btn-save { background: var(--bone); color: var(--ink-card); }
 
         .state-msg { padding: 3rem 1.5rem; text-align: center; color: var(--bone-muted); }
-        .state-msg.error { color: var(--team-rød); }
+        .state-msg.error { color: var(--team-pink); }
         .toast {
             position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(2rem);
             background: var(--bone); color: var(--ink-card); font-weight: var(--w-bold); font-size: 0.85rem;
@@ -101,7 +101,7 @@
             opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 50;
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-        .toast.error { background: var(--team-rød); }
+        .toast.error { background: var(--team-pink); }
     </style>
 </head>
 <body>
@@ -289,7 +289,7 @@
                 // Re-render ikke mens host taster i et felt (ville smide fokus/indtastning).
                 if (force || !focusInsideContent()) render();
             } catch (err) {
-                connEl.style.color = "var(--team-rød)";
+                connEl.style.color = "var(--team-pink)";
                 if (force) contentEl.innerHTML = `<div class="state-msg error">Fejl: ${esc(err.message)}</div>`;
             }
         }

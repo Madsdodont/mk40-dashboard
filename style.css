@@ -19,12 +19,18 @@
     /* ===== Ceremonial accent (leader-row only) ===== */
     --gold-ceremonial: oklch(78% 0.16 85);
 
-    /* ===== Hold-farver — PLACEHOLDERS (swappes med sampled values fra bandana-foto) ===== */
-    --team-rød:        oklch(55% 0.22 25);
-    --team-blå:        oklch(48% 0.20 245);
-    --team-grøn:       oklch(50% 0.15 145);
-    --team-gul:        oklch(80% 0.16 90);
-    --team-sortHvid:   oklch(60% 0.005 60);
+    /* ===== Hold-farver — sampled OKLCH fra bandana-foto (låst 2026-06-14) =====
+       Navne = bandana-identitet (pink/navy/grøn/orange/lilla), matcher DimTeam.team_color.
+       cssVarSafe(team_color) → --team-{navn}. Base/dark-værdier; cards-h/hud2/hud3 har
+       egne light-tunede overrides i deres :root. */
+    --team-pink:       oklch(62% 0.22 0);
+    --team-navy:       oklch(28% 0.13 260);
+    --team-grøn:       oklch(52% 0.18 145);
+    --team-orange:     oklch(74% 0.18 65);
+    --team-lilla:      oklch(58% 0.17 295);
+
+    /* ===== Signal-farver (semantiske, IKKE hold-koblede) ===== */
+    --signal-error:    oklch(55% 0.22 25);  /* rød — fejl-states; var tidligere fejlagtigt --team-rød */
 
     /* ===== Typography stacks ===== */
     --font-display:    "Fraunces", "Source Serif Pro", Georgia, serif;
@@ -115,7 +121,7 @@ main {
     text-transform: uppercase;
 }
 
-.state-message.error { color: var(--team-rød); }
+.state-message.error { color: var(--signal-error); }
 
 /* ===== Scoreboard ======================================================== */
 
@@ -166,17 +172,6 @@ table.scoreboard thead th.team-header::before {
     height: 4px;
     background: var(--team-color);
     margin: 0 auto 0.75rem auto;
-}
-
-/* SortHvid får striped pattern i stedet for flad farve. */
-table.scoreboard thead th.team-header[data-team-color="sortHvid"]::before {
-    background: repeating-linear-gradient(
-        45deg,
-        var(--bone) 0,
-        var(--bone) 6px,
-        var(--ink-deep) 6px,
-        var(--ink-deep) 12px
-    );
 }
 
 /* --- Body rows ----------- */
@@ -304,7 +299,7 @@ footer {
 }
 
 #connection-state.ok    { color: var(--gold-ceremonial); }
-#connection-state.error { color: var(--team-rød); }
+#connection-state.error { color: var(--signal-error); }
 
 /* ===== Mobile breakpoint (hand-skala, ikke broadcast-skala) ============== */
 

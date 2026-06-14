@@ -31,7 +31,7 @@ drop table if exists public."DimDiscipline" cascade;
 -- ============================================================================
 create table public."DimTeam" (
     team_key      smallint primary key,
-    team_color    text not null,        -- rød, blå, grøn, gul, sort/hvid
+    team_color    text not null,        -- pink, navy, grøn, orange, lilla (bandana-navne; driver --team-{navn})
     team_name     text not null,        -- kongerige-navn (gæster definerer)
     team_motto    text,                 -- creation myth-tekst (AI-context)
     team_members  text                  -- komma-sep liste (AI-context, ikke join-target)

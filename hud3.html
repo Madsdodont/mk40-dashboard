@@ -37,11 +37,11 @@
             /* Team colors — same OKLCH as dark version. Mid-saturation bandana values render
                vividly against light cream bg without need for L-adjustment.
                Navy stays at L=48% (was bumped for dark TV); on light bg it has more headroom. */
-            --team-rød:        oklch(58% 0.22 5);    /* Pink bandana — slight L drop for white-bg contrast */
-            --team-blå:        oklch(42% 0.20 258);  /* Navy bandana — slight L drop for contrast on cream */
+            --team-pink:        oklch(58% 0.22 5);    /* Pink bandana — slight L drop for white-bg contrast */
+            --team-navy:        oklch(42% 0.20 258);  /* Navy bandana — slight L drop for contrast on cream */
             --team-grøn:       oklch(50% 0.18 145);  /* Grass green — L drop for legibility */
-            --team-gul:        oklch(68% 0.18 65);   /* Orange — L drop so it reads as orange not pastel */
-            --team-sorthvid:   oklch(52% 0.18 295);  /* Lilla — L drop for clear identity on light. NB: lowercase — cssVarSafe('sort/hvid')→'sorthvid', CSS vars er case-sensitive */
+            --team-orange:        oklch(68% 0.18 65);   /* Orange — L drop so it reads as orange not pastel */
+            --team-lilla:      oklch(52% 0.18 295);  /* Lilla bandana — L drop for clear identity on light bg */
 
             /* Fonts */
             --font-display:    "Fraunces", Georgia, serif;
@@ -101,11 +101,11 @@
                Color lives HERE, not on the cards — cards are calm vessels that pick up ambient hue
                through their transparency. Knobs: the % per hue (intensity) and the at-positions (layout). */
             background:
-                radial-gradient(ellipse 55% 60% at 10% 12%,  color-mix(in oklch, var(--team-rød)      16%, transparent) 0%, transparent 62%),
-                radial-gradient(ellipse 55% 60% at 30% 88%,  color-mix(in oklch, var(--team-blå)      15%, transparent) 0%, transparent 62%),
+                radial-gradient(ellipse 55% 60% at 10% 12%,  color-mix(in oklch, var(--team-pink)      16%, transparent) 0%, transparent 62%),
+                radial-gradient(ellipse 55% 60% at 30% 88%,  color-mix(in oklch, var(--team-navy)      15%, transparent) 0%, transparent 62%),
                 radial-gradient(ellipse 60% 65% at 52% 8%,   color-mix(in oklch, var(--team-grøn)     14%, transparent) 0%, transparent 62%),
-                radial-gradient(ellipse 55% 60% at 73% 90%,  color-mix(in oklch, var(--team-gul)      15%, transparent) 0%, transparent 62%),
-                radial-gradient(ellipse 55% 60% at 92% 14%,  color-mix(in oklch, var(--team-sorthvid) 16%, transparent) 0%, transparent 62%),
+                radial-gradient(ellipse 55% 60% at 73% 90%,  color-mix(in oklch, var(--team-orange)      15%, transparent) 0%, transparent 62%),
+                radial-gradient(ellipse 55% 60% at 92% 14%,  color-mix(in oklch, var(--team-lilla) 16%, transparent) 0%, transparent 62%),
                 var(--ink-void);
             background-attachment: fixed;
             color: var(--bone);

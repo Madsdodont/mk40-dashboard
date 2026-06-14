@@ -15,12 +15,12 @@ colors:
   bone-dim: "oklch(58% 0.012 30)"    # tertiary text — labels, hints
   # Live red — broadcast pill only
   live-red: "oklch(58% 0.22 25)"
-  # Team colors — bandana-mapped 2026-05-29/30, L-calibrated for paper bg contrast
-  team-rød: "oklch(58% 0.22 5)"      # Pink bandana — "Pink Rødder" (rename pending)
-  team-blå: "oklch(42% 0.20 258)"    # Navy bandana — Det Blå Imperium
-  team-grøn: "oklch(50% 0.18 145)"   # Grass green bandana — Den Grønne Pagt
-  team-gul: "oklch(68% 0.18 65)"     # Orange/golden bandana — Gyldne Riger
-  team-sorthvid: "oklch(52% 0.18 295)" # Lilla bandana — Den Sorte Cirkel (lowercase: team_color 'sort/hvid' → cssVarSafe → 'sorthvid', CSS vars case-sensitive)
+  # Team colors — bandana-mapped, names = bandana identity (locked 2026-06-14), L-calibrated for paper bg contrast
+  team-pink: "oklch(58% 0.22 5)"     # Pink bandana — Det Pink Kongerige
+  team-navy: "oklch(42% 0.20 258)"   # Navy bandana — Det Mørkeblå Kongerige
+  team-grøn: "oklch(50% 0.18 145)"   # Grass green bandana — Det Grønne Kongerige
+  team-orange: "oklch(68% 0.18 65)"  # Orange bandana — Det Orange Kongerige
+  team-lilla: "oklch(52% 0.18 295)"  # Lilla bandana — Det Lilla Kongerige
   # Gold tokens retired 2026-05-30 — team colors drive everything, leader signaled via own team-color amplified.
 typography:
   display:
