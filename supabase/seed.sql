@@ -44,12 +44,14 @@ truncate table public."DimDiscipline" cascade;
 -- team_members = komma-sep (denormaliseret AI-context, intet join-target). Kaptajn står
 --   FØRST i hver liste, men kaptajn er IKKE et DB-felt — QR'en router kun på team_key.
 -- team_color = bandana-navn (se farve-note øverst); team_key matcher kaptajn-QR-routingen.
-insert into public."DimTeam" (team_key, team_color, team_name, team_motto, team_members) values
-    (1, 'pink',   'Det Pink Kongerige',     null, 'AH, Johanne, Theo, Tim, Morten A., Mira'),
-    (2, 'navy',   'Det Mørkeblå Kongerige', null, 'Niko, Margot, Satya, Jesper, Dirk, Rose'),
-    (3, 'grøn',   'Det Grønne Kongerige',   null, 'Anders, Mads, Mikkel, Julie, Majbritt'),
-    (4, 'orange', 'Det Orange Kongerige',   null, 'Anne, Allan, Christian, Morten E., Ida, AC'),
-    (5, 'lilla',  'Det Lilla Kongerige',    null, 'Buggi, Oscar, Michael, Kirstine, Freja');
+-- team_short = kort default-kælenavn til bump (kaptajnen kan overskrive via Skabelsesberetningen).
+-- team_motto + team_creation = null indtil kaptajnerne udfylder dem på dagen.
+insert into public."DimTeam" (team_key, team_color, team_name, team_short, team_motto, team_creation, team_members) values
+    (1, 'pink',   'Det Pink Kongerige',     'Pink',   null, null, 'AH, Johanne, Theo, Tim, Morten A., Mira'),
+    (2, 'navy',   'Det Mørkeblå Kongerige', 'Navy',   null, null, 'Niko, Margot, Satya, Jesper, Dirk, Rose'),
+    (3, 'grøn',   'Det Grønne Kongerige',   'Grøn',   null, null, 'Anders, Mads, Mikkel, Julie, Majbritt'),
+    (4, 'orange', 'Det Orange Kongerige',   'Orange', null, null, 'Anne, Allan, Christian, Morten E., Ida, AC'),
+    (5, 'lilla',  'Det Lilla Kongerige',    'Lilla',  null, null, 'Buggi, Oscar, Michael, Kirstine, Freja');
 
 -- ============================================================================
 -- 3. DimDiscipline — 7 discipliner, alle max_points=10, m. sort_direction
@@ -57,7 +59,7 @@ insert into public."DimTeam" (team_key, team_color, team_name, team_motto, team_
 -- sort_direction: desc = højest vinder (Creation Myth/Bowling/Dart/Cornhole/Musikquiz);
 --                 asc  = lavest vinder (Puslespil på tid/Slå søm).
 insert into public."DimDiscipline" (discipline_key, discipline_name, discipline_type, max_points, sort_direction, planned_start, planned_end) values
-    (1, 'Creation Myth',    'Creative',  10, 'desc', '2026-06-27 19:30+02', '2026-06-27 20:00+02'),
+    (1, 'Skabelsesberetningen', 'Creative', 10, 'desc', '2026-06-27 19:30+02', '2026-06-27 20:00+02'),
     (2, 'Bowling',          'Skill',     10, 'desc', '2026-06-27 14:00+02', '2026-06-27 16:00+02'),
     (3, 'Dart',             'Skill',     10, 'desc', '2026-06-27 16:00+02', '2026-06-27 21:00+02'),
     (4, 'Cornhole',         'Skill',     10, 'desc', '2026-06-27 16:00+02', '2026-06-27 21:00+02'),

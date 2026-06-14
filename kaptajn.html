@@ -149,6 +149,22 @@
         input[type="text"] { font-family: var(--font-label); font-size: 1rem; }
         input:focus { outline: none; border-color: var(--team-color, var(--bone)); }
         .note-input { margin-top: 0.5rem; }
+        /* Skabelsesberetningen — identitets-felter */
+        .id-field { margin-bottom: 0.7rem; }
+        .id-label {
+            display: block; font-size: 0.72rem; font-weight: var(--w-bold); color: var(--bone-muted);
+            letter-spacing: 0.02em; margin-bottom: 0.3rem;
+        }
+        .id-hint { font-weight: var(--w-regular); color: var(--bone-dim); }
+        textarea.id-input {
+            width: 100%; font-family: var(--font-label); font-size: 1rem; line-height: 1.4;
+            min-height: 96px; padding: 0.7rem 0.8rem; border: 1.5px solid var(--ink-border);
+            border-radius: 9px; background: var(--ink-deep); color: var(--bone); resize: vertical;
+            -webkit-appearance: none; appearance: none;
+        }
+        textarea.id-input:focus { outline: none; border-color: var(--team-color, var(--bone)); }
+        .id-foot { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.3rem; }
+        .id-foot .dommer-note { flex: 1; font-size: 0.72rem; color: var(--bone-dim); }
         .save-btn {
             font-family: var(--font-label); font-weight: var(--w-bold); font-size: 1rem;
             min-height: 48px; padding: 0.7rem 1.25rem; border: none; border-radius: 9px; white-space: nowrap;
@@ -208,6 +224,11 @@
         // Instruktions-kortet huskes sammenklappet på tværs af besøg (læst én gang = nok).
         let instrCollapsed = false;
         try { instrCollapsed = localStorage.getItem("mk40_instr_collapsed") === "1"; } catch {}
+
+        // Skabelsesberetningen (gren-key 1): kaptajn-identitet, IKKE en score.
+        // Kaptajnen udfylder kongerige-navn/kælenavn/motto/beretning (→ DimTeam);
+        // dommeren indtaster den analoge afstemning + låser placeringen separat.
+        const CREATION_KEY = 1;
 
         function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
         const hasRaw = (r) => r && r.raw_value !== null && r.raw_value !== undefined;
@@ -278,7 +299,9 @@
 
         function render() {
             const teamVar = `var(--team-${cssVarSafe(team.team_color)})`;
-            const doneCount = disciplines.filter((d) => hasRaw(myScores[d.discipline_key])).length;
+            const doneCount = disciplines.filter((d) =>
+                d.discipline_key === CREATION_KEY ? !!team.team_creation : hasRaw(myScores[d.discipline_key])
+            ).length;
 
             if (!initializedOpen) {
                 const active = activeDisciplineKey();
@@ -305,12 +328,21 @@
 
             for (const d of disciplines) {
                 const row = myScores[d.discipline_key];
-                const dir = d.sort_direction === "asc" ? "Lavest vinder" : "Højest vinder";
+                const dir = d.discipline_key === CREATION_KEY
+                    ? "Udfyld jeres identitet"
+                    : (d.sort_direction === "asc" ? "Lavest vinder" : "Højest vinder");
                 const isOpen = openKeys.has(d.discipline_key);
                 const entered = enteredCountFor(d.discipline_key);
                 let chip, summary, body;
 
-                if (row && row.is_final) {
+                if (d.discipline_key === CREATION_KEY) {
+                    const filled = !!team.team_creation;
+                    chip = filled
+                        ? `<span class="status-chip locked">✅ Udfyldt</span>`
+                        : `<span class="status-chip missing">⬜ Mangler</span>`;
+                    summary = filled ? `<span class="disc-summary">${esc(team.team_short || team.team_name)}</span>` : ``;
+                    body = identityBody(team);
+                } else if (row && row.is_final) {
                     const place = PLACE_LABEL[row.points] ?? "–";
                     chip = `<span class="status-chip locked">🔒 Låst</span>`;
                     summary = `<span class="disc-summary">${place} plads · ${row.points ?? "–"} pt</span>`;
@@ -364,6 +396,34 @@
                 ${waiting}`;
         }
 
+        // Skabelsesberetningen: kaptajn-identitet → DimTeam (ikke FactScore, ingen score).
+        function identityBody(t) {
+            return `<div class="id-field">
+                    <label class="id-label">Kongerige-navn</label>
+                    <input type="text" class="id-input id-name" maxlength="40"
+                           placeholder="Jeres kongeriges navn" value="${esc(t.team_name ?? "")}">
+                </div>
+                <div class="id-field">
+                    <label class="id-label">Kælenavn <span class="id-hint">— kort navn til tavlen</span></label>
+                    <input type="text" class="id-input id-short" maxlength="14"
+                           placeholder="fx Pink" value="${esc(t.team_short ?? "")}">
+                </div>
+                <div class="id-field">
+                    <label class="id-label">Motto <span class="id-hint">— kort slogan på storskærmen</span></label>
+                    <input type="text" class="id-input id-motto" maxlength="60"
+                           placeholder="Jeres kongeriges motto" value="${esc(t.team_motto ?? "")}">
+                </div>
+                <div class="id-field">
+                    <label class="id-label">Skabelsesberetningen <span class="id-hint">— jeres kongeriges historie</span></label>
+                    <textarea class="id-input id-creation" rows="4"
+                              placeholder="Fortæl hvordan jeres kongerige blev til…">${esc(t.team_creation ?? "")}</textarea>
+                </div>
+                <div class="id-foot">
+                    <span class="dommer-note">Dommeren styrer selve afstemningen — I udfylder bare jeres identitet.</span>
+                    <button class="save-btn" type="button">Gem</button>
+                </div>`;
+        }
+
         function wireInputs() {
             const instrToggle = contentEl.querySelector("[data-instr-toggle]");
             if (instrToggle) instrToggle.addEventListener("click", () => {
@@ -389,7 +449,10 @@
                     });
                 }
                 const btn = card.querySelector(".save-btn");
-                if (btn) btn.addEventListener("click", () => submit(card, discKey, btn));
+                if (btn) {
+                    if (discKey === CREATION_KEY) btn.addEventListener("click", () => saveIdentity(card, btn));
+                    else btn.addEventListener("click", () => submit(card, discKey, btn));
+                }
             }
         }
 
@@ -425,11 +488,35 @@
             await refresh(true);
         }
 
+        // Skabelsesberetningen-kortet: gem holdets identitet på DimTeam (kræver anon-UPDATE
+        // RLS-policy på DimTeam + kolonnerne team_short/team_creation — se SQL ved deploy).
+        async function saveIdentity(card, btn) {
+            const payload = {
+                team_name: card.querySelector(".id-name").value.trim() || team.team_name,
+                team_short: card.querySelector(".id-short").value.trim() || null,
+                team_motto: card.querySelector(".id-motto").value.trim() || null,
+                team_creation: card.querySelector(".id-creation").value.trim() || null,
+            };
+            btn.disabled = true;
+            const { error } = await supabase.from("DimTeam").update(payload).eq("team_key", teamKey);
+            if (error) {
+                btn.disabled = false;
+                toast("Kunne ikke gemme — prøv igen", true);
+                console.error(error);
+                return;
+            }
+            btn.classList.add("saved");
+            btn.textContent = "Gemt ✓";
+            toast("Jeres identitet er gemt");
+            openKeys.add(CREATION_KEY); // hold kortet åbent efter gem
+            await refresh(true);
+        }
+
         // Skip poll-re-render mens kaptajnen taster i et felt — ellers smider 5s-pollen
         // fokus + det indtastede væk midt i indtastningen.
         function focusInsideContent() {
             const a = document.activeElement;
-            return a && (a.tagName === "INPUT") && contentEl.contains(a);
+            return a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA") && contentEl.contains(a);
         }
 
         async function refresh(force = false) {
