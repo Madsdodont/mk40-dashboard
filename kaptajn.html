@@ -163,6 +163,7 @@
             -webkit-appearance: none; appearance: none;
         }
         textarea.id-input:focus { outline: none; border-color: var(--team-color, var(--bone)); }
+        textarea.drama-input { min-height: 52px; }
         .id-foot { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.3rem; }
         .id-foot .dommer-note { flex: 1; font-size: 0.72rem; color: var(--bone-dim); }
         .id-scoring {
@@ -368,7 +369,7 @@
                     </div>`;
                 } else if (PER_PLAYER_KEYS.has(d.discipline_key)) {
                     chip = hasRaw(row)
-                        ? `<span class="status-chip entered">✅ Tastet</span>`
+                        ? `<span class="status-chip locked">🔒 Låst</span>`
                         : `<span class="status-chip missing">⬜ Mangler</span>`;
                     summary = hasRaw(row) ? `<span class="disc-summary">snit ${esc(row.raw_value)}</span>` : ``;
                     body = perPlayerBody(d, team, row, entered, allTeams.length);
@@ -448,32 +449,44 @@
                 </div>`;
         }
 
-        // Bowling/Dart: ét felt per spiller (navn fra team_members) → snit af de udfyldte.
+        // Bowling/Dart: per-spiller-felter (navne fra team_members) → snit. To tilstande:
+        // ÅBEN (rediger lokalt, fyrer ikke callout) og LÅST (snit sendt, lille callout fyret).
         function perPlayerBody(d, t, row, entered, total) {
-            const players = String(t.team_members || "").split(",").map((s) => s.trim()).filter(Boolean);
-            // Genindlæs tidligere per-spiller-tal fra notes ("Navn: score · Navn: score").
-            const prev = {};
-            if (row?.notes) for (const part of row.notes.split(" · ")) {
-                const i = part.lastIndexOf(": ");
-                if (i > -1) prev[part.slice(0, i).trim()] = part.slice(i + 2).trim();
+            const dramaVal = row?.notes ?? "";   // drama bevares på tværs af lås/lås-op
+
+            // LÅST: kaptajnen har sendt et snit (raw_value sat) → sammendrag + lås-op.
+            if (hasRaw(row)) {
+                return `<div class="locked-result">
+                        <span class="place">Snit ${esc(row.raw_value)}</span>
+                        <span class="raw">låst af jer — venter på dommeren</span>
+                    </div>
+                    ${dramaVal ? `<p class="waiting muted">📣 ${esc(dramaVal)}</p>` : ``}
+                    <div class="id-foot">
+                        <span class="dommer-note">Skal en spillers score rettes (fx efter næste runde)? Lås op, ret, og lås igen.</span>
+                        <button class="save-btn unlock-btn" type="button">Lås op for at rette</button>
+                    </div>`;
             }
+
+            // ÅBEN: indtast per spiller lokalt. Intet skrives til DB før "Lås".
+            const players = String(t.team_members || "").split(",").map((s) => s.trim()).filter(Boolean);
             const winLabel = d.sort_direction === "asc" ? "lavest" : "højest";
             const rows = players.map((name) => `<div class="player-row">
                     <span class="pname">${esc(name)}</span>
                     <input type="number" inputmode="decimal" step="any" class="player-input"
-                           data-player="${esc(name)}" placeholder="–" value="${esc(prev[name] ?? "")}">
+                           data-player="${esc(name)}" placeholder="–">
                 </div>`).join("");
-            const waiting = hasRaw(row)
-                ? `<p class="waiting">✅ Gemt — venter på at dommeren låser · <strong>${entered}/${total}</strong> hold har tastet</p>`
-                : `<p class="waiting muted">${entered}/${total} hold har tastet denne gren</p>`;
             return `<div class="id-scoring">🏆 <strong>Sådan gives point:</strong> tast hver spillers bedste resultat — vi tager <strong>holdets snit</strong> (så 5 og 6 spillere kan sammenlignes), rangerer holdene (${winLabel} snit vinder) og giver 10 / 7 / 5 / 3 / 1.</div>
                 ${rows}
                 <p class="snit-preview">Holdets snit: <span class="snit-val">–</span></p>
-                <div class="id-foot">
-                    <span class="dommer-note">Lad tomme felter stå for spillere der ikke deltog — snittet tæller kun de udfyldte.</span>
-                    <button class="save-btn" type="button">${row ? "Opdatér" : "Gem"}</button>
+                <div class="id-field">
+                    <label class="id-label">Drama til storskærmen <span class="id-hint">— fodrer AI-kommentaren</span></label>
+                    <textarea class="id-input drama-input" rows="2" maxlength="140" placeholder="fx 'Bo lukkede med en strike-serie!'">${esc(dramaVal)}</textarea>
                 </div>
-                ${waiting}`;
+                <div class="id-foot">
+                    <span class="dommer-note">Lås når I har de endelige scores — så fyrer kommentaren én gang. I kan låse op og rette bagefter. Tomme felter tæller ikke med i snittet.</span>
+                    <button class="save-btn lock-btn" type="button">Lås holdets resultat</button>
+                </div>
+                <p class="waiting muted">${entered}/${total} hold har låst denne gren</p>`;
         }
 
         function wireInputs() {
@@ -503,7 +516,10 @@
                 const btn = card.querySelector(".save-btn");
                 if (btn) {
                     if (discKey === CREATION_KEY) btn.addEventListener("click", () => saveIdentity(card, btn));
-                    else if (PER_PLAYER_KEYS.has(discKey)) btn.addEventListener("click", () => savePerPlayer(card, discKey, btn));
+                    else if (PER_PLAYER_KEYS.has(discKey)) {
+                        if (btn.classList.contains("unlock-btn")) btn.addEventListener("click", () => unlockPerPlayer(card, discKey, btn));
+                        else btn.addEventListener("click", () => savePerPlayer(card, discKey, btn));
+                    }
                     else btn.addEventListener("click", () => submit(card, discKey, btn));
                 }
                 // Per-spiller-kort: live snit-preview mens der tastes.
@@ -587,20 +603,33 @@
             const avg = scores.reduce((a, s) => a + s.score, 0) / scores.length;
             el.textContent = (Math.round(avg * 10) / 10).toString();
         }
+        // "Lås": skriv snit + drama → den lille callout fyrer ÉN gang (cards-h ser raw_value).
         async function savePerPlayer(card, discKey, btn) {
             const scores = readPlayerScores(card);
             if (!scores.length) { toast("Tast mindst én spillers resultat", true); return; }
             const avg = Math.round((scores.reduce((a, s) => a + s.score, 0) / scores.length) * 10) / 10;
-            const notes = scores.map((s) => `${s.name}: ${s.score}`).join(" · ");
+            const drama = (card.querySelector(".drama-input")?.value || "").trim() || null;
             btn.disabled = true;
-            // raw_value = holdets snit (rangeres → point); notes = per-spiller-record + callout-drama.
+            // raw_value = holdets snit (rangeres → point); notes = kaptajnens drama til callout.
             const { error } = await supabase.from("FactScore").upsert(
-                { team_key: teamKey, discipline_key: discKey, round_number: 1, raw_value: avg, notes },
+                { team_key: teamKey, discipline_key: discKey, round_number: 1, raw_value: avg, notes: drama },
                 { onConflict: "team_key,discipline_key,round_number" }
             );
-            if (error) { btn.disabled = false; toast("Kunne ikke gemme — prøv igen", true); console.error(error); return; }
-            btn.classList.add("saved"); btn.textContent = "Gemt ✓";
-            toast(`Holdets snit gemt: ${avg}`);
+            if (error) { btn.disabled = false; toast("Kunne ikke låse — prøv igen", true); console.error(error); return; }
+            btn.classList.add("saved"); btn.textContent = "Låst ✓";
+            toast(`Holdets snit låst: ${avg}`);
+            openKeys.add(discKey);
+            await refresh(true);
+        }
+
+        // "Lås op": nulstil raw_value (forsvinder fra tavlen, fyrer ikke callout); behold drama.
+        async function unlockPerPlayer(card, discKey, btn) {
+            btn.disabled = true;
+            const { error } = await supabase.from("FactScore")
+                .update({ raw_value: null })
+                .eq("team_key", teamKey).eq("discipline_key", discKey).eq("round_number", 1);
+            if (error) { btn.disabled = false; toast("Kunne ikke låse op", true); console.error(error); return; }
+            toast("Låst op — ret scoren og lås igen");
             openKeys.add(discKey);
             await refresh(true);
         }
@@ -612,10 +641,17 @@
             return a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA") && contentEl.contains(a);
         }
 
+        // Per-spiller-indtastning er lokal indtil "Lås" — skip poll-re-render så et udfyldt
+        // (men endnu ikke låst) felt ikke clobbes mellem fokus-skift.
+        function perPlayerEditing() {
+            for (const inp of contentEl.querySelectorAll(".player-input")) if (inp.value.trim() !== "") return true;
+            return false;
+        }
+
         async function refresh(force = false) {
             try {
                 await load();
-                if (force || !focusInsideContent()) render();
+                if (force || (!focusInsideContent() && !perPlayerEditing())) render();
             } catch (err) {
                 if (force) contentEl.innerHTML = `<div class="state-msg error">Fejl: ${esc(err.message)}</div>`;
             }
