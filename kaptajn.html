@@ -326,7 +326,9 @@
                 const row = myScores[d.discipline_key];
                 const dir = d.discipline_key === CREATION_KEY
                     ? "Udfyld jeres identitet"
-                    : (d.sort_direction === "asc" ? "Lavest vinder" : "Højest vinder");
+                    : PER_PLAYER_KEYS.has(d.discipline_key)
+                        ? (d.sort_direction === "asc" ? "Laveste snit vinder" : "Højeste snit vinder")
+                        : (d.sort_direction === "asc" ? "Lavest vinder" : "Højest vinder");
                 const isOpen = openKeys.has(d.discipline_key);
                 const entered = enteredCountFor(d.discipline_key);
                 let chip, summary, body;
