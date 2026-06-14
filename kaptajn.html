@@ -80,10 +80,18 @@
         }
         .instructions p { margin: 0; font-size: 0.85rem; line-height: 1.4; color: var(--bone-muted); }
         .instructions p + p { margin-top: 0.45rem; }
-        .instr-title {
-            font-family: var(--font-display); font-weight: var(--w-bold);
-            font-size: 0.95rem !important; color: var(--bone) !important;
+        .instr-toggle {
+            width: 100%; background: none; border: none; padding: 0; font: inherit; color: inherit;
+            display: flex; align-items: center; gap: 0.5rem; cursor: pointer; text-align: left;
         }
+        .instr-title {
+            flex: 1; margin: 0; font-family: var(--font-display); font-weight: var(--w-bold);
+            font-size: 0.95rem; color: var(--bone);
+        }
+        .instr-toggle .chevron { color: var(--bone-dim); font-size: 1rem; transition: transform 0.2s; }
+        .instructions.collapsed .instr-toggle .chevron { transform: rotate(-90deg); }
+        .instr-body { margin-top: 0.5rem; }
+        .instructions.collapsed .instr-body { display: none; }
         .instr-tip { color: var(--bone-dim) !important; }
 
         /* ===== Discipline cards (accordion) ===== */
@@ -197,6 +205,10 @@
 
         const PLACE_LABEL = { 10: "1.", 7: "2.", 5: "3.", 3: "4.", 1: "5." };
 
+        // Instruktions-kortet huskes sammenklappet på tværs af besøg (læst én gang = nok).
+        let instrCollapsed = false;
+        try { instrCollapsed = localStorage.getItem("mk40_instr_collapsed") === "1"; } catch {}
+
         function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
         const hasRaw = (r) => r && r.raw_value !== null && r.raw_value !== undefined;
         function esc(s) {
@@ -279,10 +291,15 @@
                 <h1>${esc(team.team_name)}</h1>
                 <div class="progress">${doneCount} / ${disciplines.length} grene tastet</div>
             </div>
-            <div class="instructions" style="--team-color:${teamVar}">
-                <p class="instr-title">Sådan gør du som kaptajn</p>
-                <p>Når en gren er færdigspillet, taster du <strong>jeres holds resultat</strong> her. Host låser grenen når alle ${allTeams.length} hold har tastet — så omregnes resultaterne til point og vises på storskærmen.</p>
-                <p class="instr-tip">💡 Skriv gerne en note med lidt drama — den fodrer AI-kommentaren på storskærmen.</p>
+            <div class="instructions ${instrCollapsed ? "collapsed" : ""}" style="--team-color:${teamVar}">
+                <button class="instr-toggle" type="button" data-instr-toggle aria-expanded="${!instrCollapsed}">
+                    <span class="instr-title">Sådan gør du som kaptajn</span>
+                    <span class="chevron" aria-hidden="true">▾</span>
+                </button>
+                <div class="instr-body">
+                    <p>Når en gren er færdigspillet, taster du <strong>jeres holds resultat</strong> her. Dommeren låser grenen når alle ${allTeams.length} hold har tastet — så omregnes resultaterne til point og vises på storskærmen.</p>
+                    <p class="instr-tip">💡 Skriv gerne en note med lidt drama — den fodrer AI-kommentaren på storskærmen.</p>
+                </div>
             </div>
             <div class="list">`;
 
@@ -335,7 +352,7 @@
             const noteVal = row?.notes ?? "";
             const btnLabel = row ? "Opdatér" : "Gem";
             const waiting = hasRaw(row)
-                ? `<p class="waiting">✅ Gemt — venter på at host låser · <strong>${entered}/${total}</strong> hold har tastet</p>`
+                ? `<p class="waiting">✅ Gemt — venter på at dommeren låser · <strong>${entered}/${total}</strong> hold har tastet</p>`
                 : `<p class="waiting muted">${entered}/${total} hold har tastet denne gren</p>`;
             return `<div class="field-row">
                     <input type="number" inputmode="decimal" step="any" class="raw-input"
@@ -348,6 +365,13 @@
         }
 
         function wireInputs() {
+            const instrToggle = contentEl.querySelector("[data-instr-toggle]");
+            if (instrToggle) instrToggle.addEventListener("click", () => {
+                instrCollapsed = !instrCollapsed;
+                try { localStorage.setItem("mk40_instr_collapsed", instrCollapsed ? "1" : "0"); } catch {}
+                instrToggle.closest(".instructions").classList.toggle("collapsed", instrCollapsed);
+                instrToggle.setAttribute("aria-expanded", String(!instrCollapsed));
+            });
             for (const card of contentEl.querySelectorAll(".disc")) {
                 const discKey = Number(card.dataset.disc);
                 // Header = toggle (klik eller Enter/Space). Påvirker ikke DB — kun udfold/fold.
