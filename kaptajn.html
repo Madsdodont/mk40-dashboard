@@ -269,8 +269,7 @@
         let disciplines = [];
         let allScores = [];     // alle holds rækker (til "X/N hold tastet")
         let myScores = {};      // discipline_key → mit holds row
-        const openKeys = new Set();   // hvilke grene er foldet ud
-        let initializedOpen = false;  // auto-åbn kun ved første render
+        const openKeys = new Set();   // hvilke grene er foldet ud (tom ved load → alt lukket)
         let dirty = false;            // ugemte lokale ændringer → pause poll-re-render (undgå clobber)
 
         async function load() {
@@ -300,35 +299,11 @@
             return seen.size;
         }
 
-        // Hvilken gren skal stå åben ved første load:
-        //   1) den hvis planlagte tidsvindue indeholder nu (festdagen), ellers
-        //   2) første gren jeg endnu ikke har tastet, ellers
-        //   3) første gren der ikke er låst, ellers første.
-        function activeDisciplineKey() {
-            const now = Date.now();
-            for (const d of disciplines) {
-                if (d.planned_start && d.planned_end) {
-                    const s = Date.parse(String(d.planned_start).replace(" ", "T"));
-                    const e = Date.parse(String(d.planned_end).replace(" ", "T"));
-                    if (!isNaN(s) && !isNaN(e) && now >= s && now <= e) return d.discipline_key;
-                }
-            }
-            for (const d of disciplines) if (!hasRaw(myScores[d.discipline_key])) return d.discipline_key;
-            for (const d of disciplines) if (!myScores[d.discipline_key]?.is_final) return d.discipline_key;
-            return disciplines[0]?.discipline_key ?? null;
-        }
-
         function render() {
             const teamVar = `var(--team-${cssVarSafe(team.team_color)})`;
             const doneCount = disciplines.filter((d) =>
                 d.discipline_key === CREATION_KEY ? !!team.team_creation : hasRaw(myScores[d.discipline_key])
             ).length;
-
-            if (!initializedOpen) {
-                const active = activeDisciplineKey();
-                if (active != null) openKeys.add(active);
-                initializedOpen = true;
-            }
 
             let html = `<div class="team-head" style="--team-color:${teamVar}">
                 <p class="kicker">Kaptajn · Kongerigernes Kamp</p>
