@@ -271,6 +271,7 @@
         let myScores = {};      // discipline_key → mit holds row
         const openKeys = new Set();   // hvilke grene er foldet ud
         let initializedOpen = false;  // auto-åbn kun ved første render
+        let dirty = false;            // ugemte lokale ændringer → pause poll-re-render (undgå clobber)
 
         async function load() {
             const [teamRes, discRes, scoreRes] = await Promise.all([
@@ -405,6 +406,7 @@
             html += `</div>`;
             contentEl.innerHTML = html;
             wireInputs();
+            dirty = false;   // frisk render afspejler DB → ingen ugemte ændringer
         }
 
         function inputBody(d, row, entered, total) {
@@ -679,7 +681,7 @@
         async function refresh(force = false) {
             try {
                 await load();
-                if (force || !focusInsideContent()) render();
+                if (force || (!focusInsideContent() && !dirty)) render();
             } catch (err) {
                 if (force) contentEl.innerHTML = `<div class="state-msg error">Fejl: ${esc(err.message)}</div>`;
             }
@@ -690,6 +692,8 @@
                 contentEl.innerHTML = `<div class="state-msg error">Mangler ?team=N i URL'en.<br>Scan dit holds QR-kode.</div>`;
                 return;
             }
+            // Enhver indtastning markerer dirty → poll re-renderer ikke før der er gemt/låst.
+            contentEl.addEventListener("input", () => { dirty = true; });
             await refresh(true);
             setInterval(() => refresh(false), POLL_MS);
         }
