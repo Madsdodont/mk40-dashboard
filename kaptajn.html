@@ -158,7 +158,12 @@
         const PER_PLAYER_KEYS = new Set([2, 3]); // Bowling + Dart — ét felt per spiller, snit
         // Per-gren tæl-vejledning: hvordan kaptajnen når frem til tallet de taster.
         const DISC_HOWTO = {
+            2: "To runder bowling — tast hver spillers bedste runde (10 frames). Vi tager holdets snit.",
+            3: "Hver spiller kaster 3 pile — tast summen af de tre pile pr. spiller. Vi tager holdets snit.",
             4: "24 poser pr. hold (alle kaster mindst 4). 1 point pr. pose på pladen, 3 point pr. pose i hul — tast holdets samlede point.",
+            5: "Tast holdets tid i sekunder — hurtigst (laveste) vinder.",
+            6: "6 søm — alle hjælpes ad og skiftes til at slå. Tast det samlede antal slag. Færrest vinder.",
+            7: "1 point for rigtig kunstner, 1 for rigtig sangtitel, 1 for rigtigt år (pr. sang) — tast holdets samlede point.",
         };
         const ABSENT = "✕";                      // "deltog ikke"-markør i breakdown
 
@@ -340,7 +345,7 @@
         function scoringNote(d, isPP) {
             const win = d.sort_direction === "asc" ? (isPP ? "laveste snit" : "laveste") : (isPP ? "højeste snit" : "højeste");
             return isPP
-                ? `🏆 <strong>Sådan gives point:</strong> tast hver spillers bedste resultat — vi tager <strong>holdets snit</strong> (så 5 og 6 spillere kan sammenlignes), rangerer holdene (${win} vinder) og giver 10 / 7 / 5 / 3 / 1.`
+                ? `🏆 <strong>Sådan gives point:</strong> tast hver spillers resultat — vi tager <strong>holdets snit</strong> (så 5 og 6 spillere kan sammenlignes), rangerer holdene (${win} vinder) og giver 10 / 7 / 5 / 3 / 1.`
                 : `🏆 <strong>Sådan gives point:</strong> holdet med ${win} resultat får <strong>10 point</strong> (1. plads), derefter 7 / 5 / 3 / 1 efter placering.`;
         }
         function scoreCard(d, row, isPP, entered, total) {
