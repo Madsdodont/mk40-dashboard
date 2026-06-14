@@ -250,6 +250,10 @@
         // Slå søm/puslespil/cornhole/musikquiz = ét kollektivt holdtal (fast format / fælles).
         const PER_PLAYER_KEYS = new Set([2, 3]);
 
+        // Grene hvor kaptajnen kan låse op og rette efter lås (flere runder). Bowling (2) =
+        // to runder → lås-op. Dart (3) = ét forsøg → endelig lås (dommer kan rette ved fejl).
+        const EDITABLE_AFTER_LOCK = new Set([2]);
+
         function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
         const hasRaw = (r) => r && r.raw_value !== null && r.raw_value !== undefined;
         function esc(s) {
@@ -441,15 +445,18 @@
 
             // LÅST: kaptajnen har sendt et snit (raw_value sat) → sammendrag + lås-op.
             if (hasRaw(row)) {
+                const canRelock = EDITABLE_AFTER_LOCK.has(d.discipline_key);
                 return `<div class="locked-result">
                         <span class="place">Snit ${esc(row.raw_value)}</span>
                         <span class="raw">låst af jer — venter på dommeren</span>
                     </div>
                     ${dramaVal ? `<p class="waiting muted">📣 ${esc(dramaVal)}</p>` : ``}
-                    <div class="id-foot">
+                    ${canRelock
+                        ? `<div class="id-foot">
                         <span class="dommer-note">Skal en spillers score rettes (fx efter næste runde)? Lås op, ret, og lås igen.</span>
                         <button class="save-btn unlock-btn" type="button">Lås op for at rette</button>
-                    </div>`;
+                    </div>`
+                        : `<p class="hint-line">Låst — ét forsøg. Ved fejl kan dommeren rette på host-siden.</p>`}`;
             }
 
             // ÅBEN / KLADDE: indtast per spiller. "Gem scores" = kladde (raw_value=null, ingen
@@ -595,7 +602,7 @@
             const scores = readPlayerScores(card);
             if (!scores.length) { el.textContent = "–"; return; }
             const avg = scores.reduce((a, s) => a + s.score, 0) / scores.length;
-            el.textContent = (Math.round(avg * 10) / 10).toString();
+            el.textContent = Math.round(avg).toString();
         }
         function buildBreakdown(scores) { return scores.map((s) => `${s.name}: ${s.score}`).join(" · "); }
 
@@ -621,7 +628,7 @@
         async function savePerPlayer(card, discKey, btn) {
             const scores = readPlayerScores(card);
             if (!scores.length) { toast("Tast mindst én spillers resultat", true); return; }
-            const avg = Math.round((scores.reduce((a, s) => a + s.score, 0) / scores.length) * 10) / 10;
+            const avg = Math.round(scores.reduce((a, s) => a + s.score, 0) / scores.length);
             const drama = (card.querySelector(".drama-input")?.value || "").trim() || null;
             btn.disabled = true;
             // raw_value = holdets snit (rangeres → point); notes = kaptajnens drama til callout.
