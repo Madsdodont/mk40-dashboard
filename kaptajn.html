@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900&family=JetBrains+Mono:wght@500;700;800&display=swap">
     <style>
         :root {
-            /* Paper palette + team colors + fonts — delt med cards-h.html (canonical). */
             --ink-void: oklch(94% 0.012 60);
             --ink-deep: oklch(97% 0.008 60);
             --ink-card: oklch(99% 0.005 60);
@@ -38,56 +37,27 @@
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }
         body {
-            background: var(--ink-void);
-            color: var(--bone);
-            font-family: var(--font-label);
-            min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-            -webkit-tap-highlight-color: transparent;
+            background: var(--ink-void); color: var(--bone); font-family: var(--font-label);
+            min-height: 100vh; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
         }
-        /* iPhone: respektér safe-area (notch + home-indicator). Bund-padding holder
-           sidste kort fri af home-baren; toast får samme sikkerhedsafstand. */
         .wrap { max-width: 540px; margin: 0 auto; padding: 0 0 calc(4rem + env(safe-area-inset-bottom)); }
 
         /* ===== Team header ===== */
         .team-head {
-            position: sticky; top: 0; z-index: 10;
-            background: var(--team-color, var(--bone));
-            color: oklch(98% 0.01 60);
-            /* Top-padding inkl. notch så titlen aldrig gemmer sig under statusbaren. */
-            padding: calc(1.1rem + env(safe-area-inset-top)) 1.25rem 1rem;
+            position: sticky; top: 0; z-index: 10; background: var(--team-color, var(--bone));
+            color: oklch(98% 0.01 60); padding: calc(1.1rem + env(safe-area-inset-top)) 1.25rem 1rem;
             box-shadow: var(--shadow-medium);
         }
-        .team-head .kicker {
-            font-size: 0.7rem; letter-spacing: var(--ls-label); text-transform: uppercase;
-            font-weight: var(--w-bold); opacity: 0.85; margin: 0 0 0.15rem;
-        }
-        .team-head h1 {
-            font-family: var(--font-display); font-weight: var(--w-black);
-            font-size: 1.6rem; line-height: 1.05; margin: 0; letter-spacing: var(--ls-tight);
-        }
-        .team-head .progress {
-            margin-top: 0.6rem; font-size: 0.8rem; font-weight: var(--w-bold);
-            font-family: var(--font-numeric); opacity: 0.92;
-        }
+        .team-head .kicker { font-size: 0.7rem; letter-spacing: var(--ls-label); text-transform: uppercase; font-weight: var(--w-bold); opacity: 0.85; margin: 0 0 0.15rem; }
+        .team-head h1 { font-family: var(--font-display); font-weight: var(--w-black); font-size: 1.6rem; line-height: 1.05; margin: 0; letter-spacing: var(--ls-tight); }
+        .team-head .progress { margin-top: 0.6rem; font-size: 0.8rem; font-weight: var(--w-bold); font-family: var(--font-numeric); opacity: 0.92; }
 
         /* ===== Kaptajn-instruktioner ===== */
-        .instructions {
-            margin: 1rem 1rem 0; padding: 0.9rem 1rem;
-            background: var(--ink-card); border: 1px solid var(--ink-border-soft);
-            border-left: 4px solid var(--team-color, var(--ink-border));
-            border-radius: 10px; box-shadow: var(--shadow-low);
-        }
+        .instructions { margin: 1rem 1rem 0; padding: 0.9rem 1rem; background: var(--ink-card); border: 1px solid var(--ink-border-soft); border-left: 4px solid var(--team-color, var(--ink-border)); border-radius: 10px; box-shadow: var(--shadow-low); }
         .instructions p { margin: 0; font-size: 0.85rem; line-height: 1.4; color: var(--bone-muted); }
         .instructions p + p { margin-top: 0.45rem; }
-        .instr-toggle {
-            width: 100%; background: none; border: none; padding: 0; font: inherit; color: inherit;
-            display: flex; align-items: center; gap: 0.5rem; cursor: pointer; text-align: left;
-        }
-        .instr-title {
-            flex: 1; margin: 0; font-family: var(--font-display); font-weight: var(--w-bold);
-            font-size: 0.95rem; color: var(--bone);
-        }
+        .instr-toggle { width: 100%; background: none; border: none; padding: 0; font: inherit; color: inherit; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; text-align: left; }
+        .instr-title { flex: 1; margin: 0; font-family: var(--font-display); font-weight: var(--w-bold); font-size: 0.95rem; color: var(--bone); }
         .instr-toggle .chevron { color: var(--bone-dim); font-size: 1rem; transition: transform 0.2s; }
         .instructions.collapsed .instr-toggle .chevron { transform: rotate(-90deg); }
         .instr-body { margin-top: 0.5rem; }
@@ -96,122 +66,72 @@
 
         /* ===== Discipline cards (accordion) ===== */
         .list { padding: 1rem 1rem 0; display: flex; flex-direction: column; gap: 0.85rem; }
-        .disc {
-            background: var(--ink-card); border: 1px solid var(--ink-border-soft);
-            border-radius: 12px; box-shadow: var(--shadow-low); overflow: hidden;
-        }
-        /* Header = toggle. Hele rækken er klikbar; chevron roterer når åben. */
-        .disc-top {
-            width: 100%; text-align: left; background: var(--ink-card); border: none;
-            font: inherit; color: inherit; cursor: pointer; user-select: none;
-            padding: 0.9rem 1rem; display: flex; align-items: center; gap: 0.5rem;
-        }
+        .disc { background: var(--ink-card); border: 1px solid var(--ink-border-soft); border-radius: 12px; box-shadow: var(--shadow-low); overflow: hidden; }
+        .disc-top { width: 100%; text-align: left; background: var(--ink-card); border: none; font: inherit; color: inherit; cursor: pointer; user-select: none; padding: 0.9rem 1rem; display: flex; align-items: center; gap: 0.5rem; }
         .disc-name { flex: 1; min-width: 0; }
-        .disc-name h2 {
-            font-family: var(--font-display); font-weight: var(--w-bold);
-            font-size: 1.15rem; margin: 0; line-height: 1.1;
-        }
-        .disc-hint {
-            font-size: 0.72rem; color: var(--bone-dim); margin-top: 0.2rem;
-            display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;
-        }
-        .type-badge {
-            font-size: 0.62rem; letter-spacing: var(--ls-label); text-transform: uppercase;
-            font-weight: var(--w-bold); color: var(--bone-muted);
-            border: 1px solid var(--ink-border-soft); border-radius: 999px; padding: 0.1rem 0.5rem;
-        }
-        /* Sammenklappet opsummering: rå-tal (tastet) eller placering (låst), i hold-farve. */
-        .disc-summary {
-            font-family: var(--font-numeric); font-weight: var(--w-bold); font-size: 0.9rem;
-            color: var(--team-color, var(--bone-muted)); white-space: nowrap;
-        }
-        .status-chip {
-            font-size: 0.7rem; font-weight: var(--w-bold); white-space: nowrap;
-            padding: 0.25rem 0.55rem; border-radius: 999px;
-        }
+        .disc-name h2 { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 1.15rem; margin: 0; line-height: 1.1; }
+        .disc-hint { font-size: 0.72rem; color: var(--bone-dim); margin-top: 0.2rem; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+        .type-badge { font-size: 0.62rem; letter-spacing: var(--ls-label); text-transform: uppercase; font-weight: var(--w-bold); color: var(--bone-muted); border: 1px solid var(--ink-border-soft); border-radius: 999px; padding: 0.1rem 0.5rem; }
+        .disc-summary { font-family: var(--font-numeric); font-weight: var(--w-bold); font-size: 0.9rem; color: var(--team-color, var(--bone-muted)); white-space: nowrap; }
+        .status-chip { font-size: 0.7rem; font-weight: var(--w-bold); white-space: nowrap; padding: 0.25rem 0.55rem; border-radius: 999px; }
         .status-chip.missing { background: oklch(92% 0.012 60); color: var(--bone-dim); }
         .status-chip.entered { background: color-mix(in oklch, var(--wait-amber) 18%, transparent); color: var(--wait-amber); }
         .status-chip.locked  { background: color-mix(in oklch, var(--ok-green) 18%, transparent); color: var(--ok-green); }
         .chevron { color: var(--bone-dim); font-size: 1rem; transition: transform 0.2s; }
         .disc.open .chevron { transform: rotate(180deg); }
 
-        /* Body skjult når sammenklappet. */
         .disc-body { padding: 0 1rem 1rem; display: none; }
         .disc.open .disc-body { display: block; }
-        .field-row { display: flex; gap: 0.5rem; align-items: stretch; }
+
         input[type="number"], input[type="text"] {
-            width: 100%; font-family: var(--font-numeric); font-size: 1rem;
-            min-height: 48px; padding: 0.7rem 0.8rem; border: 1.5px solid var(--ink-border);
-            border-radius: 9px; background: var(--ink-deep); color: var(--bone);
-            -webkit-appearance: none; appearance: none;
+            width: 100%; font-family: var(--font-numeric); font-size: 1rem; min-height: 48px;
+            padding: 0.7rem 0.8rem; border: 1.5px solid var(--ink-border); border-radius: 9px;
+            background: var(--ink-deep); color: var(--bone); -webkit-appearance: none; appearance: none;
         }
-        /* 16px = iOS' grænse: under den auto-zoomer Safari ved fokus. Hold note-feltet >=16px. */
         input[type="text"] { font-family: var(--font-label); font-size: 1rem; }
         input:focus { outline: none; border-color: var(--team-color, var(--bone)); }
-        .note-input { margin-top: 0.5rem; }
-        /* Skabelsesberetningen — identitets-felter */
+        input[readonly], input:disabled { background: var(--ink-elevated); color: var(--bone-muted); border-color: var(--ink-border-soft); }
+
+        /* Score-felter (per-spiller + enkelt-tal) */
+        .player-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .player-row.absent { opacity: 0.55; }
+        .player-row .pname { flex: 1; min-width: 0; font-weight: var(--w-bold); font-size: 0.95rem; }
+        .player-row .player-input, .player-row .single-input { width: 5rem; min-width: 5rem; flex: none; text-align: right; }
+        .pencil { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0 0.2rem; line-height: 1; }
+        .absent-toggle { font-size: 0.66rem; font-weight: var(--w-bold); background: none; border: 1px solid var(--ink-border); border-radius: 999px; padding: 0.25rem 0.5rem; color: var(--bone-muted); cursor: pointer; white-space: nowrap; }
+        .player-row.absent .absent-toggle { background: color-mix(in oklch, var(--bone-muted) 14%, transparent); color: var(--bone); }
+        .absent-toggle[hidden] { display: none; }
+
+        .snit-preview { font-family: var(--font-numeric); font-weight: var(--w-bold); margin: 0.5rem 0 0.7rem; color: var(--team-color, var(--bone)); }
         .id-field { margin-bottom: 0.7rem; }
-        .id-label {
-            display: block; font-size: 0.72rem; font-weight: var(--w-bold); color: var(--bone-muted);
-            letter-spacing: 0.02em; margin-bottom: 0.3rem;
-        }
+        .id-label { display: block; font-size: 0.72rem; font-weight: var(--w-bold); color: var(--bone-muted); letter-spacing: 0.02em; margin-bottom: 0.3rem; }
         .id-hint { font-weight: var(--w-regular); color: var(--bone-dim); }
-        textarea.id-input {
-            width: 100%; font-family: var(--font-label); font-size: 1rem; line-height: 1.4;
-            min-height: 96px; padding: 0.7rem 0.8rem; border: 1.5px solid var(--ink-border);
-            border-radius: 9px; background: var(--ink-deep); color: var(--bone); resize: vertical;
-            -webkit-appearance: none; appearance: none;
-        }
+        textarea.id-input { width: 100%; font-family: var(--font-label); font-size: 1rem; line-height: 1.4; min-height: 96px; padding: 0.7rem 0.8rem; border: 1.5px solid var(--ink-border); border-radius: 9px; background: var(--ink-deep); color: var(--bone); resize: vertical; -webkit-appearance: none; appearance: none; }
         textarea.id-input:focus { outline: none; border-color: var(--team-color, var(--bone)); }
+        textarea.id-input[readonly] { background: var(--ink-elevated); color: var(--bone-muted); border-color: var(--ink-border-soft); }
         textarea.drama-input { min-height: 52px; }
+        .id-scoring { font-size: 0.78rem; line-height: 1.4; color: var(--bone-muted); background: var(--ink-elevated); border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 0.85rem; }
+        .id-scoring strong { color: var(--bone); font-weight: var(--w-bold); }
+        .hint-line { font-size: 0.72rem; color: var(--bone-dim); margin: 0.5rem 0; }
         .id-foot { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.3rem; }
         .id-foot .dommer-note { flex: 1; font-size: 0.72rem; color: var(--bone-dim); }
-        .id-scoring {
-            font-size: 0.78rem; line-height: 1.4; color: var(--bone-muted);
-            background: var(--ink-elevated); border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 0.85rem;
-        }
-        .id-scoring strong { color: var(--bone); font-weight: var(--w-bold); }
-        /* Per-spiller-grene (bowling/dart) */
-        .player-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; }
-        .player-row .pname { flex: 1; min-width: 0; font-weight: var(--w-bold); font-size: 0.95rem; }
-        .player-row .player-input { width: 5.5rem; min-width: 5.5rem; text-align: right; }
-        .snit-preview { font-family: var(--font-numeric); font-weight: var(--w-bold); margin: 0.5rem 0 0.7rem; color: var(--team-color, var(--bone)); }
-        .save-btn.btn-secondary { background: transparent; color: var(--bone-muted); border: 1.5px solid var(--ink-border); box-shadow: none; }
-        .btn-row { display: flex; gap: 0.5rem; }
-        .btn-row .save-btn { flex: 1; }
-        .hint-line { font-size: 0.72rem; color: var(--bone-dim); margin: 0.5rem 0; }
-        .save-btn {
-            font-family: var(--font-label); font-weight: var(--w-bold); font-size: 1rem;
-            min-height: 48px; padding: 0.7rem 1.25rem; border: none; border-radius: 9px; white-space: nowrap;
-            background: var(--team-color, var(--bone)); color: oklch(98% 0.01 60);
-            box-shadow: var(--shadow-low); cursor: pointer; transition: transform 0.08s, opacity 0.2s;
-        }
-        .save-btn:active { transform: scale(0.96); }
-        .save-btn:disabled { opacity: 0.45; }
-        .save-btn.saved { background: var(--ok-green); }
 
-        /* Venter-på-host-linje + tastet-tæller. */
+        .save-btn { width: 100%; font-family: var(--font-label); font-weight: var(--w-bold); font-size: 1rem; min-height: 48px; padding: 0.7rem 1.25rem; border: none; border-radius: 9px; white-space: nowrap; background: var(--team-color, var(--bone)); color: oklch(98% 0.01 60); box-shadow: var(--shadow-low); cursor: pointer; transition: transform 0.08s, opacity 0.2s; }
+        .save-btn:active { transform: scale(0.98); }
+        .save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .save-btn.btn-secondary { background: transparent; color: var(--bone-muted); border: 1.5px solid var(--ink-border); box-shadow: none; width: auto; }
+
+        .locked-result { display: flex; align-items: baseline; gap: 0.6rem; padding: 0.4rem 0; font-family: var(--font-numeric); }
+        .locked-result .place { font-size: 1.6rem; font-weight: var(--w-black); color: var(--team-color, var(--bone)); }
+        .locked-result .raw { font-size: 0.78rem; color: var(--bone-dim); margin-left: auto; }
+
         .waiting { font-size: 0.78rem; margin: 0.6rem 0 0; color: var(--ok-green); font-weight: var(--w-bold); }
         .waiting.muted { color: var(--bone-dim); font-weight: var(--w-regular); }
-
-        .locked-result {
-            display: flex; align-items: baseline; gap: 0.6rem;
-            padding: 0.4rem 0; font-family: var(--font-numeric);
-        }
-        .locked-result .place { font-size: 1.6rem; font-weight: var(--w-black); color: var(--team-color, var(--bone)); }
-        .locked-result .pts { font-size: 1rem; font-weight: var(--w-bold); color: var(--bone-muted); }
-        .locked-result .raw { font-size: 0.78rem; color: var(--bone-dim); margin-left: auto; }
 
         .state-msg { padding: 3rem 1.5rem; text-align: center; color: var(--bone-muted); }
         .state-msg.error { color: var(--signal-error); }
 
-        .toast {
-            position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(2rem);
-            background: var(--bone); color: var(--ink-card); font-weight: var(--w-bold);
-            font-size: 0.85rem; padding: 0.7rem 1.2rem; border-radius: 999px;
-            box-shadow: var(--shadow-medium); opacity: 0; pointer-events: none;
-            transition: opacity 0.25s, transform 0.25s; z-index: 50;
-        }
+        .toast { position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(2rem); background: var(--bone); color: var(--ink-card); font-weight: var(--w-bold); font-size: 0.85rem; padding: 0.7rem 1.2rem; border-radius: 999px; box-shadow: var(--shadow-medium); opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 50; }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast.error { background: var(--signal-error); }
     </style>
@@ -229,33 +149,21 @@
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         const POLL_MS = 5000;
 
-        // ?team=N — hvilket hold denne kaptajn tilhører.
         const teamKey = Number(new URLSearchParams(location.search).get("team"));
         const contentEl = document.getElementById("content");
         const toastEl = document.getElementById("toast");
 
         const PLACE_LABEL = { 10: "1.", 7: "2.", 5: "3.", 3: "4.", 1: "5." };
+        const CREATION_KEY = 1;                 // Skabelsesberetningen — identitet (eget flow)
+        const PER_PLAYER_KEYS = new Set([2, 3]); // Bowling + Dart — ét felt per spiller, snit
+        const ABSENT = "✕";                      // "deltog ikke"-markør i breakdown
 
-        // Instruktions-kortet huskes sammenklappet på tværs af besøg (læst én gang = nok).
         let instrCollapsed = false;
         try { instrCollapsed = localStorage.getItem("mk40_instr_collapsed") === "1"; } catch {}
 
-        // Skabelsesberetningen (gren-key 1): kaptajn-identitet, IKKE en score.
-        // Kaptajnen udfylder kongerige-navn/kælenavn/motto/beretning (→ DimTeam);
-        // dommeren indtaster den analoge afstemning + låser placeringen separat.
-        const CREATION_KEY = 1;
-
-        // Per-spiller-grene: ét felt per spiller (navn fra team_members) → vi snitter de
-        // udfyldte felter. Snittet gør 5- og 6-mands-hold sammenlignelige. Bowling (2) + Dart (3).
-        // Slå søm/puslespil/cornhole/musikquiz = ét kollektivt holdtal (fast format / fælles).
-        const PER_PLAYER_KEYS = new Set([2, 3]);
-
-        // Grene hvor kaptajnen kan låse op og rette efter lås (flere runder). Bowling (2) =
-        // to runder → lås-op. Dart (3) = ét forsøg → endelig lås (dommer kan rette ved fejl).
-        const EDITABLE_AFTER_LOCK = new Set([2]);
-
         function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
         const hasRaw = (r) => r && r.raw_value !== null && r.raw_value !== undefined;
+        const playersOf = (t) => String(t.team_members || "").split(",").map((s) => s.trim()).filter(Boolean);
         function esc(s) {
             if (s == null) return "";
             return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -268,13 +176,9 @@
             toastTimer = setTimeout(() => { toastEl.className = "toast"; }, 2200);
         }
 
-        let allTeams = [];      // alle hold (til total-tæller)
-        let team = null;        // dette holds DimTeam-row
-        let disciplines = [];
-        let allScores = [];     // alle holds rækker (til "X/N hold tastet")
-        let myScores = {};      // discipline_key → mit holds row
-        const openKeys = new Set();   // hvilke grene er foldet ud (tom ved load → alt lukket)
-        let dirty = false;            // ugemte lokale ændringer → pause poll-re-render (undgå clobber)
+        let allTeams = [], team = null, disciplines = [], allScores = [], myScores = {};
+        const openKeys = new Set();   // foldet ud (tom ved load → alt lukket)
+        let dirty = false;            // ugemte lokale ændringer → pause poll-re-render
 
         async function load() {
             const [teamRes, discRes, scoreRes] = await Promise.all([
@@ -294,13 +198,23 @@
             for (const r of allScores) if (r.team_key === teamKey) myScores[r.discipline_key] = r;
         }
 
-        // Antal hold der har tastet et resultat i en given gren (distinkte hold, rå-tal != null).
+        // Antal hold der har LÅST en gren (raw_value sat).
         function enteredCountFor(discKey) {
             const seen = new Set();
-            for (const r of allScores) {
-                if (r.discipline_key === discKey && hasRaw(r)) seen.add(r.team_key);
-            }
+            for (const r of allScores) if (r.discipline_key === discKey && hasRaw(r)) seen.add(r.team_key);
             return seen.size;
+        }
+
+        // breakdown "Navn: 180 · Bo: ✕" → { Navn: "180", Bo: "✕" }; enkelt-tal → { __single: "21" }.
+        function parseBreakdown(str, isPP) {
+            const out = {};
+            if (!str) return out;
+            if (!isPP) { out.__single = String(str).trim(); return out; }
+            for (const part of String(str).split(" · ")) {
+                const i = part.lastIndexOf(": ");
+                if (i > -1) out[part.slice(0, i).trim()] = part.slice(i + 2).trim();
+            }
+            return out;
         }
 
         function render() {
@@ -312,7 +226,7 @@
             let html = `<div class="team-head" style="--team-color:${teamVar}">
                 <p class="kicker">Kaptajn · Kongerigernes Kamp</p>
                 <h1>${esc(team.team_name)}</h1>
-                <div class="progress">${doneCount} / ${disciplines.length} grene tastet</div>
+                <div class="progress">${doneCount} / ${disciplines.length} grene klar</div>
             </div>
             <div class="instructions ${instrCollapsed ? "collapsed" : ""}" style="--team-color:${teamVar}">
                 <button class="instr-toggle" type="button" data-instr-toggle aria-expanded="${!instrCollapsed}">
@@ -320,55 +234,44 @@
                     <span class="chevron" aria-hidden="true">▾</span>
                 </button>
                 <div class="instr-body">
-                    <p>Når en gren er færdigspillet, taster du <strong>jeres holds resultat</strong> her. Dommeren låser grenen når alle ${allTeams.length} hold har tastet — så omregnes resultaterne til point og vises på storskærmen.</p>
-                    <p class="instr-tip">💡 Skriv gerne en note med lidt drama — den fodrer AI-kommentaren på storskærmen.</p>
+                    <p>Når en gren er færdigspillet, taster du <strong>jeres holds resultat</strong>: gem først, og lås når tallene er endelige. Dommeren låser grenen når alle ${allTeams.length} hold har låst — så omregnes til point og vises på storskærmen.</p>
+                    <p class="instr-tip">💡 Skriv en note med lidt drama — den fodrer AI-kommentaren på storskærmen.</p>
                 </div>
             </div>
             <div class="list">`;
 
             for (const d of disciplines) {
                 const row = myScores[d.discipline_key];
-                const dir = d.discipline_key === CREATION_KEY
-                    ? "Udfyld jeres identitet"
-                    : PER_PLAYER_KEYS.has(d.discipline_key)
-                        ? (d.sort_direction === "asc" ? "Laveste snit vinder" : "Højeste snit vinder")
-                        : (d.sort_direction === "asc" ? "Lavest vinder" : "Højest vinder");
+                const isPP = PER_PLAYER_KEYS.has(d.discipline_key);
                 const isOpen = openKeys.has(d.discipline_key);
                 const entered = enteredCountFor(d.discipline_key);
-                let chip, summary, body;
+                let chip, summary, body, dir;
 
                 if (d.discipline_key === CREATION_KEY) {
+                    dir = "Udfyld jeres identitet";
                     const filled = !!team.team_creation;
-                    chip = filled
-                        ? `<span class="status-chip locked">✅ Udfyldt</span>`
-                        : `<span class="status-chip missing">⬜ Mangler</span>`;
+                    chip = filled ? `<span class="status-chip locked">✅ Udfyldt</span>` : `<span class="status-chip missing">⬜ Mangler</span>`;
                     summary = filled ? `<span class="disc-summary">${esc(team.team_short || team.team_name)}</span>` : ``;
                     body = identityBody(team);
                 } else if (row && row.is_final) {
+                    // Dommer har låst grenen → vis placering.
+                    dir = isPP ? (d.sort_direction === "asc" ? "Laveste snit vinder" : "Højeste snit vinder") : (d.sort_direction === "asc" ? "Lavest vinder" : "Højest vinder");
                     const place = PLACE_LABEL[row.points] ?? "–";
                     chip = `<span class="status-chip locked">🔒 Låst</span>`;
                     summary = `<span class="disc-summary">${place} plads · ${row.points ?? "–"} pt</span>`;
                     body = `<div class="locked-result">
                         <span class="place">${place} plads</span>
-                        <span class="pts">${row.points ?? "–"} point</span>
-                        <span class="raw">dit resultat: ${esc(row.raw_value ?? "–")}</span>
+                        <span class="raw">${row.points ?? "–"} point · dit resultat ${esc(row.raw_value ?? "–")}</span>
                     </div>`;
-                } else if (PER_PLAYER_KEYS.has(d.discipline_key)) {
-                    chip = hasRaw(row)
-                        ? `<span class="status-chip locked">🔒 Låst</span>`
-                        : (row?.breakdown
-                            ? `<span class="status-chip entered">✏️ Kladde</span>`
-                            : `<span class="status-chip missing">⬜ Mangler</span>`);
-                    summary = hasRaw(row) ? `<span class="disc-summary">snit ${esc(row.raw_value)}</span>` : ``;
-                    body = perPlayerBody(d, team, row, entered, allTeams.length);
-                } else if (hasRaw(row)) {
-                    chip = `<span class="status-chip entered">✅ Tastet</span>`;
-                    summary = `<span class="disc-summary">${esc(row.raw_value)}</span>`;
-                    body = inputBody(d, row, entered, allTeams.length);
                 } else {
-                    chip = `<span class="status-chip missing">⬜ Mangler</span>`;
-                    summary = ``;
-                    body = inputBody(d, row, entered, allTeams.length);
+                    dir = isPP ? (d.sort_direction === "asc" ? "Laveste snit vinder" : "Højeste snit vinder") : (d.sort_direction === "asc" ? "Lavest vinder" : "Højest vinder");
+                    const locked = hasRaw(row);
+                    const draft = !locked && !!row?.breakdown;
+                    chip = locked ? `<span class="status-chip locked">🔒 Låst</span>`
+                         : draft ? `<span class="status-chip entered">✏️ Kladde</span>`
+                         : `<span class="status-chip missing">⬜ Mangler</span>`;
+                    summary = locked ? `<span class="disc-summary">${isPP ? "snit " : ""}${esc(row.raw_value)}</span>` : ``;
+                    body = scoreCard(d, row, isPP, entered, allTeams.length);
                 }
 
                 html += `<div class="disc ${isOpen ? "open" : ""}" style="--team-color:${teamVar}" data-disc="${d.discipline_key}">
@@ -387,105 +290,178 @@
             html += `</div>`;
             contentEl.innerHTML = html;
             wireInputs();
-            dirty = false;   // frisk render afspejler DB → ingen ugemte ændringer
+            dirty = false;
         }
 
-        function inputBody(d, row, entered, total) {
-            const rawVal = row?.raw_value ?? "";
-            const noteVal = row?.notes ?? "";
-            const btnLabel = row ? "Opdatér" : "Gem";
-            const winLabel = d.sort_direction === "asc" ? "laveste" : "højeste";
-            const waiting = hasRaw(row)
-                ? `<p class="waiting">✅ Gemt — venter på at dommeren låser · <strong>${entered}/${total}</strong> hold har tastet</p>`
-                : `<p class="waiting muted">${entered}/${total} hold har tastet denne gren</p>`;
-            return `<div class="id-scoring">🏆 <strong>Sådan gives point:</strong> holdet med ${winLabel} resultat får <strong>10 point</strong> (1. plads), derefter 7 / 5 / 3 / 1 efter placering.</div>
-                <div class="field-row">
-                    <input type="number" inputmode="decimal" step="any" class="raw-input"
-                           placeholder="Jeres resultat" value="${esc(rawVal)}">
-                    <button class="save-btn" type="button">${btnLabel}</button>
-                </div>
-                <input type="text" class="note-input raw-note" maxlength="140"
-                       placeholder="Note til storskærmen — jo mere drama, jo federe 🎤" value="${esc(noteVal)}">
-                ${waiting}`;
-        }
-
-        // Skabelsesberetningen: kaptajn-identitet → DimTeam (ikke FactScore, ingen score).
+        // ===== Skabelsesberetningen (identitet) =====
         function identityBody(t) {
-            return `<div class="id-scoring">🏆 <strong>Sådan gives point:</strong> aftenens gæster stemmer på den bedste skabelsesberetning. Holdet med flest stemmer får <strong>10 point</strong> (1. plads), derefter 7 / 5 / 3 / 1 som de andre grene. Dommeren tæller stemmerne og låser.</div>
+            return `<div class="id-scoring">🏆 <strong>Sådan gives point:</strong> aftenens gæster stemmer på den bedste skabelsesberetning. Holdet med flest stemmer får <strong>10 point</strong> (1. plads), derefter 7 / 5 / 3 / 1. Dommeren tæller stemmerne og låser.</div>
                 <div class="id-field">
                     <label class="id-label">Kongerige-navn</label>
-                    <input type="text" class="id-input id-name" maxlength="40"
-                           placeholder="Jeres kongeriges navn" value="${esc(t.team_name ?? "")}">
+                    <input type="text" class="id-input id-name" maxlength="40" placeholder="Jeres kongeriges navn" value="${esc(t.team_name ?? "")}">
                 </div>
                 <div class="id-field">
                     <label class="id-label">Kælenavn <span class="id-hint">— kort navn til tavlen</span></label>
-                    <input type="text" class="id-input id-short" maxlength="14"
-                           placeholder="fx Pink" value="${esc(t.team_short ?? "")}">
+                    <input type="text" class="id-input id-short" maxlength="14" placeholder="fx Pink" value="${esc(t.team_short ?? "")}">
                 </div>
                 <div class="id-field">
                     <label class="id-label">Motto <span class="id-hint">— kort slogan på storskærmen</span></label>
-                    <input type="text" class="id-input id-motto" maxlength="60"
-                           placeholder="Jeres kongeriges motto" value="${esc(t.team_motto ?? "")}">
+                    <input type="text" class="id-input id-motto" maxlength="60" placeholder="Jeres kongeriges motto" value="${esc(t.team_motto ?? "")}">
                 </div>
                 <div class="id-field">
                     <label class="id-label">Skabelsesberetningen <span class="id-hint">— jeres kongeriges historie</span></label>
-                    <textarea class="id-input id-creation" rows="4"
-                              placeholder="Fortæl hvordan jeres kongerige blev til…">${esc(t.team_creation ?? "")}</textarea>
+                    <textarea class="id-input id-creation" rows="4" placeholder="Fortæl hvordan jeres kongerige blev til…">${esc(t.team_creation ?? "")}</textarea>
                 </div>
                 <div class="id-foot">
-                    <span class="dommer-note">Dommeren styrer selve afstemningen — I udfylder bare jeres identitet.</span>
-                    <button class="save-btn" type="button">Gem</button>
+                    <span class="dommer-note">Dommeren styrer afstemningen — I udfylder bare jeres identitet.</span>
+                    <button class="save-btn id-save" type="button">Gem</button>
                 </div>`;
         }
+        async function saveIdentity(card, btn) {
+            const payload = {
+                team_name: card.querySelector(".id-name").value.trim() || team.team_name,
+                team_short: card.querySelector(".id-short").value.trim() || null,
+                team_motto: card.querySelector(".id-motto").value.trim() || null,
+                team_creation: card.querySelector(".id-creation").value.trim() || null,
+            };
+            btn.disabled = true;
+            const { error } = await supabase.from("DimTeam").update(payload).eq("team_key", teamKey);
+            if (error) { btn.disabled = false; toast("Kunne ikke gemme — prøv igen", true); console.error(error); return; }
+            toast("Jeres identitet er gemt");
+            openKeys.add(CREATION_KEY);
+            await refresh(true);
+        }
 
-        // Bowling/Dart: per-spiller-felter (navne fra team_members) → snit. To tilstande:
-        // ÅBEN (rediger lokalt, fyrer ikke callout) og LÅST (snit sendt, lille callout fyret).
-        function perPlayerBody(d, t, row, entered, total) {
-            const dramaVal = row?.notes ?? "";   // drama bevares på tværs af lås/lås-op
-
-            // LÅST: kaptajnen har sendt et snit (raw_value sat) → sammendrag + lås-op.
+        // ===== Score-discipliner (per-spiller + enkelt-tal), fælles model =====
+        function scoringNote(d, isPP) {
+            const win = d.sort_direction === "asc" ? (isPP ? "laveste snit" : "laveste") : (isPP ? "højeste snit" : "højeste");
+            return isPP
+                ? `🏆 <strong>Sådan gives point:</strong> tast hver spillers bedste resultat — vi tager <strong>holdets snit</strong> (så 5 og 6 spillere kan sammenlignes), rangerer holdene (${win} vinder) og giver 10 / 7 / 5 / 3 / 1.`
+                : `🏆 <strong>Sådan gives point:</strong> holdet med ${win} resultat får <strong>10 point</strong> (1. plads), derefter 7 / 5 / 3 / 1 efter placering.`;
+        }
+        function scoreCard(d, row, isPP, entered, total) {
+            const drama = row?.notes ?? "";
+            // LÅST (kaptajnen har sendt) → endeligt sammendrag.
             if (hasRaw(row)) {
-                const canRelock = EDITABLE_AFTER_LOCK.has(d.discipline_key);
                 return `<div class="locked-result">
-                        <span class="place">Snit ${esc(row.raw_value)}</span>
-                        <span class="raw">låst af jer — venter på dommeren</span>
+                        <span class="place">${isPP ? "Snit " : ""}${esc(row.raw_value)}</span>
+                        <span class="raw">🔒 låst — venter på dommeren</span>
                     </div>
-                    ${dramaVal ? `<p class="waiting muted">📣 ${esc(dramaVal)}</p>` : ``}
-                    ${canRelock
-                        ? `<div class="id-foot">
-                        <span class="dommer-note">Skal en spillers score rettes (fx efter næste runde)? Lås op, ret, og lås igen.</span>
-                        <button class="save-btn unlock-btn" type="button">Lås op for at rette</button>
-                    </div>`
-                        : `<p class="hint-line">Låst — ét forsøg. Ved fejl kan dommeren rette på host-siden.</p>`}`;
+                    ${drama ? `<p class="waiting muted">📣 ${esc(drama)}</p>` : ``}
+                    <p class="hint-line">Låst. Ved fejl retter dommeren på host-siden.</p>`;
             }
-
-            // ÅBEN / KLADDE: indtast per spiller. "Gem scores" = kladde (raw_value=null, ingen
-            // callout); "Lås scores" = send snit (fyrer callout én gang). Prefill fra breakdown.
-            const prev = {};
-            if (row?.breakdown) for (const part of row.breakdown.split(" · ")) {
-                const i = part.lastIndexOf(": ");
-                if (i > -1) prev[part.slice(0, i).trim()] = part.slice(i + 2).trim();
+            const isDraft = !!row?.breakdown;   // gemt kladde → review m. blyanter
+            const prev = parseBreakdown(row?.breakdown, isPP);
+            let fields, snitLine = "";
+            if (isPP) {
+                const players = playersOf(team);
+                fields = players.map((name) => {
+                    const v = prev[name];
+                    const absent = v === ABSENT;
+                    const val = (v && v !== ABSENT) ? v : "";
+                    return `<div class="player-row${absent ? " absent" : ""}" data-pname="${esc(name)}">
+                        ${isDraft ? `<button class="pencil" type="button" title="Ret">✏️</button>` : ``}
+                        <span class="pname">${esc(name)}</span>
+                        <input type="number" inputmode="decimal" step="any" class="player-input" data-player="${esc(name)}" placeholder="–" value="${esc(val)}" ${isDraft ? "readonly" : ""} ${absent ? "disabled" : ""}>
+                        <button class="absent-toggle" type="button" ${isDraft ? "hidden" : ""}>${absent ? "✓ ikke med" : "deltog ikke"}</button>
+                    </div>`;
+                }).join("");
+                snitLine = `<p class="snit-preview">Holdets snit: <span class="snit-val">–</span></p>`;
+            } else {
+                const v = prev.__single ?? "";
+                fields = `<div class="player-row" data-single>
+                        ${isDraft ? `<button class="pencil" type="button" title="Ret">✏️</button>` : ``}
+                        <span class="pname">Holdets resultat</span>
+                        <input type="number" inputmode="decimal" step="any" class="single-input" placeholder="–" value="${esc(v)}" ${isDraft ? "readonly" : ""}>
+                    </div>`;
             }
-            const players = String(t.team_members || "").split(",").map((s) => s.trim()).filter(Boolean);
-            const winLabel = d.sort_direction === "asc" ? "lavest" : "højest";
-            const rows = players.map((name) => `<div class="player-row">
-                    <span class="pname">${esc(name)}</span>
-                    <input type="number" inputmode="decimal" step="any" class="player-input"
-                           data-player="${esc(name)}" placeholder="–" value="${esc(prev[name] ?? "")}">
-                </div>`).join("");
-            return `<div class="id-scoring">🏆 <strong>Sådan gives point:</strong> tast hver spillers bedste resultat — vi tager <strong>holdets snit</strong> (så 5 og 6 spillere kan sammenlignes), rangerer holdene (${winLabel} snit vinder) og giver 10 / 7 / 5 / 3 / 1.</div>
-                ${rows}
-                <p class="snit-preview">Holdets snit: <span class="snit-val">–</span></p>
+            const btnLabel = isDraft ? "Lås scores" : "Gem scores";
+            const btnMode = isDraft ? "lock" : "draft";
+            const hint = isDraft
+                ? "Tjek scorerne. Klik en blyant for at rette. Lås når alt er rigtigt — så fyrer kommentaren én gang."
+                : (isPP ? "Udfyld alle felter (eller markér «deltog ikke»). Så kan I gemme." : "Udfyld resultatet. Så kan I gemme.");
+            return `<div class="id-scoring">${scoringNote(d, isPP)}</div>
+                ${fields}
+                ${snitLine}
                 <div class="id-field">
                     <label class="id-label">Drama til storskærmen <span class="id-hint">— fodrer AI-kommentaren</span></label>
-                    <textarea class="id-input drama-input" rows="2" maxlength="140" placeholder="fx 'Bo lukkede med en strike-serie!'">${esc(dramaVal)}</textarea>
+                    <textarea class="id-input drama-input" rows="2" maxlength="140" placeholder="fx 'Bo lukkede med en strike-serie!'" ${isDraft ? "readonly" : ""}>${esc(drama)}</textarea>
                 </div>
-                <p class="hint-line">Gem undervejs uden at sende. Lås kun når I har de endelige scores — så fyrer kommentaren én gang. Tomme felter tæller ikke med i snittet.</p>
-                <div class="btn-row">
-                    <button class="save-btn btn-secondary draft-btn" type="button">Gem scores</button>
-                    <button class="save-btn lock-btn" type="button">Lås scores</button>
-                </div>
+                <p class="hint-line">${hint}</p>
+                <button class="save-btn score-btn" type="button" data-mode="${btnMode}">${btnLabel}</button>
                 <p class="waiting muted">${entered}/${total} hold har låst denne gren</p>`;
+        }
+
+        // Læs score-felterne → { breakdown, value, ready }.
+        function readScoreData(card, isPP) {
+            if (!isPP) {
+                const v = card.querySelector(".single-input").value.trim();
+                return { breakdown: v, value: v === "" ? null : Number(v), ready: v !== "" && !isNaN(Number(v)) };
+            }
+            const parts = [], nums = [];
+            let allSet = true;
+            for (const r of card.querySelectorAll(".player-row")) {
+                const name = r.dataset.pname;
+                if (r.classList.contains("absent")) { parts.push(`${name}: ${ABSENT}`); continue; }
+                const v = r.querySelector(".player-input").value.trim();
+                if (v !== "" && !isNaN(Number(v))) { parts.push(`${name}: ${v}`); nums.push(Number(v)); }
+                else { allSet = false; }
+            }
+            const value = nums.length ? Math.round(nums.reduce((a, b) => a + b, 0) / nums.length) : null;
+            return { breakdown: parts.join(" · "), value, ready: allSet && nums.length > 0 };
+        }
+        function updateSnit(card) {
+            const el = card.querySelector(".snit-val");
+            if (!el) return;
+            const nums = [...card.querySelectorAll(".player-row")]
+                .filter((r) => !r.classList.contains("absent"))
+                .map((r) => r.querySelector(".player-input"))
+                .filter((i) => i && i.value.trim() !== "" && !isNaN(Number(i.value)))
+                .map((i) => Number(i.value));
+            el.textContent = nums.length ? String(Math.round(nums.reduce((a, b) => a + b, 0) / nums.length)) : "–";
+        }
+        // Aktivér «Gem» kun når alt er udfyldt/markeret (kun i draft-mode).
+        function validateScoreCard(card, isPP) {
+            const btn = card.querySelector(".score-btn");
+            if (!btn || btn.dataset.mode !== "draft") return;
+            const { ready } = readScoreData(card, isPP);
+            btn.disabled = !ready;
+        }
+        // Pencil/drama-edit i review → knap tilbage til «Gem scores».
+        function setDraftMode(card) {
+            const btn = card.querySelector(".score-btn");
+            if (!btn) return;
+            btn.dataset.mode = "draft";
+            btn.textContent = "Gem scores";
+        }
+
+        async function saveDraft(card, discKey, isPP, btn) {
+            const { breakdown } = readScoreData(card, isPP);
+            const drama = (card.querySelector(".drama-input")?.value || "").trim() || null;
+            btn.disabled = true;
+            const { error } = await supabase.from("FactScore").upsert(
+                { team_key: teamKey, discipline_key: discKey, round_number: 1, raw_value: null, breakdown: breakdown || null, notes: drama },
+                { onConflict: "team_key,discipline_key,round_number" }
+            );
+            if (error) { btn.disabled = false; toast("Kunne ikke gemme — prøv igen", true); console.error(error); return; }
+            toast("Scores gemt — ikke låst endnu");
+            openKeys.add(discKey);
+            await refresh(true);
+        }
+        async function lockScores(card, discKey, isPP, btn) {
+            const { breakdown, value, ready } = readScoreData(card, isPP);
+            if (!ready || value === null) { toast("Udfyld alle felter før du låser", true); return; }
+            const drama = (card.querySelector(".drama-input")?.value || "").trim() || null;
+            btn.disabled = true;
+            // raw_value = snit (per-spiller) / resultat (enkelt) → rangeres + fyrer callout én gang.
+            const { error } = await supabase.from("FactScore").upsert(
+                { team_key: teamKey, discipline_key: discKey, round_number: 1, raw_value: value, breakdown, notes: drama },
+                { onConflict: "team_key,discipline_key,round_number" }
+            );
+            if (error) { btn.disabled = false; toast("Kunne ikke låse — prøv igen", true); console.error(error); return; }
+            toast(isPP ? `Holdets snit låst: ${value}` : `Resultat låst: ${value}`);
+            openKeys.add(discKey);
+            await refresh(true);
         }
 
         function wireInputs() {
@@ -496,9 +472,11 @@
                 instrToggle.closest(".instructions").classList.toggle("collapsed", instrCollapsed);
                 instrToggle.setAttribute("aria-expanded", String(!instrCollapsed));
             });
+
             for (const card of contentEl.querySelectorAll(".disc")) {
                 const discKey = Number(card.dataset.disc);
-                // Header = toggle (klik eller Enter/Space). Påvirker ikke DB — kun udfold/fold.
+                const isPP = PER_PLAYER_KEYS.has(discKey);
+
                 const toggle = card.querySelector("[data-toggle]");
                 if (toggle) {
                     const flip = () => {
@@ -508,155 +486,66 @@
                         toggle.setAttribute("aria-expanded", String(open));
                     };
                     toggle.addEventListener("click", flip);
-                    toggle.addEventListener("keydown", (e) => {
-                        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); }
+                    toggle.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); } });
+                }
+
+                if (discKey === CREATION_KEY) {
+                    const b = card.querySelector(".id-save");
+                    if (b) b.addEventListener("click", () => saveIdentity(card, b));
+                    continue;
+                }
+
+                const scoreBtn = card.querySelector(".score-btn");
+                if (scoreBtn) scoreBtn.addEventListener("click", () => {
+                    if (scoreBtn.dataset.mode === "lock") lockScores(card, discKey, isPP, scoreBtn);
+                    else saveDraft(card, discKey, isPP, scoreBtn);
+                });
+
+                // Score-felter: live snit + validering.
+                for (const inp of card.querySelectorAll(".player-input, .single-input")) {
+                    inp.addEventListener("input", () => { if (isPP) updateSnit(card); validateScoreCard(card, isPP); });
+                }
+                // Blyant → gør feltet redigerbart igen + knap til «Gem».
+                for (const pen of card.querySelectorAll(".pencil")) {
+                    pen.addEventListener("click", () => {
+                        const r = pen.closest(".player-row");
+                        const inp = r.querySelector(".player-input, .single-input");
+                        if (inp) { inp.readOnly = false; inp.disabled = false; }
+                        r.classList.remove("absent");
+                        const at = r.querySelector(".absent-toggle");
+                        if (at) { at.hidden = false; at.textContent = "deltog ikke"; }
+                        pen.remove();
+                        setDraftMode(card);
+                        dirty = true;
+                        if (inp) inp.focus();
+                        if (isPP) updateSnit(card);
+                        validateScoreCard(card, isPP);
                     });
                 }
-                if (PER_PLAYER_KEYS.has(discKey)) {
-                    const draftB = card.querySelector(".draft-btn");
-                    const lockB = card.querySelector(".lock-btn");
-                    const unlockB = card.querySelector(".unlock-btn");
-                    if (draftB) draftB.addEventListener("click", () => saveDraft(card, discKey, draftB));
-                    if (lockB) lockB.addEventListener("click", () => savePerPlayer(card, discKey, lockB));
-                    if (unlockB) unlockB.addEventListener("click", () => unlockPerPlayer(card, discKey, unlockB));
-                    for (const inp of card.querySelectorAll(".player-input")) inp.addEventListener("input", () => updateSnit(card));
-                    updateSnit(card);
-                } else {
-                    const btn = card.querySelector(".save-btn");
-                    if (btn) {
-                        if (discKey === CREATION_KEY) btn.addEventListener("click", () => saveIdentity(card, btn));
-                        else btn.addEventListener("click", () => submit(card, discKey, btn));
-                    }
+                // «Deltog ikke»-toggle.
+                for (const at of card.querySelectorAll(".absent-toggle")) {
+                    at.addEventListener("click", () => {
+                        const r = at.closest(".player-row");
+                        const inp = r.querySelector(".player-input");
+                        const nowAbsent = !r.classList.contains("absent");
+                        r.classList.toggle("absent", nowAbsent);
+                        at.textContent = nowAbsent ? "✓ ikke med" : "deltog ikke";
+                        if (inp) { inp.disabled = nowAbsent; if (nowAbsent) inp.value = ""; }
+                        if (scoreBtn?.dataset.mode === "lock") setDraftMode(card);
+                        dirty = true;
+                        if (isPP) updateSnit(card);
+                        validateScoreCard(card, isPP);
+                    });
                 }
+                // Drama-edit i review → tilbage til «Gem».
+                const drama = card.querySelector(".drama-input");
+                if (drama) drama.addEventListener("input", () => { if (scoreBtn?.dataset.mode === "lock") setDraftMode(card); });
+
+                if (isPP) updateSnit(card);
+                validateScoreCard(card, isPP);
             }
         }
 
-        async function submit(card, discKey, btn) {
-            const rawInput = card.querySelector(".raw-input");
-            const noteInput = card.querySelector(".raw-note");
-            const rawValue = rawInput.value.trim();
-            if (rawValue === "") { toast("Indtast et resultat først", true); rawInput.focus(); return; }
-
-            btn.disabled = true;
-            const payload = {
-                team_key: teamKey,
-                discipline_key: discKey,
-                round_number: 1,
-                raw_value: Number(rawValue),
-                notes: noteInput.value.trim() || null,
-            };
-            // Upsert på (team, disciplin, runde): idempotent re-submit, rører ikke is_final/points.
-            const { error } = await supabase
-                .from("FactScore")
-                .upsert(payload, { onConflict: "team_key,discipline_key,round_number" });
-
-            if (error) {
-                btn.disabled = false;
-                toast("Kunne ikke gemme — prøv igen", true);
-                console.error(error);
-                return;
-            }
-            btn.classList.add("saved");
-            btn.textContent = "Gemt ✓";
-            toast("Resultat gemt");
-            openKeys.add(discKey); // hold grenen åben efter gem så bekræftelsen er synlig
-            await refresh(true);
-        }
-
-        // Skabelsesberetningen-kortet: gem holdets identitet på DimTeam (kræver anon-UPDATE
-        // RLS-policy på DimTeam + kolonnerne team_short/team_creation — se SQL ved deploy).
-        async function saveIdentity(card, btn) {
-            const payload = {
-                team_name: card.querySelector(".id-name").value.trim() || team.team_name,
-                team_short: card.querySelector(".id-short").value.trim() || null,
-                team_motto: card.querySelector(".id-motto").value.trim() || null,
-                team_creation: card.querySelector(".id-creation").value.trim() || null,
-            };
-            btn.disabled = true;
-            const { error } = await supabase.from("DimTeam").update(payload).eq("team_key", teamKey);
-            if (error) {
-                btn.disabled = false;
-                toast("Kunne ikke gemme — prøv igen", true);
-                console.error(error);
-                return;
-            }
-            btn.classList.add("saved");
-            btn.textContent = "Gemt ✓";
-            toast("Jeres identitet er gemt");
-            openKeys.add(CREATION_KEY); // hold kortet åbent efter gem
-            await refresh(true);
-        }
-
-        // Per-spiller-grene: læs de udfyldte felter, opdatér live-snit, gem snit → FactScore.
-        function readPlayerScores(card) {
-            const out = [];
-            for (const inp of card.querySelectorAll(".player-input")) {
-                const v = inp.value.trim();
-                if (v !== "" && !isNaN(Number(v))) out.push({ name: inp.dataset.player, score: Number(v) });
-            }
-            return out;
-        }
-        function updateSnit(card) {
-            const el = card.querySelector(".snit-val");
-            if (!el) return;
-            const scores = readPlayerScores(card);
-            if (!scores.length) { el.textContent = "–"; return; }
-            const avg = scores.reduce((a, s) => a + s.score, 0) / scores.length;
-            el.textContent = Math.round(avg).toString();
-        }
-        function buildBreakdown(scores) { return scores.map((s) => `${s.name}: ${s.score}`).join(" · "); }
-
-        // "Gem scores": kladde — per-spiller-tal + drama gemmes, raw_value forbliver null → INGEN
-        // callout. Persisterer så man kan rette over flere runder uden at sende til tavlen.
-        async function saveDraft(card, discKey, btn) {
-            const scores = readPlayerScores(card);
-            const drama = (card.querySelector(".drama-input")?.value || "").trim() || null;
-            if (!scores.length && !drama) { toast("Tast mindst én score eller en note", true); return; }
-            btn.disabled = true;
-            const { error } = await supabase.from("FactScore").upsert(
-                { team_key: teamKey, discipline_key: discKey, round_number: 1, raw_value: null, breakdown: buildBreakdown(scores) || null, notes: drama },
-                { onConflict: "team_key,discipline_key,round_number" }
-            );
-            if (error) { btn.disabled = false; toast("Kunne ikke gemme — prøv igen", true); console.error(error); return; }
-            btn.classList.add("saved"); btn.textContent = "Gemt ✓";
-            toast("Kladde gemt — ikke låst endnu");
-            openKeys.add(discKey);
-            await refresh(true);
-        }
-
-        // "Lås scores": skriv snit + breakdown + drama → den lille callout fyrer ÉN gang.
-        async function savePerPlayer(card, discKey, btn) {
-            const scores = readPlayerScores(card);
-            if (!scores.length) { toast("Tast mindst én spillers resultat", true); return; }
-            const avg = Math.round(scores.reduce((a, s) => a + s.score, 0) / scores.length);
-            const drama = (card.querySelector(".drama-input")?.value || "").trim() || null;
-            btn.disabled = true;
-            // raw_value = holdets snit (rangeres → point); notes = kaptajnens drama til callout.
-            const { error } = await supabase.from("FactScore").upsert(
-                { team_key: teamKey, discipline_key: discKey, round_number: 1, raw_value: avg, breakdown: buildBreakdown(scores), notes: drama },
-                { onConflict: "team_key,discipline_key,round_number" }
-            );
-            if (error) { btn.disabled = false; toast("Kunne ikke låse — prøv igen", true); console.error(error); return; }
-            btn.classList.add("saved"); btn.textContent = "Låst ✓";
-            toast(`Holdets snit låst: ${avg}`);
-            openKeys.add(discKey);
-            await refresh(true);
-        }
-
-        // "Lås op": nulstil raw_value (forsvinder fra tavlen, fyrer ikke callout); behold drama.
-        async function unlockPerPlayer(card, discKey, btn) {
-            btn.disabled = true;
-            const { error } = await supabase.from("FactScore")
-                .update({ raw_value: null })
-                .eq("team_key", teamKey).eq("discipline_key", discKey).eq("round_number", 1);
-            if (error) { btn.disabled = false; toast("Kunne ikke låse op", true); console.error(error); return; }
-            toast("Låst op — ret scoren og lås igen");
-            openKeys.add(discKey);
-            await refresh(true);
-        }
-
-        // Skip poll-re-render mens kaptajnen taster i et felt — ellers smider 5s-pollen
-        // fokus + det indtastede væk midt i indtastningen.
         function focusInsideContent() {
             const a = document.activeElement;
             return a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA") && contentEl.contains(a);
@@ -676,7 +565,6 @@
                 contentEl.innerHTML = `<div class="state-msg error">Mangler ?team=N i URL'en.<br>Scan dit holds QR-kode.</div>`;
                 return;
             }
-            // Enhver indtastning markerer dirty → poll re-renderer ikke før der er gemt/låst.
             contentEl.addEventListener("input", () => { dirty = true; });
             await refresh(true);
             setInterval(() => refresh(false), POLL_MS);
