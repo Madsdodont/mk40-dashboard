@@ -97,6 +97,8 @@
         .player-row.absent { opacity: 0.55; }
         .player-row .pname { flex: 1; min-width: 0; font-weight: var(--w-bold); font-size: 0.95rem; }
         .player-row .player-input, .player-row .single-input { width: 5rem; min-width: 5rem; flex: none; text-align: right; }
+        .player-row .time-min, .player-row .time-sec { width: 3.5rem; min-width: 3.5rem; flex: none; text-align: right; }
+        .time-sep { font-weight: var(--w-bold); color: var(--bone-muted); }
         .pencil { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0 0.2rem; line-height: 1; }
         .absent-toggle { font-size: 0.66rem; font-weight: var(--w-bold); background: none; border: 1px solid var(--ink-border); border-radius: 999px; padding: 0.25rem 0.5rem; color: var(--bone-muted); cursor: pointer; white-space: nowrap; }
         .player-row.absent .absent-toggle { background: color-mix(in oklch, var(--bone-muted) 14%, transparent); color: var(--bone); }
@@ -156,12 +158,13 @@
         const PLACE_LABEL = { 10: "1.", 7: "2.", 5: "3.", 3: "4.", 1: "5." };
         const CREATION_KEY = 1;                 // Skabelsesberetningen — identitet (eget flow)
         const PER_PLAYER_KEYS = new Set([2, 3]); // Bowling + Dart — ét felt per spiller, snit
+        const TIME_KEYS = new Set([5]);          // Puslespil — min + sek → total sekunder
         // Per-gren tæl-vejledning: hvordan kaptajnen når frem til tallet de taster.
         const DISC_HOWTO = {
             2: "To runder bowling — tast hver spillers bedste runde (10 frames). Vi tager holdets snit.",
             3: "Hver spiller kaster 3 pile — tast summen af de tre pile pr. spiller. Vi tager holdets snit.",
             4: "24 poser pr. hold (alle kaster mindst 4). 1 point pr. pose på pladen, 3 point pr. pose i hul — tast holdets samlede point.",
-            5: "Tast holdets tid i sekunder — hurtigst (laveste) vinder.",
+            5: "Tast tiden i minutter og sekunder — vi regner den sammen. Hurtigst (laveste) vinder.",
             6: "6 søm — alle hjælpes ad og skiftes til at slå. Tast det samlede antal slag. Færrest vinder.",
             7: "1 point for rigtig kunstner, 1 for rigtig sangtitel, 1 for rigtigt år (pr. sang) — tast holdets samlede point.",
         };
@@ -270,7 +273,7 @@
                     summary = `<span class="disc-summary">${place} plads · ${row.points ?? "–"} pt</span>`;
                     body = `<div class="locked-result">
                         <span class="place">${place} plads</span>
-                        <span class="raw">${row.points ?? "–"} point · dit resultat ${esc(row.raw_value ?? "–")}</span>
+                        <span class="raw">${row.points ?? "–"} point · dit resultat ${row.raw_value != null ? dispValue(d, row.raw_value) : "–"}</span>
                     </div>`;
                 } else {
                     dir = isPP ? (d.sort_direction === "asc" ? "Laveste snit vinder" : "Højeste snit vinder") : (d.sort_direction === "asc" ? "Lavest vinder" : "Højest vinder");
@@ -279,7 +282,7 @@
                     chip = locked ? `<span class="status-chip locked">🔒 Låst</span>`
                          : draft ? `<span class="status-chip entered">✏️ Kladde</span>`
                          : `<span class="status-chip missing">⬜ Mangler</span>`;
-                    summary = locked ? `<span class="disc-summary">${isPP ? "snit " : ""}${esc(row.raw_value)}</span>` : ``;
+                    summary = locked ? `<span class="disc-summary">${isPP ? "snit " : ""}${dispValue(d, row.raw_value)}</span>` : ``;
                     body = scoreCard(d, row, isPP, entered, allTeams.length);
                 }
 
@@ -348,12 +351,15 @@
                 ? `🏆 <strong>Sådan gives point:</strong> tast hver spillers resultat — vi tager <strong>holdets snit</strong> (så 5 og 6 spillere kan sammenlignes), rangerer holdene (${win} vinder) og giver 10 / 7 / 5 / 3 / 1.`
                 : `🏆 <strong>Sådan gives point:</strong> holdet med ${win} resultat får <strong>10 point</strong> (1. plads), derefter 7 / 5 / 3 / 1 efter placering.`;
         }
+        function fmtTime(total) { const m = Math.floor(total / 60), s = Math.abs(total % 60); return `${m}:${String(s).padStart(2, "0")}`; }
+        function dispValue(d, raw) { return TIME_KEYS.has(d.discipline_key) ? fmtTime(Number(raw)) : esc(raw); }
         function scoreCard(d, row, isPP, entered, total) {
             const drama = row?.notes ?? "";
+            const isTime = TIME_KEYS.has(d.discipline_key);
             // LÅST (kaptajnen har sendt) → endeligt sammendrag.
             if (hasRaw(row)) {
                 return `<div class="locked-result">
-                        <span class="place">${isPP ? "Snit " : ""}${esc(row.raw_value)}</span>
+                        <span class="place">${isPP ? "Snit " : ""}${dispValue(d, row.raw_value)}</span>
                         <span class="raw">🔒 låst — venter på dommeren</span>
                     </div>
                     ${drama ? `<p class="waiting muted">📣 ${esc(drama)}</p>` : ``}
@@ -376,6 +382,17 @@
                     </div>`;
                 }).join("");
                 snitLine = `<p class="snit-preview">Holdets snit: <span class="snit-val">–</span></p>`;
+            } else if (isTime) {
+                const tot = prev.__single ? Number(prev.__single) : null;
+                const mv = tot != null ? Math.floor(tot / 60) : "";
+                const sv = tot != null ? tot % 60 : "";
+                fields = `<div class="player-row" data-time>
+                        ${isDraft ? `<button class="pencil" type="button" title="Ret">✏️</button>` : ``}
+                        <span class="pname">Tid</span>
+                        <input type="number" inputmode="numeric" min="0" class="time-min" placeholder="min" value="${esc(mv)}" ${isDraft ? "readonly" : ""}>
+                        <span class="time-sep">:</span>
+                        <input type="number" inputmode="numeric" min="0" max="59" class="time-sec" placeholder="sek" value="${esc(sv)}" ${isDraft ? "readonly" : ""}>
+                    </div>`;
             } else {
                 const v = prev.__single ?? "";
                 fields = `<div class="player-row" data-single>
@@ -403,11 +420,22 @@
         }
 
         // Læs score-felterne → { breakdown, value, ready }.
-        function readScoreData(card, isPP) {
-            if (!isPP) {
-                const v = card.querySelector(".single-input").value.trim();
+        function readScoreData(card) {
+            // TIME (puslespil): min + sek → total sekunder.
+            const tm = card.querySelector(".time-min");
+            if (tm) {
+                const m = tm.value.trim(), s = card.querySelector(".time-sec").value.trim();
+                const ok = (m !== "" || s !== "") && !isNaN(Number(m || 0)) && !isNaN(Number(s || 0));
+                const total = (Number(m || 0) * 60) + Number(s || 0);
+                return { breakdown: String(total), value: ok ? total : null, ready: ok };
+            }
+            // SINGLE (enkelt holdtal).
+            const si = card.querySelector(".single-input");
+            if (si) {
+                const v = si.value.trim();
                 return { breakdown: v, value: v === "" ? null : Number(v), ready: v !== "" && !isNaN(Number(v)) };
             }
+            // PER-PLAYER (snit).
             const parts = [], nums = [];
             let allSet = true;
             for (const r of card.querySelectorAll(".player-row")) {
@@ -434,7 +462,7 @@
         function validateScoreCard(card, isPP) {
             const btn = card.querySelector(".score-btn");
             if (!btn || btn.dataset.mode !== "draft") return;
-            const { ready } = readScoreData(card, isPP);
+            const { ready } = readScoreData(card);
             btn.disabled = !ready;
         }
         // Pencil/drama-edit i review → knap tilbage til «Gem scores».
@@ -446,7 +474,7 @@
         }
 
         async function saveDraft(card, discKey, isPP, btn) {
-            const { breakdown } = readScoreData(card, isPP);
+            const { breakdown } = readScoreData(card);
             const drama = (card.querySelector(".drama-input")?.value || "").trim() || null;
             btn.disabled = true;
             const { error } = await supabase.from("FactScore").upsert(
@@ -459,7 +487,7 @@
             await refresh(true);
         }
         async function lockScores(card, discKey, isPP, btn) {
-            const { breakdown, value, ready } = readScoreData(card, isPP);
+            const { breakdown, value, ready } = readScoreData(card);
             if (!ready || value === null) { toast("Udfyld alle felter før du låser", true); return; }
             const drama = (card.querySelector(".drama-input")?.value || "").trim() || null;
             btn.disabled = true;
@@ -512,22 +540,22 @@
                 });
 
                 // Score-felter: live snit + validering.
-                for (const inp of card.querySelectorAll(".player-input, .single-input")) {
+                for (const inp of card.querySelectorAll(".player-input, .single-input, .time-min, .time-sec")) {
                     inp.addEventListener("input", () => { if (isPP) updateSnit(card); validateScoreCard(card, isPP); });
                 }
                 // Blyant → gør feltet redigerbart igen + knap til «Gem».
                 for (const pen of card.querySelectorAll(".pencil")) {
                     pen.addEventListener("click", () => {
                         const r = pen.closest(".player-row");
-                        const inp = r.querySelector(".player-input, .single-input");
-                        if (inp) { inp.readOnly = false; inp.disabled = false; }
+                        const inputs = [...r.querySelectorAll("input")];
+                        for (const i of inputs) { i.readOnly = false; i.disabled = false; }
                         r.classList.remove("absent");
                         const at = r.querySelector(".absent-toggle");
                         if (at) { at.hidden = false; at.textContent = "deltog ikke"; }
                         pen.remove();
                         setDraftMode(card);
                         dirty = true;
-                        if (inp) inp.focus();
+                        if (inputs[0]) inputs[0].focus();
                         if (isPP) updateSnit(card);
                         validateScoreCard(card, isPP);
                     });
