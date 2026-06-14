@@ -276,7 +276,7 @@
             const [teamRes, discRes, scoreRes] = await Promise.all([
                 supabase.from("DimTeam").select("*").order("team_key"),
                 supabase.from("DimDiscipline").select("*").order("discipline_key"),
-                supabase.from("FactScore").select("team_key,discipline_key,score_id,raw_value,points,is_final,notes"),
+                supabase.from("FactScore").select("team_key,discipline_key,score_id,raw_value,points,is_final,notes,breakdown"),
             ]);
             if (teamRes.error) throw new Error(teamRes.error.message);
             if (discRes.error) throw new Error(discRes.error.message);
