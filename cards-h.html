@@ -1392,6 +1392,17 @@
         function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
         function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c])); }
         function teamColorVar(team) { return `var(--team-${cssVarSafe(team.team_color)})`; }
+
+        // Puslespil (disc 5) lagrer rå-tal som sekunder → vis mm:ss. Andre grene: rå-tal som det er.
+        const TIME_DISC = new Set([5]);
+        function fmtRaw(disc, raw) {
+            if (raw === null || raw === undefined) return "";
+            if (disc && TIME_DISC.has(disc.discipline_key)) {
+                const t = Number(raw), m = Math.floor(t / 60), s = Math.abs(t % 60);
+                return `${m}:${String(s).padStart(2, "0")}`;
+            }
+            return String(raw);
+        }
         function shortName(name) { return String(name).split(" ").slice(-1)[0]; }
 
         let lastData = null;
@@ -1760,8 +1771,8 @@
                         skabelsesberetning: team?.team_motto || undefined,
                         members: team?.team_members || undefined },
                 discipline: { name: disc?.discipline_name, type: disc?.discipline_type, sort_direction: disc?.sort_direction },
-                raw_value: entry.row?.raw_value,
-                entered_so_far: entered.map(e => ({ name: e.team?.team_name, raw_value: e.row?.raw_value })),
+                raw_value: fmtRaw(disc, entry.row?.raw_value),
+                entered_so_far: entered.map(e => ({ name: e.team?.team_name, raw_value: fmtRaw(disc, e.row?.raw_value) })),
                 provisional_rank: me?.rank ?? entered.length,
                 entered_count: entered.length,
                 total_teams: ctx.teams.length,
@@ -1780,7 +1791,7 @@
                 teamColorVar: teamColorVar(team),
                 discName: disc.discipline_name ?? "—",
                 time, teamName: team.team_name ?? "—",
-                scoreHtml: `${esc(entry.row?.raw_value ?? "?")}`,
+                scoreHtml: `${esc(fmtRaw(disc, entry.row?.raw_value)) || "?"}`,
                 standing: entered.length > 1 ? `midl. #${me?.rank ?? "?"}/${entered.length}` : "først ind",
                 isLeader: false,
             };
@@ -1818,7 +1829,7 @@
             return {
                 event: "lock",
                 discipline: { name: disc?.discipline_name, type: disc?.discipline_type },
-                results: results.map(r => ({ name: r.name, raw_value: r.raw_value, rank: r.rank, points: r.points, notes: r.notes || undefined })),
+                results: results.map(r => ({ name: r.name, raw_value: fmtRaw(disc, r.raw_value), rank: r.rank, points: r.points, notes: r.notes || undefined })),
                 prior_callouts: calloutLog.get(discKey) ?? [],
                 standings: { leader: ctx.leaderTeam?.team_name, gap: Math.max(0, gap) },
             };
@@ -1834,7 +1845,7 @@
                 discName: disc.discipline_name ?? "—",
                 time: "", teamName: winner.name ?? "—",
                 points: winner.points, maxPoints: disc.max_points ?? "?",
-                standing: "#1 · Vinder", isLeader, results,
+                standing: "#1 · Vinder", isLeader, results, disc,
             };
         }
         async function dispatchLock(discKey, ctx) {
@@ -1859,7 +1870,7 @@
                     <span class="ov-rank">${r.rank}.</span>
                     <span class="ov-dot"></span>
                     <span class="ov-name">${esc(r.name ?? "—")}</span>
-                    <span class="ov-raw">${esc(r.raw_value ?? "")}</span>
+                    <span class="ov-raw">${esc(fmtRaw(fields.disc, r.raw_value))}</span>
                     <span class="ov-pts">+${r.points}</span>
                 </div>`).join("");
             overlayEl.innerHTML = `
@@ -2108,8 +2119,8 @@
                 }).sort((a, b) => a.rank - b.rank);
 
                 const bars = sorted.map((x, idx) => `
-                    <div class="dp-bar${idx === 0 ? " lead" : ""}" style="--team-color:${teamColorVar(x.team)}; --h:${(x.frac * 100).toFixed(0)}%" title="${esc(x.team.team_name)}: ${esc(x.raw)}">
-                        <span class="dp-bar-val">${esc(x.raw)}</span>
+                    <div class="dp-bar${idx === 0 ? " lead" : ""}" style="--team-color:${teamColorVar(x.team)}; --h:${(x.frac * 100).toFixed(0)}%" title="${esc(x.team.team_name)}: ${esc(fmtRaw(d, x.raw))}">
+                        <span class="dp-bar-val">${esc(fmtRaw(d, x.raw))}</span>
                         <span class="dp-bar-fill"></span>
                     </div>`).join("");
                 const empties = Math.max(0, teams.length - sorted.length);
