@@ -80,8 +80,9 @@
         .team-head .team-key { display: block; font-size: 0.62rem; letter-spacing: var(--ls-label); text-transform: uppercase; font-weight: var(--w-bold); opacity: 0.85; margin-bottom: 1mm; }
         .team-head h2 { font-family: var(--font-display); font-weight: var(--w-black); font-size: 1.6rem; line-height: 1; letter-spacing: var(--ls-tight); margin: 0; }
 
-        .roster { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; list-style: none; margin: 0; padding: 3mm 2mm; min-height: 0; }
-        .roster li { font-size: 1.02rem; font-weight: 600; text-align: center; line-height: 1.15; color: var(--bone); }
+        /* Fast 6-rækkers grid → navne aligner på tværs af kolonner uanset 5 vs 6 medlemmer. */
+        .roster { flex: 1; display: grid; grid-template-rows: repeat(6, 1fr); list-style: none; margin: 0; padding: 3mm 2mm; min-height: 0; }
+        .roster li { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.02rem; font-weight: 600; text-align: center; line-height: 1.15; color: var(--bone); }
         .roster li.is-captain { font-weight: var(--w-bold); }
         .roster li.is-captain .cap-label { display: block; font-size: 0.6rem; font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--team); margin-bottom: 0.6mm; }
 
@@ -164,7 +165,7 @@
                 sec.style.setProperty("--on", t.on);
                 sec.innerHTML =
                     `<div class="team-head">
-                        <span class="team-key">Hold ${t.key}</span>
+                        <span class="team-key">Kongerige</span>
                         <h2>${esc(t.color)}</h2>
                      </div>
                      <ul class="roster">
