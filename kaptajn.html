@@ -156,6 +156,10 @@
         const PLACE_LABEL = { 10: "1.", 7: "2.", 5: "3.", 3: "4.", 1: "5." };
         const CREATION_KEY = 1;                 // Skabelsesberetningen — identitet (eget flow)
         const PER_PLAYER_KEYS = new Set([2, 3]); // Bowling + Dart — ét felt per spiller, snit
+        // Per-gren tæl-vejledning: hvordan kaptajnen når frem til tallet de taster.
+        const DISC_HOWTO = {
+            4: "24 poser pr. hold (alle kaster mindst 4). 1 point pr. pose på pladen, 3 point pr. pose i hul — tast holdets samlede point.",
+        };
         const ABSENT = "✕";                      // "deltog ikke"-markør i breakdown
 
         let instrCollapsed = false;
@@ -381,6 +385,7 @@
                 ? "Tjek scorerne. Klik en blyant for at rette. Lås når alt er rigtigt — så fyrer kommentaren én gang."
                 : (isPP ? "Udfyld alle felter (eller markér «deltog ikke»). Så kan I gemme." : "Udfyld resultatet. Så kan I gemme.");
             return `<div class="id-scoring">${scoringNote(d, isPP)}</div>
+                ${DISC_HOWTO[d.discipline_key] ? `<p class="hint-line">📋 ${DISC_HOWTO[d.discipline_key]}</p>` : ``}
                 ${fields}
                 ${snitLine}
                 <div class="id-field">
