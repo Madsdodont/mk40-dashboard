@@ -170,6 +170,11 @@
             background: var(--ink-elevated); border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 0.85rem;
         }
         .id-scoring strong { color: var(--bone); font-weight: var(--w-bold); }
+        /* Per-spiller-grene (bowling/dart) */
+        .player-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; }
+        .player-row .pname { flex: 1; min-width: 0; font-weight: var(--w-bold); font-size: 0.95rem; }
+        .player-row .player-input { width: 5.5rem; min-width: 5.5rem; text-align: right; }
+        .snit-preview { font-family: var(--font-numeric); font-weight: var(--w-bold); margin: 0.5rem 0 0.7rem; color: var(--team-color, var(--bone)); }
         .save-btn {
             font-family: var(--font-label); font-weight: var(--w-bold); font-size: 1rem;
             min-height: 48px; padding: 0.7rem 1.25rem; border: none; border-radius: 9px; white-space: nowrap;
@@ -234,6 +239,11 @@
         // Kaptajnen udfylder kongerige-navn/kælenavn/motto/beretning (→ DimTeam);
         // dommeren indtaster den analoge afstemning + låser placeringen separat.
         const CREATION_KEY = 1;
+
+        // Per-spiller-grene: ét felt per spiller (navn fra team_members) → vi snitter de
+        // udfyldte felter. Snittet gør 5- og 6-mands-hold sammenlignelige. Bowling (2) + Dart (3).
+        // Slå søm/puslespil/cornhole/musikquiz = ét kollektivt holdtal (fast format / fælles).
+        const PER_PLAYER_KEYS = new Set([2, 3]);
 
         function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
         const hasRaw = (r) => r && r.raw_value !== null && r.raw_value !== undefined;
@@ -356,6 +366,12 @@
                         <span class="pts">${row.points ?? "–"} point</span>
                         <span class="raw">dit resultat: ${esc(row.raw_value ?? "–")}</span>
                     </div>`;
+                } else if (PER_PLAYER_KEYS.has(d.discipline_key)) {
+                    chip = hasRaw(row)
+                        ? `<span class="status-chip entered">✅ Tastet</span>`
+                        : `<span class="status-chip missing">⬜ Mangler</span>`;
+                    summary = hasRaw(row) ? `<span class="disc-summary">snit ${esc(row.raw_value)}</span>` : ``;
+                    body = perPlayerBody(d, team, row, entered, allTeams.length);
                 } else if (hasRaw(row)) {
                     chip = `<span class="status-chip entered">✅ Tastet</span>`;
                     summary = `<span class="disc-summary">${esc(row.raw_value)}</span>`;
@@ -432,6 +448,34 @@
                 </div>`;
         }
 
+        // Bowling/Dart: ét felt per spiller (navn fra team_members) → snit af de udfyldte.
+        function perPlayerBody(d, t, row, entered, total) {
+            const players = String(t.team_members || "").split(",").map((s) => s.trim()).filter(Boolean);
+            // Genindlæs tidligere per-spiller-tal fra notes ("Navn: score · Navn: score").
+            const prev = {};
+            if (row?.notes) for (const part of row.notes.split(" · ")) {
+                const i = part.lastIndexOf(": ");
+                if (i > -1) prev[part.slice(0, i).trim()] = part.slice(i + 2).trim();
+            }
+            const winLabel = d.sort_direction === "asc" ? "lavest" : "højest";
+            const rows = players.map((name) => `<div class="player-row">
+                    <span class="pname">${esc(name)}</span>
+                    <input type="number" inputmode="decimal" step="any" class="player-input"
+                           data-player="${esc(name)}" placeholder="–" value="${esc(prev[name] ?? "")}">
+                </div>`).join("");
+            const waiting = hasRaw(row)
+                ? `<p class="waiting">✅ Gemt — venter på at dommeren låser · <strong>${entered}/${total}</strong> hold har tastet</p>`
+                : `<p class="waiting muted">${entered}/${total} hold har tastet denne gren</p>`;
+            return `<div class="id-scoring">🏆 <strong>Sådan gives point:</strong> tast hver spillers bedste resultat — vi tager <strong>holdets snit</strong> (så 5 og 6 spillere kan sammenlignes), rangerer holdene (${winLabel} snit vinder) og giver 10 / 7 / 5 / 3 / 1.</div>
+                ${rows}
+                <p class="snit-preview">Holdets snit: <span class="snit-val">–</span></p>
+                <div class="id-foot">
+                    <span class="dommer-note">Lad tomme felter stå for spillere der ikke deltog — snittet tæller kun de udfyldte.</span>
+                    <button class="save-btn" type="button">${row ? "Opdatér" : "Gem"}</button>
+                </div>
+                ${waiting}`;
+        }
+
         function wireInputs() {
             const instrToggle = contentEl.querySelector("[data-instr-toggle]");
             if (instrToggle) instrToggle.addEventListener("click", () => {
@@ -459,7 +503,13 @@
                 const btn = card.querySelector(".save-btn");
                 if (btn) {
                     if (discKey === CREATION_KEY) btn.addEventListener("click", () => saveIdentity(card, btn));
+                    else if (PER_PLAYER_KEYS.has(discKey)) btn.addEventListener("click", () => savePerPlayer(card, discKey, btn));
                     else btn.addEventListener("click", () => submit(card, discKey, btn));
+                }
+                // Per-spiller-kort: live snit-preview mens der tastes.
+                if (PER_PLAYER_KEYS.has(discKey)) {
+                    for (const inp of card.querySelectorAll(".player-input")) inp.addEventListener("input", () => updateSnit(card));
+                    updateSnit(card);
                 }
             }
         }
@@ -517,6 +567,41 @@
             btn.textContent = "Gemt ✓";
             toast("Jeres identitet er gemt");
             openKeys.add(CREATION_KEY); // hold kortet åbent efter gem
+            await refresh(true);
+        }
+
+        // Per-spiller-grene: læs de udfyldte felter, opdatér live-snit, gem snit → FactScore.
+        function readPlayerScores(card) {
+            const out = [];
+            for (const inp of card.querySelectorAll(".player-input")) {
+                const v = inp.value.trim();
+                if (v !== "" && !isNaN(Number(v))) out.push({ name: inp.dataset.player, score: Number(v) });
+            }
+            return out;
+        }
+        function updateSnit(card) {
+            const el = card.querySelector(".snit-val");
+            if (!el) return;
+            const scores = readPlayerScores(card);
+            if (!scores.length) { el.textContent = "–"; return; }
+            const avg = scores.reduce((a, s) => a + s.score, 0) / scores.length;
+            el.textContent = (Math.round(avg * 10) / 10).toString();
+        }
+        async function savePerPlayer(card, discKey, btn) {
+            const scores = readPlayerScores(card);
+            if (!scores.length) { toast("Tast mindst én spillers resultat", true); return; }
+            const avg = Math.round((scores.reduce((a, s) => a + s.score, 0) / scores.length) * 10) / 10;
+            const notes = scores.map((s) => `${s.name}: ${s.score}`).join(" · ");
+            btn.disabled = true;
+            // raw_value = holdets snit (rangeres → point); notes = per-spiller-record + callout-drama.
+            const { error } = await supabase.from("FactScore").upsert(
+                { team_key: teamKey, discipline_key: discKey, round_number: 1, raw_value: avg, notes },
+                { onConflict: "team_key,discipline_key,round_number" }
+            );
+            if (error) { btn.disabled = false; toast("Kunne ikke gemme — prøv igen", true); console.error(error); return; }
+            btn.classList.add("saved"); btn.textContent = "Gemt ✓";
+            toast(`Holdets snit gemt: ${avg}`);
+            openKeys.add(discKey);
             await refresh(true);
         }
 
