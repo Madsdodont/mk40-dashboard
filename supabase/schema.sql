@@ -73,6 +73,7 @@ create table public."FactScore" (
     points            smallint,                       -- placerings-point-snapshot, sat af host ved låsning
     is_final          boolean not null default false, -- LÅS-flag fra host-view
     notes             text,                           -- fri tekst, AI-fodret drama-kontekst
+    breakdown         text,                           -- per-spiller rå-scores (bowling/dart): "Anne: 180 · Bo: 150"; raw_value = snittet heraf. NULL for kollektive grene.
 
     -- Én aktiv row per (hold × disciplin × runde) → kaptajn-upsert er idempotent,
     -- og live-derivation har præcis ét rå-tal at rangere pr. hold.
