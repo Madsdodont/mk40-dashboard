@@ -384,22 +384,6 @@
             color: var(--bone);
             opacity: 0.85;
         }
-        /* Pre-score roster — shown in place of the motto until the team's first score lands
-           (dashboard-022, 06-16). Each card has life before the numbers arrive; flips to the
-           motto once the team is on the board. */
-        .hold-card .members {
-            font-family: var(--font-label); font-weight: var(--w-regular);
-            font-size: clamp(1.125rem, 1.15vw, 1.875rem);   /* ~30px — a touch under the motto */
-            color: var(--bone-muted); line-height: 1.35;
-            margin-top: var(--space-2); min-height: 2.2em;
-        }
-        .hold-card .members .members-label {
-            display: block; font-style: normal;
-            font-size: var(--text-xs); font-weight: var(--w-bold);
-            letter-spacing: var(--ls-label); text-transform: uppercase;
-            color: var(--bone-dim); margin-bottom: 0.2rem;
-        }
-        .hold-card.leader .members { color: var(--bone); opacity: 0.9; }
 
         .hold-card .total-block {
             margin-top: auto;  /* anchors stats zone to card bottom; absorbs motto-length variance so all 5 cards' stats align */
@@ -1216,7 +1200,7 @@
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .tl-box-time {
-            font-family: var(--font-label); font-size: var(--text-xs);
+            font-family: var(--font-label); font-size: var(--text-sm);  /* all event times one size — coherent with the 16–21 window time (dashboard-022, 06-16) */
             color: var(--bone-muted); font-variant-numeric: tabular-nums; line-height: 1;
         }
         .tl-box-menu {
@@ -1233,10 +1217,7 @@
         /* Open station-window (16–21) — a translucent band, dashed to read as a period, not an event.
            Lower z-index so the Food Truck box overlaps it cleanly. */
         .tl-window {
-            /* Whole open-window block indented in vs. the fixed event boxes (left:32px), so the
-               flexible 16–21 station period reads as a different category from the fixed schedule
-               (dashboard-022, 06-16). */
-            position: absolute; left: 84px; right: 0; z-index: 1;
+            position: absolute; left: 32px; right: 0; z-index: 1;
             border: 1px dashed var(--ink-border);
             border-left: 3px solid var(--bone-muted);
             border-radius: 6px;
@@ -1261,7 +1242,7 @@
         }
         .tl-stations { display: flex; flex-wrap: wrap; gap: 4px; }
         .tl-st {
-            font-family: var(--font-label); font-size: var(--text-xs); font-weight: var(--w-bold);
+            font-family: var(--font-label); font-size: var(--text-sm); font-weight: var(--w-bold);  /* pills sized with the event times for a coherent program block (dashboard-022, 06-16) */
             color: var(--bone-muted); line-height: 1; white-space: nowrap;
             padding: 2px 7px; border-radius: 999px;
             border: 1px solid var(--ink-border-soft); background: var(--ink-card);
@@ -1292,7 +1273,7 @@
         }
         .page-header .ph-title {
             font-family: var(--font-display); font-weight: var(--w-black);
-            font-size: clamp(3.75rem, 5.6vw, 7rem); letter-spacing: var(--ls-tight);  /* MK40 bumped for presence (dashboard-022, 06-16) */
+            font-size: clamp(4.75rem, 7.2vw, 9rem); letter-spacing: var(--ls-tight);  /* MK40 — bumped again, bigger still (dashboard-022, 06-16) */
             color: var(--bone); line-height: 0.9;
         }
         .page-header .ph-meta {
@@ -1613,9 +1594,7 @@
                         <div class="hc-identity">
                             <div class="badge-row">${badgeLeft}</div>
                             <div class="name">${esc(x.team.team_name)}</div>
-                            ${x.total === 0 && x.team.team_members
-                                ? `<div class="members"><span class="members-label">Holdet</span>${esc(x.team.team_members)}</div>`
-                                : `<div class="motto">${esc(x.team.team_motto || "")}</div>`}
+                            <div class="motto">${esc(x.team.team_motto || "")}</div>
                         </div>
                         <div class="hc-stats">
                             <div class="total-label">Total</div>
