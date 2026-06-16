@@ -174,7 +174,7 @@ function escapeHtml(str) {
 function escapeAttr(str) { return escapeHtml(str); }
 
 // CSS-variable-name-safe slug: fjerner '/' og whitespace. Hold-strengene er nu rene
-// (pink/navy/grøn/orange/lilla), så det er reelt no-op — bevaret defensivt mod sammensatte navne.
+// (pink/navy/grøn/gul/lilla), så det er reelt no-op — bevaret defensivt mod sammensatte navne.
 function cssVarSafe(name) {
     return String(name).replace(/\//g, "").replace(/\s+/g, "");
 }

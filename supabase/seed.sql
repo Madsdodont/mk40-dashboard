@@ -11,12 +11,12 @@
 --   Kør efter schema.sql. Mads kører den i Supabase SQL-editoren.
 --
 -- FARVER (bandana-migration gennemført 2026-06-14):
---   team_color seedes med bandana-NAVNENE (pink/navy/grøn/orange/lilla). De driver
+--   team_color seedes med bandana-NAVNENE (pink/navy/grøn/gul/lilla). De driver
 --   --team-{navn}-opslaget på ALLE dashboard-sider via cssVarSafe(team_color), efter at
 --   CSS-var-nøglerne er omdøbt fra de gamle farver (rød/blå/gul/sort-hvid) til bandana-
 --   navnene i samme pass (style.css :root = base/dark-værdier; cards-h/hud2/hud3 har egne
 --   light-tunede overrides). Ingen bro længere — DB og kode er aligned.
---   Mapping (team_key → color-streng → bandana): 1→pink · 2→navy · 3→grøn · 4→orange ·
+--   Mapping (team_key → color-streng → bandana): 1→pink · 2→navy · 3→grøn · 4→gul ·
 --   5→lilla. Matcher kaptajn-QR-routingen (kaptajn.html?team=N).
 --
 -- SCORE-MODEL (locked 2026-06-06, forfinet 2026-06-07) — gælder når der seedes scores:
@@ -50,7 +50,7 @@ insert into public."DimTeam" (team_key, team_color, team_name, team_short, team_
     (1, 'pink',   'Det Pink Kongerige',     'Pink',   null, null, 'AH, Johanne, Theo, Tim, Morten A., Mira'),
     (2, 'navy',   'Det Mørkeblå Kongerige', 'Navy',   null, null, 'Niko, Margot, Satya, Jesper, Dirk, Rose'),
     (3, 'grøn',   'Det Grønne Kongerige',   'Grøn',   null, null, 'Anders, Mads, Mikkel, Julie, Majbritt'),
-    (4, 'orange', 'Det Orange Kongerige',   'Orange', null, null, 'Anne, Allan, Christian, Morten E., Ida, AC'),
+    (4, 'gul',    'Det Gule Kongerige',     'Gul', null, null, 'Anne, Allan, Christian, Morten E., Ida, AC'),
     (5, 'lilla',  'Det Lilla Kongerige',    'Lilla',  null, null, 'Buggi, Oscar, Michael, Kirstine, Freja');
 
 -- ============================================================================

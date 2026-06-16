@@ -40,7 +40,7 @@
             --team-pink:        oklch(58% 0.22 5);    /* Pink bandana — slight L drop for white-bg contrast */
             --team-navy:        oklch(42% 0.20 258);  /* Navy bandana — slight L drop for contrast on cream */
             --team-grøn:       oklch(50% 0.18 145);  /* Grass green — L drop for legibility */
-            --team-orange:        oklch(68% 0.18 65);   /* Orange — L drop so it reads as orange not pastel */
+            --team-gul:        oklch(68% 0.18 65);   /* Gul — L drop for at undgå pasteltone */
             --team-lilla:      oklch(52% 0.18 295);  /* Lilla bandana — L drop for clear identity on light bg */
 
             /* Fonts */
@@ -109,7 +109,7 @@
                 radial-gradient(ellipse 55% 60% at 10% 12%,  color-mix(in oklch, var(--team-pink)      16%, transparent) 0%, transparent 62%),
                 radial-gradient(ellipse 55% 60% at 30% 88%,  color-mix(in oklch, var(--team-navy)      15%, transparent) 0%, transparent 62%),
                 radial-gradient(ellipse 60% 65% at 52% 8%,   color-mix(in oklch, var(--team-grøn)     14%, transparent) 0%, transparent 62%),
-                radial-gradient(ellipse 55% 60% at 73% 90%,  color-mix(in oklch, var(--team-orange)      15%, transparent) 0%, transparent 62%),
+                radial-gradient(ellipse 55% 60% at 73% 90%,  color-mix(in oklch, var(--team-gul)      15%, transparent) 0%, transparent 62%),
                 radial-gradient(ellipse 55% 60% at 92% 14%,  color-mix(in oklch, var(--team-lilla) 16%, transparent) 0%, transparent 62%),
                 var(--ink-void);
             background-attachment: fixed;
@@ -375,7 +375,8 @@
 
         .hold-card .motto {
             font-family: var(--font-display); font-style: italic;
-            font-weight: var(--w-regular); font-size: var(--text-md);
+            font-weight: var(--w-regular);
+            font-size: clamp(1.5rem, 1.55vw, 2.5rem);   /* motto bumped → 40px — readable from across the room (dashboard-022, 06-16) */
             color: var(--bone-muted); line-height: 1.3;
             margin-top: var(--space-2); min-height: 2.2em;  /* 8px — within identity group */
         }
@@ -383,6 +384,22 @@
             color: var(--bone);
             opacity: 0.85;
         }
+        /* Pre-score roster — shown in place of the motto until the team's first score lands
+           (dashboard-022, 06-16). Each card has life before the numbers arrive; flips to the
+           motto once the team is on the board. */
+        .hold-card .members {
+            font-family: var(--font-label); font-weight: var(--w-regular);
+            font-size: clamp(1.125rem, 1.15vw, 1.875rem);   /* ~30px — a touch under the motto */
+            color: var(--bone-muted); line-height: 1.35;
+            margin-top: var(--space-2); min-height: 2.2em;
+        }
+        .hold-card .members .members-label {
+            display: block; font-style: normal;
+            font-size: var(--text-xs); font-weight: var(--w-bold);
+            letter-spacing: var(--ls-label); text-transform: uppercase;
+            color: var(--bone-dim); margin-bottom: 0.2rem;
+        }
+        .hold-card.leader .members { color: var(--bone); opacity: 0.9; }
 
         .hold-card .total-block {
             margin-top: auto;  /* anchors stats zone to card bottom; absorbs motto-length variance so all 5 cards' stats align */
@@ -395,9 +412,8 @@
         }
         .hold-card .total {
             font-family: var(--font-numeric); font-weight: var(--w-bold);
-            font-size: clamp(6rem, 11vw, 17.5rem);   /* T1 leading-area score — TEST 280px (06-14) */
+            /* font-size + margin-top owned by the G-section override (.hold-card .total, below) — dead dup removed 06-16 */
             color: var(--bone-muted); line-height: 0.9;
-            margin-top: 0.15rem;
             font-variant-numeric: tabular-nums;
             letter-spacing: var(--ls-tight);
         }
@@ -405,7 +421,7 @@
         .hold-card.leader .total {
             color: var(--bone);
             font-weight: var(--w-bold);
-            font-size: clamp(6.5rem, 12vw, 18.5rem);   /* leader score amplified — TEST 296px (06-14) */
+            /* font-size owned by the G-section override (.hold-card.leader .total, below) — dead dup removed 06-16 */
             text-shadow: 0 0 32px color-mix(in oklch, var(--team-color) 60%, transparent);
         }
 
@@ -431,7 +447,7 @@
         }
         .hold-card.leader .radar-row { border-top-color: color-mix(in oklch, var(--team-color) 45%, transparent); }
 
-        .hold-card .radar { width: 296px; height: 296px; flex-shrink: 0; }  /* leading-area viz — TEST 296px (06-14) */
+        .hold-card .radar { flex-shrink: 0; }  /* size owned by the G-section override (.hc-radar .radar, below) — dead dup removed 06-16 */
         .hold-card .radar .axis { stroke: var(--ink-border); stroke-width: 1; }
         .hold-card .radar .ring { stroke: var(--ink-border); stroke-width: 1; fill: none; opacity: 0.55; }
         .hold-card .radar .polygon {
@@ -630,7 +646,7 @@
             padding: 1rem 1.5rem 0.5rem 1.5rem;
             font-family: var(--font-display); font-style: italic;
             font-weight: var(--w-regular);
-            font-size: clamp(1.875rem, 2.6vw, 3.875rem);   /* wow-callout — bumped to next level → 62px (06-14) */
+            /* font-size owned by the hero-slot override (.latest-hero-slot .lp-commentary, below) — dead dup removed 06-16 */
             line-height: 1.35;
             color: var(--bone);
             text-wrap: balance;
@@ -881,10 +897,10 @@
         .hc-radar    { display: flex; align-items: center; justify-content: center; }
 
         /* TOTAL scaled down for the shorter horizontal card; radar sits to its right. */
-        .hold-card .total        { font-size: clamp(5rem, 9vw, 14rem); margin-top: 0; }   /* EFFECTIVE — 224px, balanced w/ radar (06-14) */
-        .hold-card.leader .total { font-size: clamp(5.5rem, 9.5vw, 15rem); }              /* EFFECTIVE — leader 240px */
+        .hold-card .total        { font-size: clamp(5rem, 9vw, 14rem); margin-top: 0; }   /* sole owner of total size — 224px, balanced w/ radar (06-14) */
+        .hold-card.leader .total { font-size: clamp(5.5rem, 9.5vw, 15rem); }              /* sole owner — leader 240px */
         .hold-card .total-label  { margin-bottom: var(--space-1); }
-        .hc-radar .radar         { width: 296px; height: 296px; }  /* EFFECTIVE rule (overrides l.434) — TEST 296px (06-14) */
+        .hc-radar .radar         { width: 296px; height: 296px; }  /* sole owner of radar size — 296px (06-14) */
 
         /* ===== Region A — AI-commentary hero (the wow-moment's home in G) =====
            Col 2, rows 1-3 (the 617×555 zone alongside the leader cards). Reuses hud3's
@@ -957,7 +973,7 @@
             align-self: center;
             margin: 0; padding: var(--space-4) 0;
             font-family: var(--font-label); font-style: normal; font-weight: var(--w-regular);
-            font-size: clamp(1.875rem, 2.8vw, 3.25rem);   /* EFFECTIVE callout (overrides l.629) — bumped → 52px (06-14) */
+            font-size: clamp(1.875rem, 2.8vw, 3.25rem);   /* sole owner of callout size — 52px (06-14) */
             line-height: 1.3; letter-spacing: var(--ls-normal);
             color: oklch(95% 0.012 85);
             text-wrap: pretty;
@@ -1048,21 +1064,40 @@
         }
         .hero-overlay.show { display: flex; opacity: 1; }
         .hero-overlay-card {
-            width: 70vw; height: 70vh; max-width: 1500px; max-height: 920px;
-            display: grid; grid-template-rows: auto 1fr auto; gap: var(--space-5);
-            padding: clamp(2rem, 4vw, 4.5rem);
-            border-radius: 16px;
+            /* dashboard-022 (06-16): the lock crescendo read too small on the TV — blown up to
+               ~88% of the screen with a much bigger commentary, a harder overshoot explode, and
+               a breathing team-glow through the 15s dwell. THIS is the wow-moment, 7× per evening. */
+            position: relative;
+            width: 88vw; height: 86vh; max-width: 2400px; max-height: 1500px;
+            display: grid; grid-template-rows: auto 1fr auto; gap: clamp(var(--space-4), 2.5vh, var(--space-7));
+            padding: clamp(2.5rem, 4.5vw, 6rem);
+            border-radius: 24px;
             background: oklch(21% 0.02 40);
-            border: 1px solid color-mix(in oklch, var(--team-color) 45%, oklch(38% 0.02 40));
-            box-shadow: var(--shadow-high), 0 0 140px color-mix(in oklch, var(--team-color) 48%, transparent);
+            border: 2px solid color-mix(in oklch, var(--team-color) 55%, oklch(38% 0.02 40));
+            box-shadow: var(--shadow-high), 0 0 180px color-mix(in oklch, var(--team-color) 50%, transparent);
             transform-origin: center center;
         }
-        .hero-overlay.explode .hero-overlay-card { animation: overlayExplode 600ms cubic-bezier(.18, .85, .25, 1) both; }
-        .hero-overlay.implode .hero-overlay-card { animation: overlayImplode 480ms cubic-bezier(.5, 0, .75, .25) both; }
+        /* Breathing team-glow during dwell — a transient ::after ring so the base shadow is untouched.
+           Starts after the explode settles (0.75s delay), pulses gently while the card holds. */
+        .hero-overlay-card::after {
+            content: ""; position: absolute; inset: 0; border-radius: inherit;
+            pointer-events: none; opacity: 0;
+            box-shadow: 0 0 0 transparent;
+        }
+        .hero-overlay.show .hero-overlay-card::after {
+            animation: overlayGlowPulse 2.6s ease-in-out 0.75s infinite;
+        }
+        @keyframes overlayGlowPulse {
+            0%, 100% { opacity: 0.55; box-shadow: 0 0 90px color-mix(in oklch, var(--team-color) 35%, transparent); }
+            50%      { opacity: 1;    box-shadow: 0 0 240px color-mix(in oklch, var(--team-color) 70%, transparent); }
+        }
+        .hero-overlay.explode .hero-overlay-card { animation: overlayExplode 760ms cubic-bezier(.16, .84, .34, 1) both; }
+        .hero-overlay.implode .hero-overlay-card { animation: overlayImplode 520ms cubic-bezier(.5, 0, .75, .25) both; }
         @keyframes overlayExplode {
-            from { transform: scale(0.10); opacity: 0; }
+            0%   { transform: scale(0.06); opacity: 0; }
             55%  { opacity: 1; }
-            to   { transform: scale(1); opacity: 1; }
+            78%  { transform: scale(1.04); }
+            100% { transform: scale(1); opacity: 1; }
         }
         @keyframes overlayImplode {
             from { transform: scale(1); opacity: 1; }
@@ -1070,42 +1105,59 @@
         }
         .hero-overlay .ov-tag {
             display: flex; justify-content: space-between; align-items: center;
-            font-family: var(--font-label); font-size: var(--text-sm);
+            font-family: var(--font-label); font-size: clamp(1.125rem, 1.5vw, 2rem);
             font-weight: var(--w-bold); letter-spacing: var(--ls-wide); text-transform: uppercase;
         }
-        .hero-overlay .ov-disc { display: inline-flex; align-items: center; gap: 0.7rem; color: oklch(80% 0.02 70); }
+        .hero-overlay .ov-disc { display: inline-flex; align-items: center; gap: 0.9rem; color: oklch(80% 0.02 70); }
         .hero-overlay .ov-disc::before {
-            content: ""; width: 12px; height: 12px; border-radius: 50%;
+            content: ""; width: 18px; height: 18px; border-radius: 50%;
             background: var(--team-color);
-            box-shadow: 0 0 14px color-mix(in oklch, var(--team-color) 80%, transparent);
+            box-shadow: 0 0 20px color-mix(in oklch, var(--team-color) 85%, transparent);
         }
         .hero-overlay .ov-status { color: oklch(64% 0.02 70); }
         /* Summary is long prose → Segoe (sharp, native), not Fraunces italic. Readable over
-           2-3 sentences; the Fraunces display voice stays on the headlines/short callouts. */
+           2-3 sentences; the Fraunces display voice stays on the headlines/short callouts.
+           THE star of the overlay — sized big (dashboard-022). */
         .hero-overlay .ov-commentary {
             align-self: center; margin: 0;
             font-family: var(--font-label); font-style: normal; font-weight: var(--w-regular);
-            font-size: clamp(1.5rem, 2.5vw, 2.5rem); line-height: 1.38; letter-spacing: var(--ls-normal);
+            font-size: clamp(2.5rem, 4.4vw, 6rem); line-height: 1.28; letter-spacing: var(--ls-tight);
             color: oklch(96% 0.012 85); text-wrap: pretty;
         }
+        .hero-overlay .ov-commentary::before {
+            content: "\201C"; font-family: var(--font-display);
+            font-size: 1.05em; line-height: 0; vertical-align: -0.32em;
+            color: var(--team-color); margin-right: 0.06em;
+            text-shadow: 0 0 24px color-mix(in oklch, var(--team-color) 60%, transparent);
+        }
         .hero-overlay .ov-results {
-            display: flex; flex-direction: column; gap: 0.55rem;
-            padding-top: var(--space-4); border-top: 1px solid oklch(36% 0.015 40);
+            display: flex; flex-direction: column; gap: clamp(0.5rem, 1.1vh, 1rem);
+            padding-top: var(--space-5); border-top: 1px solid oklch(36% 0.015 40);
         }
         .hero-overlay .ov-row {
-            display: grid; grid-template-columns: 2.2rem 0.9rem 1fr auto auto; align-items: center; gap: 0.9rem;
-            font-family: var(--font-numeric); font-size: var(--text-lg);
+            display: grid; grid-template-columns: 3rem 1.2rem 1fr auto auto; align-items: center; gap: 1.2rem;
+            font-family: var(--font-numeric); font-size: clamp(1.5rem, 2vw, 2.875rem);
             color: oklch(82% 0.012 85); opacity: 0.72;
+            transform: translateY(16px);
+            animation: ovRowRise 560ms cubic-bezier(.2, .7, .2, 1) both;
+            animation-delay: calc(var(--i, 0) * 90ms + 0.6s);
+        }
+        @keyframes ovRowRise {
+            from { transform: translateY(16px); }
+            to   { transform: translateY(0); }
         }
         .hero-overlay .ov-row.win { opacity: 1; }
         .hero-overlay .ov-rank { font-weight: var(--w-bold); color: oklch(70% 0.02 70); font-variant-numeric: tabular-nums; }
-        .hero-overlay .ov-dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--team-color); }
-        .hero-overlay .ov-name { font-family: var(--font-display); font-weight: var(--w-bold); color: oklch(94% 0.012 85); letter-spacing: var(--ls-tight); }
+        .hero-overlay .ov-dot { width: 1rem; height: 1rem; border-radius: 50%; background: var(--team-color); box-shadow: 0 0 12px color-mix(in oklch, var(--team-color) 60%, transparent); }
+        .hero-overlay .ov-name { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 1.15em; color: oklch(94% 0.012 85); letter-spacing: var(--ls-tight); }
         .hero-overlay .ov-raw { color: oklch(70% 0.02 70); font-variant-numeric: tabular-nums; }
         .hero-overlay .ov-pts { font-weight: var(--w-bold); color: oklch(94% 0.012 85); font-variant-numeric: tabular-nums; min-width: 3ch; text-align: right; }
         @media (prefers-reduced-motion: reduce) {
             .hero-overlay.explode .hero-overlay-card,
-            .hero-overlay.implode .hero-overlay-card { animation: none; }
+            .hero-overlay.implode .hero-overlay-card,
+            .hero-overlay.show .hero-overlay-card::after,
+            .hero-overlay .ov-row { animation: none; }
+            .hero-overlay .ov-row { transform: none; }
         }
 
         /* ===== Region B · timeline — the day as a vertical 12→22 axis =====================
@@ -1201,10 +1253,10 @@
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .tl-window-time {
-            font-family: var(--font-label); font-size: var(--text-xs);
+            font-family: var(--font-label); font-size: var(--text-sm);  /* 16–21 window times bumped a notch (dashboard-022, 06-16) */
             color: var(--bone-muted); font-variant-numeric: tabular-nums; flex-shrink: 0;
         }
-        .tl-stations { display: flex; flex-wrap: wrap; gap: 4px; }
+        .tl-stations { display: flex; flex-wrap: wrap; gap: 4px; margin-left: var(--space-5); }  /* competition stations indented 2 levels to read as sub-items (dashboard-022, 06-16) */
         .tl-st {
             font-family: var(--font-label); font-size: var(--text-xs); font-weight: var(--w-bold);
             color: var(--bone-muted); line-height: 1; white-space: nowrap;
@@ -1237,7 +1289,7 @@
         }
         .page-header .ph-title {
             font-family: var(--font-display); font-weight: var(--w-black);
-            font-size: clamp(3.25rem, 4.6vw, 5.25rem); letter-spacing: var(--ls-tight);
+            font-size: clamp(3.75rem, 5.6vw, 7rem); letter-spacing: var(--ls-tight);  /* MK40 bumped for presence (dashboard-022, 06-16) */
             color: var(--bone); line-height: 0.9;
         }
         .page-header .ph-meta {
@@ -1558,7 +1610,9 @@
                         <div class="hc-identity">
                             <div class="badge-row">${badgeLeft}</div>
                             <div class="name">${esc(x.team.team_name)}</div>
-                            <div class="motto">${esc(x.team.team_motto || "")}</div>
+                            ${x.total === 0 && x.team.team_members
+                                ? `<div class="members"><span class="members-label">Holdet</span>${esc(x.team.team_members)}</div>`
+                                : `<div class="motto">${esc(x.team.team_motto || "")}</div>`}
                         </div>
                         <div class="hc-stats">
                             <div class="total-label">Total</div>
@@ -1865,8 +1919,8 @@
         function showOverlay(fields, text) {
             overlayActive = true;
             overlayEl.style.setProperty("--team-color", fields.teamColorVar);
-            const rowsHtml = (fields.results || []).map(r => `
-                <div class="ov-row${r.rank === 1 ? " win" : ""}" style="--team-color:${r.team ? teamColorVar(r.team) : "var(--ink-border)"}">
+            const rowsHtml = (fields.results || []).map((r, idx) => `
+                <div class="ov-row${r.rank === 1 ? " win" : ""}" style="--i:${idx}; --team-color:${r.team ? teamColorVar(r.team) : "var(--ink-border)"}">
                     <span class="ov-rank">${r.rank}.</span>
                     <span class="ov-dot"></span>
                     <span class="ov-name">${esc(r.name ?? "—")}</span>
@@ -2028,13 +2082,13 @@
         // Durations are best-guess ASSUMPTIONS (Mads corrects) — they drive box heights.
         const SCHEDULE = [
             { start: "12:30", end: "13:30", title: "Velkommen" },
-            { start: "13:30", end: "14:00", title: "Afgang — Creation Myth digtes på vejen" },
+            { start: "13:30", end: "14:00", title: "Afgang — Skabelsesberetning digtes på vejen" },
             { start: "14:00", end: "16:00", title: "Bowling" },
             // 16–21 er et åbent station-vindue, ikke et fast skema: de 4 grene køres i eget
             // tempo (~10 min hver). Food Truck-boksen nedenfor ligger oven på vinduet.
             { start: "16:00", end: "21:00", title: "Konkurrence", kind: "window",
               stations: ["Dart", "Cornhole", "Puslespil", "Slå søm"] },
-            { start: "18:00", end: "20:00", title: "Food Truck + Creation Myth-afstemning", menu: ["Cheeseburger", "Fried Chicken", "Veggie", "+ Fritter"] },
+            { start: "18:00", end: "20:00", title: "Food Truck + Skabelsesberetning-afstemning", menu: ["Cheeseburger", "Fried Chicken", "Veggie", "+ Fritter"] },
             { start: "21:00", end: "22:00", title: "Musikquiz" },
         ];
         const toMin = t => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };

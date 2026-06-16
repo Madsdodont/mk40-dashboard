@@ -20,13 +20,13 @@
     --gold-ceremonial: oklch(78% 0.16 85);
 
     /* ===== Hold-farver — sampled OKLCH fra bandana-foto (låst 2026-06-14) =====
-       Navne = bandana-identitet (pink/navy/grøn/orange/lilla), matcher DimTeam.team_color.
+       Navne = bandana-identitet (pink/navy/grøn/gul/lilla), matcher DimTeam.team_color.
        cssVarSafe(team_color) → --team-{navn}. Base/dark-værdier; cards-h/hud2/hud3 har
        egne light-tunede overrides i deres :root. */
     --team-pink:       oklch(62% 0.22 0);
     --team-navy:       oklch(28% 0.13 260);
     --team-grøn:       oklch(52% 0.18 145);
-    --team-orange:     oklch(74% 0.18 65);
+    --team-gul:     oklch(74% 0.18 65);
     --team-lilla:      oklch(58% 0.17 295);
 
     /* ===== Signal-farver (semantiske, IKKE hold-koblede) ===== */

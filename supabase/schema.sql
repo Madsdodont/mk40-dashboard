@@ -31,7 +31,7 @@ drop table if exists public."DimDiscipline" cascade;
 -- ============================================================================
 create table public."DimTeam" (
     team_key      smallint primary key,
-    team_color    text not null,        -- pink, navy, grøn, orange, lilla (bandana-navne; driver --team-{navn})
+    team_color    text not null,        -- pink, navy, grøn, gul, lilla (bandana-navne; driver --team-{navn})
     team_name     text not null,        -- kongerige-navn (kaptajn sætter via Skabelsesberetningen)
     team_short    text,                 -- kælenavn / kort navn til bump-chart-labels
     team_motto    text,                 -- kort motto/slogan (vises på dashboard-kortet)
