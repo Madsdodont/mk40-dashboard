@@ -1217,24 +1217,40 @@
         /* Open station-window (16–21) — a translucent band, dashed to read as a period, not an event.
            Lower z-index so the Food Truck box overlaps it cleanly. */
         .tl-window {
+            /* Ambient open-period zone — NOT an event box. A soft tinted band that the FIXED (solid,
+               shadowed) event boxes sit on top of; the fixed-vs-loose hierarchy comes from depth +
+               treatment, not position. No box-border so it doesn't compete with the events; only a
+               left accent ties it to the timeline + an explicit "fri rækkefølge" tag (dashboard-022, 06-16). */
             position: absolute; left: 32px; right: 0; z-index: 1;
-            border: 1px dashed var(--ink-border);
-            border-left: 3px solid var(--bone-muted);
-            border-radius: 6px;
-            background: color-mix(in oklch, var(--ink-card) 30%, transparent);
-            padding: 4px 8px;
+            border: none;
+            border-left: 3px solid color-mix(in oklch, var(--bone-dim) 32%, transparent);
+            border-radius: 8px;
+            background: color-mix(in oklch, var(--ink-elevated) 55%, transparent);
+            padding: 8px 12px;
             overflow: hidden;
-            display: flex; flex-direction: column; gap: 5px;
+            display: flex; flex-direction: column; gap: 8px;
         }
         .tl-window.is-now {
             border-left-color: var(--bone);
-            border-color: color-mix(in oklch, var(--bone-muted) 45%, var(--ink-border));
+            background: color-mix(in oklch, var(--ink-elevated) 72%, transparent);
         }
         .tl-window-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
         .tl-window-title {
             font-family: var(--font-label); font-weight: var(--w-bold);
             font-size: var(--text-sm); color: var(--bone); line-height: 1.1;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        /* Explicit "this period is open / self-paced" flag — the semantic that makes the ambient
+           treatment read as intentional rather than just a faint box. */
+        .tl-window-tag {
+            flex-shrink: 0;
+            padding: 1px 9px; border-radius: 999px;
+            font-family: var(--font-label); font-size: var(--text-xs);
+            font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase;
+            color: var(--bone-muted);
+            background: color-mix(in oklch, var(--bone-dim) 13%, transparent);
+            border: 1px solid color-mix(in oklch, var(--bone-dim) 24%, transparent);
+            white-space: nowrap;
         }
         .tl-window-time {
             font-family: var(--font-label); font-size: var(--text-sm);  /* 16–21 window times bumped a notch (dashboard-022, 06-16) */
@@ -2102,7 +2118,7 @@
                 if (it.kind === "window") {
                     const chips = (it.stations || []).map(st => `<span class="tl-st">${esc(st)}</span>`).join("");
                     return `<div class="tl-window${isNow ? " is-now" : ""}" style="top:${top.toFixed(2)}%; height:calc(${h}% - 4px)">
-                        <div class="tl-window-head"><span class="tl-window-title">${esc(it.title)}</span><span class="tl-window-time">${esc(it.start)}–${esc(it.end)}</span></div>
+                        <div class="tl-window-head"><span class="tl-window-title">${esc(it.title)}</span><span class="tl-window-tag">Fri rækkefølge</span><span class="tl-window-time">${esc(it.start)}–${esc(it.end)}</span></div>
                         <div class="tl-stations">${chips}</div>
                     </div>`;
                 }
