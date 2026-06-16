@@ -1233,7 +1233,10 @@
         /* Open station-window (16–21) — a translucent band, dashed to read as a period, not an event.
            Lower z-index so the Food Truck box overlaps it cleanly. */
         .tl-window {
-            position: absolute; left: 32px; right: 0; z-index: 1;
+            /* Whole open-window block indented in vs. the fixed event boxes (left:32px), so the
+               flexible 16–21 station period reads as a different category from the fixed schedule
+               (dashboard-022, 06-16). */
+            position: absolute; left: 84px; right: 0; z-index: 1;
             border: 1px dashed var(--ink-border);
             border-left: 3px solid var(--bone-muted);
             border-radius: 6px;
@@ -1256,7 +1259,7 @@
             font-family: var(--font-label); font-size: var(--text-sm);  /* 16–21 window times bumped a notch (dashboard-022, 06-16) */
             color: var(--bone-muted); font-variant-numeric: tabular-nums; flex-shrink: 0;
         }
-        .tl-stations { display: flex; flex-wrap: wrap; gap: 4px; margin-left: var(--space-5); }  /* competition stations indented 2 levels to read as sub-items (dashboard-022, 06-16) */
+        .tl-stations { display: flex; flex-wrap: wrap; gap: 4px; }
         .tl-st {
             font-family: var(--font-label); font-size: var(--text-xs); font-weight: var(--w-bold);
             color: var(--bone-muted); line-height: 1; white-space: nowrap;
