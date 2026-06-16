@@ -48,7 +48,7 @@ truncate table public."DimDiscipline" cascade;
 -- team_motto + team_creation = null indtil kaptajnerne udfylder dem på dagen.
 insert into public."DimTeam" (team_key, team_color, team_name, team_short, team_motto, team_creation, team_members) values
     (1, 'pink',   'Det Pink Kongerige',     'Pink',   null, null, 'AH, Johanne, Theo, Tim, Morten A., Mira'),
-    (2, 'navy',   'Det Mørkeblå Kongerige', 'Navy',   null, null, 'Niko, Margot, Satya, Jesper, Dirk, Rose'),
+    (2, 'navy',   'Det Mørkeblå Kongerige', 'Navy',   null, null, 'Niko, Margaux, Satya, Jesper, Dirk, Rose'),
     (3, 'grøn',   'Det Grønne Kongerige',   'Grøn',   null, null, 'Anders, Mads, Mikkel, Julie, Majbritt'),
     (4, 'gul',    'Det Gule Kongerige',     'Gul', null, null, 'Anne, Allan, Christian, Morten E., Ida, AC'),
     (5, 'lilla',  'Det Lilla Kongerige',    'Lilla',  null, null, 'Buggi, Oscar, Michael, Kirstine, Freja');
