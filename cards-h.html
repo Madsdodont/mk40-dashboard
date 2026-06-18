@@ -1469,7 +1469,9 @@
         // første poll (ingen kold-start-burst). Kald fejler stille (ADR-5).
         const CALLOUT_URL = `${SUPABASE_URL}/functions/v1/callout`;
         const CALLOUT_TIMEOUT_MS = 12000;  // lock-summary (heavy Sonnet-prompt) målt 7.1s live 06-13 → headroom mod cold-start/load før graceful fallback rammer
-        const OVERLAY_DWELL_MS = 15000;  // Mads: 15s først
+        const OVERLAY_DWELL_MS = 15000;  // Mads: 15s først (lock-overlayets explode-dwell)
+        const SCORE_DWELL_MS = 15000;    // dashboard-027: min-visningstid pr. lille score-callout før køen drainer den næste (tunbar; sæt evt. ned til solo-testen 023)
+        const nowMs = () => performance.now();  // monotonisk elapsed-clock til dwell-gaten (uafhængig af wall-clock)
         // ?demo=1 → lokal success-path-verifikation. Den ægte Edge Function har kun
         // GitHub-Pages-origin i CORS, så et localhost-kald blokeres af browseren; stubben
         // lader os se animation+dedup lokalt uden at røre funktionen.
@@ -1485,6 +1487,13 @@
         let heroRevision = 0;
         let overlayActive = false;      // sandt mens det store overlay er oppe → små callouts holdes tilbage
         let lastCtx = null;             // seneste poll-kontekst (til overlay-flush)
+
+        // dashboard-027 — score-callout-kø: nær-samtidige scores må ikke stjæle hinandens
+        // skærmtid. Fresh entries lægges i kø (FIFO, ankomst-orden) og drainer ÉN ad gangen,
+        // hver med ≥SCORE_DWELL_MS på skærmen. Spejler lock-overlayets gate-mønster.
+        let scoreQueue = [];            // ventende score-entries (ældste først) der ikke er vist endnu
+        let scoreBusyUntil = 0;         // performance.now()-deadline: ny score holdes tilbage indtil da
+        let scorePending = false;       // sandt mens en score-callout fetcher/maler → undgå dobbelt-drain i fetch-latency
 
         // Fem sarkastiske fallbacks (Mads' valg): vist når AI fejler/timeouter ELLER ved
         // kold-start. Hero'en bliver aldrig tom; AI er ren enhancement ovenpå (ADR-5).
@@ -1850,14 +1859,20 @@
         }
         async function dispatchScore(entry, ctx) {
             const fields = buildScoreFields(entry, ctx);
-            if (!fields) return;
-            let text, real = true;
-            try { text = await fetchCallout(buildScorePayload(entry, ctx)); }
-            catch { text = ""; real = false; }
-            if (!text) { text = fallbackCommentary(); real = false; }
-            if (real) logCallout(entry.discKey, text);   // kun ægte callouts fodres til summary
-            setHero(fields, text, true);
-            renderHero();
+            if (!fields) { scorePending = false; return; }   // intet at vise → frigiv gaten, drain næste poll
+            try {
+                let text, real = true;
+                try { text = await fetchCallout(buildScorePayload(entry, ctx)); }
+                catch { text = ""; real = false; }
+                if (!text) { text = fallbackCommentary(); real = false; }
+                if (real) logCallout(entry.discKey, text);   // kun ægte callouts fodres til summary
+                setHero(fields, text, true);
+                renderHero();
+                // Dwell tæller FRA malingen (ikke fra fetch-start) → fetch-latency æder ikke skærmtiden.
+                scoreBusyUntil = nowMs() + SCORE_DWELL_MS;
+            } finally {
+                scorePending = false;                        // frigiv altid in-flight-gaten (også ved uventet fejl)
+            }
         }
 
         // ----- LOCK mode: federe summary → stort overlay ---------------------
@@ -1979,21 +1994,31 @@
             // Ryd lockSeen for grene der er låst op igen → en korrektions-genlås kan fyre.
             for (const k of [...lockSeen]) if (!lockedNow.has(k)) lockSeen.delete(k);
 
-            // LÅS er headline: en ny lås → stort overlay. Skip score denne poll.
+            // Nye score-entries lægges ALTID i køen (ankomst-orden, ældste først) — også i den
+            // poll hvor en lås fyrer — så ingen scoreændring tabes. Køen drainer én ad gangen nedenfor.
+            const fresh = entries.filter(e => !scoreSeen.has(e.key));
+            if (fresh.length) {
+                fresh.sort((a, b) => tsOf(a.row) - tsOf(b.row));
+                for (const e of fresh) { scoreSeen.add(e.key); scoreQueue.push(e); }
+            }
+
+            // LÅS er headline: en ny lås → stort overlay. Den superserer provisoriske score-callouts
+            // for den gren, så ryd dem ud af køen (ellers ville vi vise "midl. #2" for en afgjort gren).
             const freshLocks = [...lockedNow].filter(k => !lockSeen.has(k));
             if (freshLocks.length) {
                 freshLocks.forEach(k => lockSeen.add(k));
+                if (scoreQueue.length) scoreQueue = scoreQueue.filter(e => !lockedNow.has(e.discKey));
                 dispatchLock(pickMostRecentDisc(freshLocks, ctx.scores), ctx);
                 renderHero();
                 return;
             }
 
-            // SCORE: nye entries → lille hero (kun når intet overlay kører).
-            const fresh = entries.filter(e => !scoreSeen.has(e.key));
-            if (fresh.length) {
-                const chosen = fresh.slice().sort((a, b) => tsOf(b.row) - tsOf(a.row))[0];
-                fresh.forEach(e => scoreSeen.add(e.key));
-                dispatchScore(chosen, ctx);
+            // SCORE-drain: kun når intet overlay kører, ingen score er in-flight, og den forrige
+            // callout har fået sin min-visningstid. Én callout pr. drain → hver score får sit øjeblik.
+            if (!overlayActive && !scorePending && nowMs() >= scoreBusyUntil && scoreQueue.length) {
+                scorePending = true;
+                const next = scoreQueue.shift();
+                dispatchScore(next, ctx);   // async; maler når teksten lander, sætter så scoreBusyUntil
             }
             renderHero();
         }
