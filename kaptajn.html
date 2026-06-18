@@ -127,6 +127,18 @@
         .locked-result .place { font-size: 1.6rem; font-weight: var(--w-black); color: var(--team-color, var(--bone)); }
         .locked-result .raw { font-size: 0.78rem; color: var(--bone-dim); margin-left: auto; }
 
+        /* Låste individuelle scores (synlige efter lås) */
+        .locked-breakdown { margin: 0.5rem 0 0.2rem; border-top: 1px solid var(--ink-border-soft); padding-top: 0.55rem; }
+        .locked-breakdown .lb-label { font-size: 0.72rem; font-weight: var(--w-bold); letter-spacing: 0.02em; color: var(--bone-muted); margin: 0 0 0.4rem; }
+        .locked-breakdown .player-row { margin-bottom: 0.3rem; }
+        .locked-breakdown .locked-val { font-family: var(--font-numeric); font-weight: var(--w-bold); color: var(--bone-muted); margin-left: auto; }
+        .locked-breakdown .player-row.absent .locked-val { font-family: var(--font-label); font-weight: var(--w-regular); }
+
+        /* Cap-validering mod umulige scores */
+        input.over-cap { border-color: var(--signal-error); }
+        .cap-warn { color: var(--signal-error) !important; font-weight: var(--w-bold); }
+        .cap-warn[hidden] { display: none; }
+
         .waiting { font-size: 0.78rem; margin: 0.6rem 0 0; color: var(--ok-green); font-weight: var(--w-bold); }
         .waiting.muted { color: var(--bone-dim); font-weight: var(--w-regular); }
 
@@ -159,7 +171,11 @@
         const CREATION_KEY = 1;                 // Skabelsesberetningen — identitet (eget flow)
         const PER_PLAYER_KEYS = new Set([2, 3]); // Bowling + Dart — ét felt per spiller, snit
         const TIME_KEYS = new Set([5]);          // Puslespil — min + sek → total sekunder
-        // Per-gren tæl-vejledning: hvordan kaptajnen når frem til tallet de taster.
+        // Per-disciplin felt-max: spærrer for umulige scores (per spiller / per holdtal).
+        //   Bowling ≤300 (perfekt spil) · Dart ≤180 (tre pile à 60) · Cornhole ≤72 (24 poser × 3 i hul).
+        const DISC_MAX = { 2: 300, 3: 180, 4: 72 };
+        const capOf = (discKey) => (discKey in DISC_MAX ? DISC_MAX[discKey] : null);
+        // Per-disciplin tæl-vejledning: hvordan kaptajnen når frem til tallet de taster.
         const DISC_HOWTO = {
             2: "To runder bowling — tast hver spillers bedste runde (10 frames). Vi tager holdets snit.",
             3: "Hver spiller kaster 3 pile — tast summen af de tre pile pr. spiller. Vi tager holdets snit.",
@@ -210,7 +226,7 @@
             for (const r of allScores) if (r.team_key === teamKey) myScores[r.discipline_key] = r;
         }
 
-        // Antal hold der har LÅST en gren (raw_value sat).
+        // Antal hold der har LÅST en disciplin (raw_value sat).
         function enteredCountFor(discKey) {
             const seen = new Set();
             for (const r of allScores) if (r.discipline_key === discKey && hasRaw(r)) seen.add(r.team_key);
@@ -238,7 +254,7 @@
             let html = `<div class="team-head" style="--team-color:${teamVar}">
                 <p class="kicker">Kaptajn · Kongerigernes Kamp</p>
                 <h1>${esc(team.team_name)}</h1>
-                <div class="progress">${doneCount} / ${disciplines.length} grene klar</div>
+                <div class="progress">${doneCount} / ${disciplines.length} discipliner klar</div>
             </div>
             <div class="instructions ${instrCollapsed ? "collapsed" : ""}" style="--team-color:${teamVar}">
                 <button class="instr-toggle" type="button" data-instr-toggle aria-expanded="${!instrCollapsed}">
@@ -246,7 +262,8 @@
                     <span class="chevron" aria-hidden="true">▾</span>
                 </button>
                 <div class="instr-body">
-                    <p>Når en gren er færdigspillet, taster du <strong>jeres holds resultat</strong>: gem først, og lås når tallene er endelige. Dommeren låser grenen når alle ${allTeams.length} hold har låst — så omregnes til point og vises på storskærmen.</p>
+                    <p>Når en disciplin er færdigspillet, taster du <strong>jeres holds resultat</strong>: gem først, og lås når tallene er endelige. Dommeren låser disciplinen når alle ${allTeams.length} hold har låst — så omregnes til point og vises på storskærmen.</p>
+                    <p>Har I ved et uheld låst en disciplin, eller tastet forkert? Sig til <strong>dommeren eller Mathias</strong> — de kan rette scoren.</p>
                     <p class="instr-tip">💡 Skriv en note med lidt drama — den fodrer AI-kommentaren på storskærmen.</p>
                 </div>
             </div>
@@ -266,7 +283,7 @@
                     summary = filled ? `<span class="disc-summary">${esc(team.team_short || team.team_name)}</span>` : ``;
                     body = identityBody(team);
                 } else if (row && row.is_final) {
-                    // Dommer har låst grenen → vis placering.
+                    // Dommer har låst disciplinen → vis placering.
                     dir = isPP ? (d.sort_direction === "asc" ? "Laveste snit vinder" : "Højeste snit vinder") : (d.sort_direction === "asc" ? "Lavest vinder" : "Højest vinder");
                     const place = PLACE_LABEL[row.points] ?? "–";
                     chip = `<span class="status-chip locked">🔒 Låst</span>`;
@@ -353,6 +370,19 @@
         }
         function fmtTime(total) { const m = Math.floor(total / 60), s = Math.abs(total % 60); return `${m}:${String(s).padStart(2, "0")}`; }
         function dispValue(d, raw) { return TIME_KEYS.has(d.discipline_key) ? fmtTime(Number(raw)) : esc(raw); }
+        // Read-only visning af de individuelle scores kaptajnen tastede — bevares efter lås (per-spiller-discipliner).
+        function lockedBreakdown(d, row) {
+            const prev = parseBreakdown(row?.breakdown, true);
+            const rows = playersOf(team).map((name) => {
+                const v = prev[name];
+                const absent = v === ABSENT;
+                return `<div class="player-row${absent ? " absent" : ""}">
+                        <span class="pname">${esc(name)}</span>
+                        <span class="locked-val">${absent ? "deltog ikke" : esc(v ?? "–")}</span>
+                    </div>`;
+            }).join("");
+            return `<div class="locked-breakdown"><p class="lb-label">Jeres scores</p>${rows}</div>`;
+        }
         function scoreCard(d, row, isPP, entered, total) {
             const drama = row?.notes ?? "";
             const isTime = TIME_KEYS.has(d.discipline_key);
@@ -362,11 +392,14 @@
                         <span class="place">${isPP ? "Snit " : ""}${dispValue(d, row.raw_value)}</span>
                         <span class="raw">🔒 låst — venter på dommeren</span>
                     </div>
+                    ${isPP ? lockedBreakdown(d, row) : ``}
                     ${drama ? `<p class="waiting muted">📣 ${esc(drama)}</p>` : ``}
-                    <p class="hint-line">Låst. Ved fejl retter dommeren på host-siden.</p>`;
+                    <p class="hint-line">Låst. Ved fejl retter dommeren eller Mathias scoren.</p>`;
             }
             const isDraft = !!row?.breakdown;   // gemt kladde → review m. blyanter
             const prev = parseBreakdown(row?.breakdown, isPP);
+            const cap = capOf(d.discipline_key);
+            const capAttr = cap != null ? `min="0" max="${cap}"` : `min="0"`;   // spær umulige scores
             let fields, snitLine = "";
             if (isPP) {
                 const players = playersOf(team);
@@ -377,7 +410,7 @@
                     return `<div class="player-row${absent ? " absent" : ""}" data-pname="${esc(name)}">
                         ${isDraft ? `<button class="pencil" type="button" title="Ret">✏️</button>` : ``}
                         <span class="pname">${esc(name)}</span>
-                        <input type="number" inputmode="decimal" step="any" class="player-input" data-player="${esc(name)}" placeholder="–" value="${esc(val)}" ${isDraft ? "readonly" : ""} ${absent ? "disabled" : ""}>
+                        <input type="number" inputmode="decimal" step="any" ${capAttr} class="player-input" data-player="${esc(name)}" placeholder="–" value="${esc(val)}" ${isDraft ? "readonly" : ""} ${absent ? "disabled" : ""}>
                         <button class="absent-toggle" type="button" ${isDraft ? "hidden" : ""}>${absent ? "✓ ikke med" : "deltog ikke"}</button>
                     </div>`;
                 }).join("");
@@ -398,7 +431,7 @@
                 fields = `<div class="player-row" data-single>
                         ${isDraft ? `<button class="pencil" type="button" title="Ret">✏️</button>` : ``}
                         <span class="pname">Holdets resultat</span>
-                        <input type="number" inputmode="decimal" step="any" class="single-input" placeholder="–" value="${esc(v)}" ${isDraft ? "readonly" : ""}>
+                        <input type="number" inputmode="decimal" step="any" ${capAttr} class="single-input" placeholder="–" value="${esc(v)}" ${isDraft ? "readonly" : ""}>
                     </div>`;
             }
             const btnLabel = isDraft ? "Lås scores" : "Gem scores";
@@ -410,13 +443,14 @@
                 ${DISC_HOWTO[d.discipline_key] ? `<p class="hint-line">📋 ${DISC_HOWTO[d.discipline_key]}</p>` : ``}
                 ${fields}
                 ${snitLine}
+                <p class="hint-line cap-warn" hidden></p>
                 <div class="id-field">
                     <label class="id-label">Drama til storskærmen <span class="id-hint">— fodrer AI-kommentaren</span></label>
                     <textarea class="id-input drama-input" rows="2" maxlength="140" placeholder="fx 'Bo lukkede med en strike-serie!'" ${isDraft ? "readonly" : ""}>${esc(drama)}</textarea>
                 </div>
                 <p class="hint-line">${hint}</p>
                 <button class="save-btn score-btn" type="button" data-mode="${btnMode}">${btnLabel}</button>
-                <p class="waiting muted">${entered}/${total} hold har låst denne gren</p>`;
+                <p class="waiting muted">${entered}/${total} hold har låst denne disciplin</p>`;
         }
 
         // Læs score-felterne → { breakdown, value, ready }.
@@ -458,12 +492,32 @@
                 .map((i) => Number(i.value));
             el.textContent = nums.length ? String(Math.round(nums.reduce((a, b) => a + b, 0) / nums.length)) : "–";
         }
-        // Aktivér «Gem» kun når alt er udfyldt/markeret (kun i draft-mode).
+        // Cap-tjek: markér felter over per-disciplin-max, returnér antal overtrædelser.
+        function applyCaps(card) {
+            const cap = capOf(Number(card.dataset.disc));
+            const warn = card.querySelector(".cap-warn");
+            let over = 0;
+            for (const inp of card.querySelectorAll(".player-input, .single-input")) {
+                const r = inp.closest(".player-row");
+                const skip = r && r.classList.contains("absent");
+                const v = inp.value.trim();
+                const bad = !skip && cap != null && v !== "" && !isNaN(Number(v)) && Number(v) > cap;
+                inp.classList.toggle("over-cap", bad);
+                if (bad) over++;
+            }
+            if (warn) {
+                if (over && cap != null) { warn.textContent = `Højeste mulige score er ${cap} — ret feltet.`; warn.hidden = false; }
+                else { warn.hidden = true; }
+            }
+            return over;
+        }
+        // Aktivér «Gem» kun når alt er udfyldt/markeret OG ingen score over cap (kun i draft-mode).
         function validateScoreCard(card, isPP) {
+            const over = applyCaps(card);
             const btn = card.querySelector(".score-btn");
             if (!btn || btn.dataset.mode !== "draft") return;
             const { ready } = readScoreData(card);
-            btn.disabled = !ready;
+            btn.disabled = !ready || over > 0;
         }
         // Pencil/drama-edit i review → knap tilbage til «Gem scores».
         function setDraftMode(card) {
@@ -474,6 +528,7 @@
         }
 
         async function saveDraft(card, discKey, isPP, btn) {
+            if (applyCaps(card) > 0) { toast(`Score over max (${capOf(discKey)}) — ret før du gemmer`, true); return; }
             const { breakdown } = readScoreData(card);
             const drama = (card.querySelector(".drama-input")?.value || "").trim() || null;
             btn.disabled = true;
@@ -487,6 +542,7 @@
             await refresh(true);
         }
         async function lockScores(card, discKey, isPP, btn) {
+            if (applyCaps(card) > 0) { toast(`Score over max (${capOf(discKey)}) — ret før du låser`, true); return; }
             const { breakdown, value, ready } = readScoreData(card);
             if (!ready || value === null) { toast("Udfyld alle felter før du låser", true); return; }
             const drama = (card.querySelector(".drama-input")?.value || "").trim() || null;
