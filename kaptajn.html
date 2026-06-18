@@ -408,8 +408,8 @@
                     const absent = v === ABSENT;
                     const val = (v && v !== ABSENT) ? v : "";
                     return `<div class="player-row${absent ? " absent" : ""}" data-pname="${esc(name)}">
-                        ${isDraft ? `<button class="pencil" type="button" title="Ret">✏️</button>` : ``}
                         <span class="pname">${esc(name)}</span>
+                        ${isDraft ? `<button class="pencil" type="button" title="Ret">✏️</button>` : ``}
                         <input type="number" inputmode="decimal" step="any" ${capAttr} class="player-input" data-player="${esc(name)}" placeholder="–" value="${esc(val)}" ${isDraft ? "readonly" : ""} ${absent ? "disabled" : ""}>
                         <button class="absent-toggle" type="button" ${isDraft ? "hidden" : ""}>${absent ? "✓ ikke med" : "deltog ikke"}</button>
                     </div>`;
@@ -420,8 +420,8 @@
                 const mv = tot != null ? Math.floor(tot / 60) : "";
                 const sv = tot != null ? tot % 60 : "";
                 fields = `<div class="player-row" data-time>
-                        ${isDraft ? `<button class="pencil" type="button" title="Ret">✏️</button>` : ``}
                         <span class="pname">Tid</span>
+                        ${isDraft ? `<button class="pencil" type="button" title="Ret">✏️</button>` : ``}
                         <input type="number" inputmode="numeric" min="0" class="time-min" placeholder="min" value="${esc(mv)}" ${isDraft ? "readonly" : ""}>
                         <span class="time-sep">:</span>
                         <input type="number" inputmode="numeric" min="0" max="59" class="time-sec" placeholder="sek" value="${esc(sv)}" ${isDraft ? "readonly" : ""}>
@@ -429,8 +429,8 @@
             } else {
                 const v = prev.__single ?? "";
                 fields = `<div class="player-row" data-single>
-                        ${isDraft ? `<button class="pencil" type="button" title="Ret">✏️</button>` : ``}
                         <span class="pname">Holdets resultat</span>
+                        ${isDraft ? `<button class="pencil" type="button" title="Ret">✏️</button>` : ``}
                         <input type="number" inputmode="decimal" step="any" ${capAttr} class="single-input" placeholder="–" value="${esc(v)}" ${isDraft ? "readonly" : ""}>
                     </div>`;
             }
