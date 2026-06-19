@@ -2313,6 +2313,7 @@
         let quizIdx = 0;                // aktuel sang i cyklussen
         let quizTimer = null;           // auto-advance-interval (kun aktivt når >1 sang)
         const quizSeen = new Set();     // key_id vi har vist → en ny afsløring hopper til front
+        let quizPaintKey = null;        // signatur (sange+idx) sidst malet → repaint KUN ved ændring (dræber poll-blink)
 
         async function fetchQuiz() {
             const { data, error } = await supabase.from("MusicQuizKey")
@@ -2322,7 +2323,12 @@
         }
 
         function paintCarousel() {
-            if (!quizSongs.length) { carouselEl.classList.remove("show"); return; }
+            if (!quizSongs.length) { carouselEl.classList.remove("show"); quizPaintKey = null; return; }
+            // Repaint KUN når indholdet skifter (ny afsløring / cyklus-skift). Uden denne guard
+            // genmaler + gen-animerer hver 4s-poll kortet = synligt blink (Mads 06-19).
+            const paintKey = quizSongs.map(s => s.key_id).join(",") + "|" + quizIdx;
+            if (paintKey === quizPaintKey) return;
+            quizPaintKey = paintKey;
             const k = quizSongs[Math.min(quizIdx, quizSongs.length - 1)];
             const yr = k.release_year ? ` <span class="qc-year">${esc(k.release_year)}</span>` : "";
             const dots = quizSongs.length > 1
@@ -2357,7 +2363,7 @@
             try { rows = await fetchQuiz(); }
             catch { return; }   // graceful: behold sidste visning, prøv igen næste poll
             quizSongs = rows;
-            if (!rows.length) { quizSeen.clear(); quizIdx = 0; stopQuizTimer(); carouselEl.classList.remove("show"); return; }
+            if (!rows.length) { quizSeen.clear(); quizIdx = 0; quizPaintKey = null; stopQuizTimer(); carouselEl.classList.remove("show"); return; }
             // Ny afsløring siden sidst → hop til den nyeste (højeste afslørede round_number).
             const fresh = rows.filter(r => !quizSeen.has(r.key_id));
             rows.forEach(r => quizSeen.add(r.key_id));
