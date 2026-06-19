@@ -20,6 +20,9 @@ npm-debug.log*
 # Local server caches
 .cache/
 
+# Claude Code preview/launch config (local dev only)
+.claude/
+
 # Skills installed via `npx skills add` (dev-tooling, not part of deployed artifact)
 .agents/
 .skills/

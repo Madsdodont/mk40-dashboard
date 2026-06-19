@@ -13,8 +13,9 @@
 --   tæller grenens point med i holdets total. Provisorisk visning (per-gren bars) sker
 --   uafhængigt af is_final via live derivation fra raw_value.
 --
--- Scope for denne fil: 3 kerne-tabeller (FactScore, DimTeam, DimDiscipline).
--- FactObservation + MusicQuizKey tilføjes i senere session (dashboard-012/013).
+-- Scope for denne fil: 3 kerne-tabeller (FactScore, DimTeam, DimDiscipline)
+-- + MusicQuizKey (display-only facit-reference, dashboard-013). FactObservation
+-- blev skåret (dashboard-012 cancelled 2026-06-14).
 --
 -- Kør i Supabase SQL Editor: paste hele filen og tryk Run.
 -- Idempotent: kan køres flere gange uden fejl (DROP IF EXISTS oprydning øverst).
@@ -25,6 +26,7 @@
 drop table if exists public."FactScore" cascade;
 drop table if exists public."DimTeam" cascade;
 drop table if exists public."DimDiscipline" cascade;
+drop table if exists public."MusicQuizKey" cascade;
 
 -- ============================================================================
 -- 2. DimTeam — de 5 kongeriger
@@ -95,6 +97,26 @@ comment on column public."FactScore".is_final is 'Host har valideret + låst gre
 comment on column public."FactScore".notes is 'Fri tekst, fx "5 strikes i træk". Uden noter bliver callouts intetsigende.';
 
 -- ============================================================================
+-- 4b. MusicQuizKey — display-only facit-reference (dashboard-013)
+-- ============================================================================
+-- Quizmaster-styret karrusel: hver row = én sang i musikquizzen (facit). Quizmasteren
+-- afslører sangene én ad gangen fra quiz.html (flipper `revealed`), og TV-karrusellen
+-- (cards-h.html) viser de afslørede sange. HELT decoupled fra scoring (FactScore):
+-- musikquiz-point tastes/lås uafhængigt på discipline_key=7. Fejler karrusellen at loade,
+-- mister man kun facit-visningen — scoringen kører videre (ADR-2 failure-mode-integritet).
+create table public."MusicQuizKey" (
+    key_id        smallint primary key,
+    round_number  smallint not null,              -- sangens nummer i quizzen (1..N)
+    title         text not null,                  -- sangtitel (facit)
+    artist        text not null,                  -- kunstner (facit)
+    release_year  smallint,                       -- udgivelsesår (valgfrit)
+    revealed      boolean not null default false  -- quizmaster flipper → vises i TV-karrusellen
+);
+
+comment on table public."MusicQuizKey" is 'Display-only facit-liste til musikquizzen. Quizmaster flipper revealed pr. sang → TV-karrusel. Ikke scoring-koblet.';
+comment on column public."MusicQuizKey".revealed is 'Quizmaster (quiz.html) har afsløret sangen → den vises i TV-karrusellen (cards-h.html).';
+
+-- ============================================================================
 -- 5. Row Level Security — anon læser alt, skriver kun FactScore
 -- ============================================================================
 -- Per dashboard-009 (2026-06-07) + ADR-2: fuld tillid + DB-clamp, ingen godkendelses-flow.
@@ -104,11 +126,18 @@ comment on column public."FactScore".notes is 'Fri tekst, fx "5 strikes i træk"
 alter table public."DimTeam"       enable row level security;
 alter table public."DimDiscipline" enable row level security;
 alter table public."FactScore"     enable row level security;
+alter table public."MusicQuizKey"  enable row level security;
 
 -- Læsning for alle (TV, kaptajn-view, host-view kører alle på anon-key).
 create policy "anon_read_DimTeam"       on public."DimTeam"       for select to anon using (true);
 create policy "anon_read_DimDiscipline" on public."DimDiscipline" for select to anon using (true);
 create policy "anon_read_FactScore"     on public."FactScore"     for select to anon using (true);
+create policy "anon_read_MusicQuizKey"  on public."MusicQuizKey"  for select to anon using (true);
+
+-- Quizmaster (quiz.html, anon-key) afslører/skjuler sange → update på `revealed`.
+-- Som de øvrige flader: fuld tillid + ingen godkendelses-flow (ADR-2). Ingen insert/
+-- delete for anon — sang-listen seedes af ejeren via SQL-editoren (som Dim-tabellerne).
+create policy "anon_update_MusicQuizKey" on public."MusicQuizKey" for update to anon using (true) with check (true);
 
 -- Skrivning på FactScore: insert (kaptajn-upsert) + update (kaptajn-rettelse + host-lås).
 -- points-clamp håndhæves af chk_factscore_points uanset hvem der skriver.

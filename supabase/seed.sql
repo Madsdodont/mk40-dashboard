@@ -35,6 +35,7 @@
 truncate table public."FactScore" restart identity cascade;
 truncate table public."DimTeam" cascade;
 truncate table public."DimDiscipline" cascade;
+truncate table public."MusicQuizKey" cascade;
 
 -- ============================================================================
 -- 2. DimTeam — 5 LÅSTE kongeriger (2026-06-14, fra qr.html TEAMS-array)
@@ -72,6 +73,41 @@ insert into public."DimDiscipline" (discipline_key, discipline_name, discipline_
 -- ============================================================================
 -- Bevidst ingen insert. Board starter på empty-state; hver kaptajn-indtastning er en
 -- ægte input→DB→TV→callout-verifikation. Festdag-data loades via dashboard-021.
+
+-- ============================================================================
+-- 5. MusicQuizKey — facit-liste til musikquizzen (dashboard-013, display-only)
+-- ============================================================================
+-- Mads' faktiske quiz-sange (21). round_number = quiz-rækkefølge; release_year verificeret
+-- mod Wikipedia/Discogs (Claude-research 2026-06-19, kurateret m. Mads). revealed = false →
+-- quizmasteren afslører hver sang live fra quiz.html; TV-karrusellen (cards-h.html) viser kun
+-- de afslørede. Ikke scoring-koblet: musikquiz-POINT tastes uafhængigt på discipline_key=7.
+--
+-- Skåret ned fra 24→20-mål, landede på 21 (Mads). Fjernet: Wolfmother, The xx, Jamiroquai,
+-- Blink-182. Tilføjet: Malk de Koijn (#21). Malk er lagt sidst — flyt frit hvis quiz-rækken
+-- skal være en anden. OMSTRIDTE ÅR (valgt ét — skift frit): Butterfly (single 2000 / chart
+-- 2001), Trouble Is (2009/2010).
+insert into public."MusicQuizKey" (key_id, round_number, title, artist, release_year, revealed) values
+    ( 1,  1, 'Mr. Brightside',                         'The Killers',            2003, false),
+    ( 2,  2, 'Take It as It Comes',                    'Grand Avenue',           2003, false),
+    ( 3,  3, 'Teenage Dirtbag',                        'Wheatus',                2000, false),
+    ( 4,  4, 'Butterfly',                              'Crazy Town',             2000, false),
+    ( 5,  5, 'By the Way',                             'Red Hot Chili Peppers',  2002, false),
+    ( 6,  6, 'Han får for lidt',                       'Østkyst Hustlers',       1996, false),
+    ( 7,  7, 'Everybody (Backstreet''s Back)',         'Backstreet Boys',        1997, false),
+    ( 8,  8, 'L''Amour Toujours',                      'Gigi D''Agostino',       1999, false),
+    ( 9,  9, '505',                                    'Arctic Monkeys',         2007, false),
+    (10, 10, 'American Boy',                           'Estelle ft. Kanye West', 2008, false),
+    (11, 11, 'Like I Love You',                        'Justin Timberlake',      2002, false),
+    (12, 12, 'Trouble Is',                             'Turboweekend',           2009, false),
+    (13, 13, 'Vil du',                                 'U$O',                    2005, false),
+    (14, 14, 'Stuck in a Moment You Can''t Get Out Of','U2',                     2001, false),
+    (15, 15, 'Transparent & Glasslike',                'Carpark North',          2003, false),
+    (16, 16, 'Save Tonight',                           'Eagle-Eye Cherry',       1997, false),
+    (17, 17, 'Clint Eastwood',                         'Gorillaz',               2001, false),
+    (18, 18, 'Don''t Know Much About Love',            'Hanne Boel',             1992, false),
+    (19, 19, 'Club Tropicana',                         'Wham!',                  1983, false),
+    (20, 20, 'Never Gonna Give You Up',                'Rick Astley',            1987, false),
+    (21, 21, 'Vi tager fuglen på dig',                 'Malk de Koijn',          2002, false);
 
 -- ---------------------------------------------------------------------------
 -- PARKERET: DEMO-FACTSCORE (35 rows) — fjern blok-kommentaren for at re-aktivere

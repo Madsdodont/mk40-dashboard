@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>mk40 — Quizmaster</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900&family=JetBrains+Mono:wght@500;700;800&display=swap">
+    <style>
+        /* Genbruger host.html's "Dommer"-lystema, så quizmaster-fladen er visuelt søskende. */
+        :root {
+            --ink-void: oklch(94% 0.012 60);
+            --ink-deep: oklch(97% 0.008 60);
+            --ink-card: oklch(99% 0.005 60);
+            --ink-border-soft: oklch(88% 0.012 60);
+            --ink-border: oklch(75% 0.012 60);
+            --bone: oklch(20% 0.014 30);
+            --bone-muted: oklch(40% 0.014 30);
+            --bone-dim: oklch(58% 0.012 30);
+            --ok-green: oklch(55% 0.15 150);
+            --signal-error: oklch(58% 0.22 25);
+            --font-display: "Fraunces", Georgia, serif;
+            --font-label: "Segoe UI", system-ui, sans-serif;
+            --font-numeric: "JetBrains Mono", ui-monospace, monospace;
+            --shadow-low: 0 1px 2px oklch(20% 0.02 30 / 0.08), 0 2px 6px oklch(20% 0.02 30 / 0.06);
+            --shadow-medium: 0 2px 4px oklch(20% 0.02 30 / 0.10), 0 8px 24px oklch(20% 0.02 30 / 0.08);
+            --w-regular: 600; --w-bold: 700; --w-black: 900;
+            --ls-label: 0.12em; --ls-tight: -0.02em;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            background: var(--ink-void); color: var(--bone);
+            font-family: var(--font-label); min-height: 100vh; -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .wrap { max-width: 900px; margin: 0 auto; padding: 0 0 calc(4rem + env(safe-area-inset-bottom)); }
+        .head {
+            position: sticky; top: 0; z-index: 10; background: var(--bone); color: var(--ink-card);
+            padding: calc(1rem + env(safe-area-inset-top)) 1.25rem 1rem; box-shadow: var(--shadow-medium);
+            display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;
+        }
+        .head h1 { font-family: var(--font-display); font-weight: var(--w-black); font-size: 1.4rem; margin: 0; letter-spacing: var(--ls-tight); }
+        .head .sub { font-size: 0.75rem; letter-spacing: var(--ls-label); text-transform: uppercase; opacity: 0.7; font-weight: var(--w-bold); }
+        .head .conn { margin-left: auto; font-size: 0.75rem; font-family: var(--font-numeric); opacity: 0.8; }
+
+        /* App-nav (dashboard-029) — Scoreboard · Hold · Quiz. */
+        .app-nav {
+            display: flex; gap: 0.5rem; padding: 0.6rem 1.25rem;
+            background: var(--ink-card); border-bottom: 1px solid var(--ink-border-soft);
+            font-family: var(--font-label); font-size: 0.72rem; font-weight: var(--w-bold);
+            letter-spacing: var(--ls-label); text-transform: uppercase;
+        }
+        .app-nav a {
+            color: var(--bone-muted); text-decoration: none;
+            padding: 0.3rem 0.85rem; border-radius: 7px; border: 1px solid transparent;
+        }
+        .app-nav a.current { color: var(--bone); border-color: var(--ink-border); }
+        .app-nav a:hover { color: var(--bone); }
+
+        .bar {
+            display: flex; gap: 0.6rem; padding: 1rem 1rem 0.25rem; align-items: center; flex-wrap: wrap;
+        }
+        .bar .progress { font-family: var(--font-numeric); font-weight: var(--w-bold); font-size: 0.85rem; color: var(--bone-muted); margin-right: auto; }
+
+        .list { padding: 0.75rem 1rem 0; display: flex; flex-direction: column; gap: 0.6rem; }
+        .song {
+            background: var(--ink-card); border: 1px solid var(--ink-border-soft); border-radius: 12px;
+            box-shadow: var(--shadow-low); padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.9rem;
+        }
+        .song.revealed { border-color: color-mix(in oklch, var(--ok-green) 50%, var(--ink-border-soft)); background: color-mix(in oklch, var(--ok-green) 6%, var(--ink-card)); }
+        .song .num {
+            font-family: var(--font-numeric); font-weight: var(--w-black); font-size: 1.1rem;
+            color: var(--bone-dim); width: 2.1rem; text-align: center; flex: none;
+        }
+        .song .meta { flex: 1; min-width: 0; }
+        .song .title { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 1.1rem; letter-spacing: var(--ls-tight); }
+        .song .artist { font-size: 0.85rem; color: var(--bone-muted); margin-top: 0.1rem; }
+        .song .artist .year { font-family: var(--font-numeric); color: var(--bone-dim); margin-left: 0.4em; }
+        .song .state-pill {
+            font-size: 0.66rem; font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase;
+            color: var(--ok-green); flex: none;
+        }
+        .song:not(.revealed) .state-pill { color: var(--bone-dim); }
+
+        .btn {
+            font-family: var(--font-label); font-weight: var(--w-bold); font-size: 0.9rem;
+            min-height: 44px; padding: 0.55rem 1.1rem; border: none; border-radius: 8px; cursor: pointer;
+            box-shadow: var(--shadow-low); transition: transform 0.08s, opacity 0.2s; white-space: nowrap;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-reveal { background: var(--ok-green); color: oklch(98% 0.01 60); }
+        .btn-hide { background: transparent; color: var(--bone-muted); border: 1.5px solid var(--ink-border); box-shadow: none; }
+        .btn-primary { background: var(--bone); color: var(--ink-card); }
+        .btn-ghost { background: transparent; color: var(--bone-muted); border: 1.5px solid var(--ink-border); box-shadow: none; }
+        .song .btn { min-width: 7.5rem; flex: none; }
+
+        .state-msg { padding: 3rem 1.5rem; text-align: center; color: var(--bone-muted); }
+        .state-msg.error { color: var(--signal-error); }
+        .hint { padding: 0.5rem 1.25rem 0; font-size: 0.75rem; color: var(--bone-dim); }
+        .toast {
+            position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(2rem);
+            background: var(--bone); color: var(--ink-card); font-weight: var(--w-bold); font-size: 0.85rem;
+            padding: 0.7rem 1.2rem; border-radius: 999px; box-shadow: var(--shadow-medium);
+            opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 50;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.error { background: var(--signal-error); }
+    </style>
+</head>
+<body>
+    <nav class="app-nav">
+        <a href="./cards-h.html">Scoreboard</a>
+        <a href="./qr.html">Hold</a>
+        <a href="./quiz.html" class="current">Quiz</a>
+    </nav>
+    <div class="wrap">
+        <div class="head">
+            <h1>Quizmaster</h1>
+            <span class="sub">Musikquiz · facit</span>
+            <span class="conn" id="conn">●</span>
+        </div>
+        <p class="hint">Afslør facit én sang ad gangen — den dukker op i karrusellen på TV'et. Display-only, rører ikke pointene (dem taster dommeren).</p>
+        <div id="content"><div class="state-msg">Indlæser…</div></div>
+    </div>
+    <div id="toast" class="toast"></div>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const POLL_MS = 5000;
+        const contentEl = document.getElementById("content");
+        const connEl = document.getElementById("conn");
+        const toastEl = document.getElementById("toast");
+
+        function esc(s) { return s == null ? "" : String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+        let toastTimer;
+        function toast(msg, isError = false) {
+            clearTimeout(toastTimer);
+            toastEl.textContent = msg;
+            toastEl.className = "toast show" + (isError ? " error" : "");
+            toastTimer = setTimeout(() => { toastEl.className = "toast"; }, 2000);
+        }
+
+        let songs = [];
+        let busy = false; // pause poll-re-render mens et write er i gang
+
+        async function load() {
+            const { data, error } = await supabase.from("MusicQuizKey").select("*").order("round_number");
+            if (error) throw new Error(error.message);
+            songs = data || [];
+        }
+
+        function render() {
+            if (!songs.length) {
+                contentEl.innerHTML = `<div class="state-msg">Ingen sange i facit-listen endnu.<br>Seed <code>MusicQuizKey</code> i Supabase (se seed.sql).</div>`;
+                return;
+            }
+            const revealedCount = songs.filter(s => s.revealed).length;
+            const nextUnrevealed = songs.find(s => !s.revealed);
+
+            let rows = "";
+            for (const s of songs) {
+                const yr = s.release_year ? `<span class="year">${esc(s.release_year)}</span>` : "";
+                rows += `<div class="song ${s.revealed ? "revealed" : ""}" data-id="${s.key_id}">
+                    <span class="num">${esc(s.round_number)}</span>
+                    <span class="meta">
+                        <span class="title">${esc(s.title)}</span>
+                        <span class="artist">${esc(s.artist)} ${yr}</span>
+                    </span>
+                    <span class="state-pill">${s.revealed ? "På TV" : "Skjult"}</span>
+                    <button class="btn ${s.revealed ? "btn-hide" : "btn-reveal"}" data-action="${s.revealed ? "hide" : "reveal"}" data-id="${s.key_id}">
+                        ${s.revealed ? "Skjul" : "Afslør"}
+                    </button>
+                </div>`;
+            }
+
+            contentEl.innerHTML = `
+                <div class="bar">
+                    <span class="progress">${revealedCount}/${songs.length} afsløret</span>
+                    <button class="btn btn-primary" data-action="reveal-next" ${nextUnrevealed ? "" : "disabled"}>Afslør næste</button>
+                    <button class="btn btn-ghost" data-action="hide-all" ${revealedCount ? "" : "disabled"}>Skjul alle</button>
+                </div>
+                <div class="list">${rows}</div>`;
+            wire();
+        }
+
+        function wire() {
+            for (const btn of contentEl.querySelectorAll("[data-action]")) {
+                btn.addEventListener("click", () => {
+                    const action = btn.dataset.action;
+                    if (action === "reveal") setRevealed([Number(btn.dataset.id)], true);
+                    else if (action === "hide") setRevealed([Number(btn.dataset.id)], false);
+                    else if (action === "reveal-next") {
+                        const next = songs.find(s => !s.revealed);
+                        if (next) setRevealed([next.key_id], true);
+                    } else if (action === "hide-all") {
+                        setRevealed(songs.filter(s => s.revealed).map(s => s.key_id), false);
+                    }
+                });
+            }
+        }
+
+        // Flip `revealed` på de(n) valgte sang(e). Eneste write quiz.html laver.
+        async function setRevealed(keyIds, revealed) {
+            if (!keyIds.length) return;
+            busy = true;
+            const { error } = await supabase.from("MusicQuizKey")
+                .update({ revealed }).in("key_id", keyIds);
+            busy = false;
+            if (error) { toast("Fejl ved opdatering", true); return; }
+            toast(revealed ? (keyIds.length > 1 ? `${keyIds.length} sange afsløret` : "Afsløret på TV") : (keyIds.length > 1 ? "Alle skjult" : "Skjult"));
+            await refresh(true);
+        }
+
+        async function refresh(force = false) {
+            try {
+                await load();
+                connEl.style.color = "var(--ok-green)";
+                if (force || !busy) render();
+            } catch (err) {
+                connEl.style.color = "var(--signal-error)";
+                if (force) contentEl.innerHTML = `<div class="state-msg error">Fejl: ${esc(err.message)}</div>`;
+            }
+        }
+
+        refresh(true);
+        setInterval(() => refresh(false), POLL_MS);
+    </script>
+</body>
+</html>

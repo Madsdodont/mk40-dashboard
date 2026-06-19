@@ -119,8 +119,9 @@
             display: flex; flex-direction: column;
         }
 
-        /* ===== Proto nav ===== */
-        .proto-nav {
+        /* ===== App nav (dashboard-029) — de tre display-sider: Scoreboard · Hold · Quiz.
+           Kaptajn + Dommer tilgås direkte via URL (uden for nav, ADR/029-scope). ===== */
+        .app-nav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 30;
             background: oklch(96% 0.008 60 / 0.85); backdrop-filter: blur(8px);
             border-bottom: 1px solid var(--ink-border-soft);
@@ -128,17 +129,16 @@
             font-family: var(--font-label); font-size: var(--text-sm);
             font-weight: var(--w-regular); letter-spacing: var(--ls-label); text-transform: uppercase;
         }
-        .proto-nav a {
+        .app-nav a {
             color: var(--bone-muted); text-decoration: none; padding: 0.25rem 0.75rem;
             border: 1px solid transparent;
         }
-        /* Proto-nav is dev chrome. Dark amber for light theme — readable, signals "current". */
-        .proto-nav a.current { color: oklch(45% 0.16 50); border-color: oklch(45% 0.16 50); }
-        .proto-nav a:hover { color: var(--bone); }
+        .app-nav a.current { color: oklch(45% 0.16 50); border-color: oklch(45% 0.16 50); }
+        .app-nav a:hover { color: var(--bone); }
 
         /* ===== Layout shell — vertical lock 15/45/25/15 ===== */
         .shell {
-            /* 96px frame all sides (proto-nav is fixed-overlay scaffolding, floats in the top frame).
+            /* 96px frame all sides (app-nav is fixed-overlay scaffolding, floats in the top frame).
                Fit-to-one-screen: min-height 100vh, rows compress via fr + child overflow:hidden. */
             min-height: 100vh;
             padding: var(--frame);
@@ -1144,6 +1144,76 @@
             .hero-overlay .ov-row { transform: none; }
         }
 
+        /* ===== dashboard-013 · MusikQuiz facit-karrusel ==================================
+           Quizmasteren afslører sangene fra quiz.html → denne karrusel glider op fra bunden
+           og viser de afslørede facit, auto-cyklende sang for sang. Display-only: helt
+           afkoblet fra scoreboardet (egen fetch + try/catch). Dark widget-sprog som lock-
+           overlayet, men team-neutral (musikquiz har intet hold) → køligt neutral-accent.
+           z-index < hero-overlay (200): et lock-crescendo må stadig dække karrusellen. */
+        .quiz-carousel {
+            position: fixed; left: 0; right: 0; bottom: 0; z-index: 150;
+            display: flex; justify-content: center;
+            padding: clamp(1.5rem, 3vh, 3rem) clamp(1.5rem, 3vw, 3rem) calc(clamp(1.5rem, 3vh, 3rem) + env(safe-area-inset-bottom));
+            transform: translateY(112%); transition: transform 540ms cubic-bezier(.16, .84, .34, 1);
+            pointer-events: none;
+        }
+        .quiz-carousel.show { transform: translateY(0); }
+        .quiz-carousel .qc-card {
+            position: relative; width: min(94vw, 2100px);
+            background: oklch(21% 0.02 250);
+            border: 2px solid oklch(50% 0.06 250);
+            border-radius: 24px;
+            box-shadow: var(--shadow-high), 0 0 140px oklch(50% 0.08 250 / 0.40);
+            padding: clamp(1.75rem, 3.5vh, 3.5rem) clamp(2.5rem, 5vw, 6rem);
+            display: grid; gap: clamp(0.5rem, 1.4vh, 1.4rem); text-align: center;
+        }
+        .quiz-carousel .qc-tag {
+            display: flex; justify-content: space-between; align-items: center;
+            font-family: var(--font-label); font-size: clamp(1rem, 1.4vw, 1.875rem);
+            font-weight: var(--w-bold); letter-spacing: var(--ls-wide); text-transform: uppercase;
+            color: oklch(72% 0.04 250);
+        }
+        .quiz-carousel .qc-label { display: inline-flex; align-items: center; gap: 0.7rem; }
+        .quiz-carousel .qc-label::before {
+            content: ""; width: 16px; height: 16px; border-radius: 50%;
+            background: oklch(70% 0.12 250); box-shadow: 0 0 18px oklch(70% 0.12 250 / 0.8);
+        }
+        .quiz-carousel .qc-count { color: oklch(60% 0.02 250); font-variant-numeric: tabular-nums; }
+        .quiz-carousel .qc-round {
+            font-family: var(--font-label); font-size: clamp(0.95rem, 1.3vw, 1.75rem);
+            font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase;
+            color: oklch(62% 0.03 250);
+        }
+        .quiz-carousel .qc-title {
+            font-family: var(--font-display); font-weight: var(--w-black);
+            font-size: clamp(2.75rem, 6.5vw, 8.5rem); line-height: 0.98; letter-spacing: var(--ls-tight);
+            color: oklch(97% 0.012 250); text-wrap: balance;
+        }
+        .quiz-carousel .qc-artist {
+            font-family: var(--font-display); font-style: italic; font-weight: var(--w-bold);
+            font-size: clamp(1.75rem, 3.6vw, 4.75rem); line-height: 1.1; color: oklch(86% 0.03 250);
+        }
+        .quiz-carousel .qc-year {
+            font-family: var(--font-numeric); font-style: normal; font-weight: var(--w-bold);
+            color: oklch(66% 0.04 250); margin-left: 0.45em;
+        }
+        .quiz-carousel .qc-dots { display: flex; gap: 0.7rem; justify-content: center; margin-top: 0.4rem; }
+        .quiz-carousel .qc-dot {
+            width: 0.85rem; height: 0.85rem; border-radius: 50%;
+            background: oklch(42% 0.03 250); transition: background 0.3s, transform 0.3s;
+        }
+        .quiz-carousel .qc-dot.on { background: oklch(86% 0.10 250); transform: scale(1.15); }
+        /* Hver gang kortets indhold udskiftes (ny sang i cyklussen) → blødt fade-rise. */
+        .quiz-carousel.bump .qc-card { animation: qcBump 520ms cubic-bezier(.2, .7, .2, 1) both; }
+        @keyframes qcBump {
+            from { opacity: 0.3; transform: translateY(14px) scale(0.985); }
+            to   { opacity: 1;   transform: translateY(0)    scale(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .quiz-carousel { transition: none; }
+            .quiz-carousel.bump .qc-card { animation: none; }
+        }
+
         /* ===== Region B · timeline — the day as a vertical 12→22 axis =====================
            Col 3, rows 1-3 (~60%, aligned with cards 1-3). Light frosted — the hero stays the
            single dark focal point. Hour ruler (12..22, one tick/hour) + a dot per program
@@ -1374,15 +1444,10 @@
     </style>
 </head>
 <body>
-    <nav class="proto-nav">
-        <a href="./">Table (boring)</a>
-        <a href="./cards.html">A · Cards</a>
-        <a href="./bars.html">B · Bars</a>
-        <a href="./cinema.html">C · Cinematic</a>
-        <a href="./hud.html">D · HUD</a>
-        <a href="./hud2.html">E · HUD v2</a>
-        <a href="./hud3.html">F · HUD v3 (viz)</a>
-        <a href="./cards-h.html" class="current">G · Cards Horizontal</a>
+    <nav class="app-nav">
+        <a href="./cards-h.html" class="current">Scoreboard</a>
+        <a href="./qr.html">Hold</a>
+        <a href="./quiz.html">Quiz</a>
     </nav>
 
     <div class="shell">
@@ -1423,6 +1488,9 @@
 
     <!-- dashboard-020: lock-summary overlay — eksploderer fra centrum, 15s dwell, skrumper -->
     <div class="hero-overlay" id="hero-overlay" aria-hidden="true"></div>
+
+    <!-- dashboard-013: musikquiz facit-karrusel — glider op fra bunden, quizmaster-styret -->
+    <div class="quiz-carousel" id="quiz-carousel" aria-hidden="true"></div>
 
     <script type="module">
         import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -2231,6 +2299,79 @@
             }
         }
         poll(); setInterval(poll, 5000);
+
+        // ===== dashboard-013 · MusikQuiz facit-karrusel ==========================
+        // Quizmasteren afslører sange fra quiz.html (flipper MusicQuizKey.revealed) →
+        // denne karrusel viser de afslørede facit på TV'et, auto-cyklende sang for sang.
+        // BEVIDST ISOLERET fra scoreboardet: egen poll, egen fetch, egen try/catch. Fejler
+        // den (tabel mangler, netværk dør) mister man kun facit-visningen — render()/poll()
+        // ovenfor er urørt, scoring kører videre (task-noter + ADR-2 failure-mode).
+        const carouselEl = $("quiz-carousel");
+        const QUIZ_POLL_MS = 4000;      // hvor ofte vi tjekker for nye afsløringer
+        const QUIZ_ADVANCE_MS = 8000;   // auto-cykl-interval mellem afslørede sange
+        let quizSongs = [];             // afslørede rows (sorteret på round_number)
+        let quizIdx = 0;                // aktuel sang i cyklussen
+        let quizTimer = null;           // auto-advance-interval (kun aktivt når >1 sang)
+        const quizSeen = new Set();     // key_id vi har vist → en ny afsløring hopper til front
+
+        async function fetchQuiz() {
+            const { data, error } = await supabase.from("MusicQuizKey")
+                .select("*").eq("revealed", true).order("round_number");
+            if (error) throw new Error(error.message);
+            return data || [];
+        }
+
+        function paintCarousel() {
+            if (!quizSongs.length) { carouselEl.classList.remove("show"); return; }
+            const k = quizSongs[Math.min(quizIdx, quizSongs.length - 1)];
+            const yr = k.release_year ? ` <span class="qc-year">${esc(k.release_year)}</span>` : "";
+            const dots = quizSongs.length > 1
+                ? `<div class="qc-dots">${quizSongs.map((_, i) => `<span class="qc-dot${i === quizIdx ? " on" : ""}"></span>`).join("")}</div>`
+                : "";
+            carouselEl.innerHTML = `
+                <div class="qc-card">
+                    <div class="qc-tag">
+                        <span class="qc-label">Musikquiz · facit</span>
+                        <span class="qc-count">${quizIdx + 1} / ${quizSongs.length}</span>
+                    </div>
+                    <div class="qc-round">Sang ${esc(k.round_number)}</div>
+                    <div class="qc-title">${esc(k.title)}</div>
+                    <div class="qc-artist">${esc(k.artist)}${yr}</div>
+                    ${dots}
+                </div>`;
+            carouselEl.classList.add("show");
+            // Re-trigger fade-rise på kort-skift (fjern→reflow→tilføj).
+            carouselEl.classList.remove("bump"); void carouselEl.offsetWidth; carouselEl.classList.add("bump");
+        }
+
+        function advanceCarousel() {
+            if (quizSongs.length <= 1) return;
+            quizIdx = (quizIdx + 1) % quizSongs.length;
+            paintCarousel();
+        }
+        function startQuizTimer() { if (!quizTimer && quizSongs.length > 1) quizTimer = setInterval(advanceCarousel, QUIZ_ADVANCE_MS); }
+        function stopQuizTimer() { if (quizTimer) { clearInterval(quizTimer); quizTimer = null; } }
+
+        async function pollQuiz() {
+            let rows;
+            try { rows = await fetchQuiz(); }
+            catch { return; }   // graceful: behold sidste visning, prøv igen næste poll
+            quizSongs = rows;
+            if (!rows.length) { quizSeen.clear(); quizIdx = 0; stopQuizTimer(); carouselEl.classList.remove("show"); return; }
+            // Ny afsløring siden sidst → hop til den nyeste (højeste afslørede round_number).
+            const fresh = rows.filter(r => !quizSeen.has(r.key_id));
+            rows.forEach(r => quizSeen.add(r.key_id));
+            if (fresh.length) {
+                const newest = fresh.reduce((a, b) => (a.round_number >= b.round_number ? a : b));
+                quizIdx = rows.findIndex(r => r.key_id === newest.key_id);
+                stopQuizTimer();   // genstart dwell-uret fra den friske sang
+            } else if (quizIdx >= rows.length) {
+                quizIdx = 0;       // en sang blev skjult og vi pegede forbi enden
+            }
+            paintCarousel();
+            startQuizTimer();
+        }
+        pollQuiz(); setInterval(pollQuiz, QUIZ_POLL_MS);
     </script>
 </body>
 </html>

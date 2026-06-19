@@ -5,54 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>mk40 — Kongerigernes Kamp</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231a1614'/%3E%3Ctext x='50' y='62' font-family='Georgia,serif' font-size='52' font-weight='700' text-anchor='middle' fill='%23e6c875'%3E40%3C/text%3E%3C/svg%3E">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap">
-    <link rel="stylesheet" href="style.css">
+    <!-- dashboard-029: forsiden er nu Scoreboardet. Den gamle "boring table" er pensioneret
+         (findes i Git om nødvendigt). Redirect så / lander direkte på TV-boardet. -->
+    <meta http-equiv="refresh" content="0; url=./cards-h.html">
+    <script>location.replace("./cards-h.html");</script>
     <style>
-        .proto-nav {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 10;
-            background: oklch(10% 0.01 30 / 0.85); backdrop-filter: blur(8px);
-            padding: 0.5rem 1.5rem; display: flex; gap: 0.5rem;
-            font-family: "Inter", system-ui, sans-serif; font-size: 0.75rem;
-            font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
-        }
-        .proto-nav a {
-            color: oklch(78% 0.012 60); text-decoration: none; padding: 0.25rem 0.75rem;
-            border: 1px solid transparent;
-        }
-        .proto-nav a.current { color: oklch(78% 0.16 85); border-color: oklch(78% 0.16 85); }
-        .proto-nav a:hover { color: oklch(94% 0.010 60); }
-        body { padding-top: 2.25rem; }
+        body { margin: 0; min-height: 100vh; display: grid; place-items: center;
+            background: oklch(94% 0.012 60); color: oklch(40% 0.014 30);
+            font-family: "Segoe UI", system-ui, sans-serif; }
+        a { color: oklch(45% 0.16 50); }
     </style>
 </head>
 <body>
-    <nav class="proto-nav">
-        <a href="./" class="current">Table (boring)</a>
-        <a href="./cards.html">A · Cards</a>
-        <a href="./bars.html">B · Bars</a>
-        <a href="./cinema.html">C · Cinematic</a>
-        <a href="./hud.html">D · HUD</a>
-        <a href="./hud2.html">E · HUD v2</a>
-    </nav>
-    <header>
-        <h1>mk40 — Kongerigernes Kamp</h1>
-        <div id="status-bar">
-            <span id="last-updated">Forbinder…</span>
-        </div>
-    </header>
-
-    <main>
-        <div id="scoreboard-container">
-            <div class="state-message">Henter data…</div>
-        </div>
-    </main>
-
-    <footer>
-        <span class="footer-label">Polling hvert 5. sek</span>
-        <span id="connection-state" aria-label="Forbindelses-status">●</span>
-    </footer>
-
-    <script type="module" src="app.js"></script>
+    <p>Sender dig til <a href="./cards-h.html">Scoreboardet</a>…</p>
 </body>
 </html>

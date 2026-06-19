@@ -41,6 +41,20 @@
             font-family: var(--font-label); -webkit-font-smoothing: antialiased;
         }
 
+        /* ---- App-nav (dashboard-029) — kun skærm, aldrig i print (.no-print) ---- */
+        .app-nav {
+            display: flex; gap: 0.5rem; padding: 0.6rem 1.25rem;
+            background: var(--ink-card); border-bottom: 1px solid var(--ink-border-soft);
+            font-family: var(--font-label); font-size: 0.72rem; font-weight: var(--w-bold);
+            letter-spacing: var(--ls-label); text-transform: uppercase;
+        }
+        .app-nav a {
+            color: var(--bone-muted); text-decoration: none;
+            padding: 0.3rem 0.85rem; border-radius: 7px; border: 1px solid transparent;
+        }
+        .app-nav a.current { color: var(--bone); border-color: var(--ink-border); }
+        .app-nav a:hover { color: var(--bone); }
+
         /* ---- Skærm-kontroller (printes ikke) ---- */
         .controls {
             display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;
@@ -104,6 +118,11 @@
     </style>
 </head>
 <body>
+    <nav class="app-nav no-print">
+        <a href="./cards-h.html">Scoreboard</a>
+        <a href="./qr.html" class="current">Hold</a>
+        <a href="./quiz.html">Quiz</a>
+    </nav>
     <div class="controls no-print">
         <label for="base">Base-URL</label>
         <input id="base" type="text" spellcheck="false">
