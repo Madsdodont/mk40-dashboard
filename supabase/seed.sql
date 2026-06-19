@@ -35,6 +35,7 @@
 truncate table public."FactScore" restart identity cascade;
 truncate table public."DimTeam" cascade;
 truncate table public."DimDiscipline" cascade;
+truncate table public."MusicQuizScore" cascade;
 truncate table public."MusicQuizKey" cascade;
 
 -- ============================================================================

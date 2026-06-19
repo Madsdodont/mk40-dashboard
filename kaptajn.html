@@ -220,7 +220,8 @@
             allTeams = teamRes.data;
             team = allTeams.find((t) => t.team_key === teamKey);
             if (!team) throw new Error(`Hold ${teamKey} findes ikke`);
-            disciplines = discRes.data;
+            // Musikquiz (disc 7) køres KUN fra dommer-konsollen (dashboard-030) → ikke i kaptajn-flowet.
+            disciplines = discRes.data.filter((d) => d.discipline_key !== 7);
             allScores = scoreRes.data;
             myScores = {};
             for (const r of allScores) if (r.team_key === teamKey) myScores[r.discipline_key] = r;

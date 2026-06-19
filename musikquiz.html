@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mk40 — Musikquiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900&family=JetBrains+Mono:wght@500;700;800&display=swap">
+    <style>
+        /* Dedikeret TV-quiz-side (dashboard-030): facit øverst + fem voksende søjler.
+           Paper-æstetik som Scoreboardet (cards-h). 4K-clamshell @ 100% zoom, F11. */
+        :root {
+            --ink-void: oklch(94% 0.012 60);
+            --ink-deep: oklch(97% 0.008 60);
+            --ink-card: oklch(99% 0.005 60);
+            --ink-border-soft: oklch(88% 0.012 60);
+            --ink-border: oklch(75% 0.012 60);
+            --bone: oklch(20% 0.014 30);
+            --bone-muted: oklch(40% 0.014 30);
+            --bone-dim: oklch(58% 0.012 30);
+            --team-pink: oklch(58% 0.22 5);
+            --team-navy: oklch(42% 0.20 258);
+            --team-grøn: oklch(50% 0.18 145);
+            --team-gul: oklch(82% 0.16 85);
+            --team-lilla: oklch(52% 0.18 295);
+            --font-display: "Fraunces", Georgia, serif;
+            --font-label: "Segoe UI", system-ui, sans-serif;
+            --font-numeric: "JetBrains Mono", ui-monospace, monospace;
+            --w-regular: 600; --w-bold: 700; --w-black: 900;
+            --ls-tight: -0.02em; --ls-label: 0.12em; --ls-wide: 0.2em;
+            --shadow-low: 0 1px 2px oklch(20% 0.02 30 / 0.08), 0 2px 6px oklch(20% 0.02 30 / 0.06);
+            --shadow-medium: 0 2px 4px oklch(20% 0.02 30 / 0.10), 0 12px 32px oklch(20% 0.02 30 / 0.10);
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; height: 100%; }
+        body {
+            background:
+                radial-gradient(ellipse 60% 55% at 12% 10%, color-mix(in oklch, var(--team-pink) 12%, transparent) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 55% at 88% 90%, color-mix(in oklch, var(--team-navy) 12%, transparent) 0%, transparent 60%),
+                var(--ink-void);
+            color: var(--bone); font-family: var(--font-label); min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+        .app-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+            background: oklch(96% 0.008 60 / 0.85); backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--ink-border-soft);
+            padding: 0.5rem 1.5rem; display: flex; gap: 0.5rem;
+            font-family: var(--font-label); font-size: clamp(0.875rem, 0.8vw, 1.5rem);
+            font-weight: var(--w-regular); letter-spacing: var(--ls-label); text-transform: uppercase;
+        }
+        .app-nav a { color: var(--bone-muted); text-decoration: none; padding: 0.25rem 0.75rem; border: 1px solid transparent; border-radius: 6px; }
+        .app-nav a.current { color: oklch(45% 0.16 50); border-color: oklch(45% 0.16 50); }
+
+        .shell { min-height: 100vh; padding: clamp(4rem, 7vh, 7rem) clamp(2rem, 4vw, 5rem) clamp(2rem, 4vh, 4rem);
+            display: grid; grid-template-rows: auto 1fr; gap: clamp(1.5rem, 3vh, 3rem); }
+
+        /* ===== Facit-panel ===== */
+        .facit { text-align: center; }
+        .facit .kicker { font-family: var(--font-label); font-weight: var(--w-bold);
+            font-size: clamp(1rem, 1.4vw, 1.875rem); letter-spacing: var(--ls-wide); text-transform: uppercase; color: var(--bone-dim); }
+        .facit .kicker .song-no { color: var(--bone-muted); }
+        .facit .title { font-family: var(--font-display); font-weight: var(--w-black);
+            font-size: clamp(2.5rem, 6vw, 8rem); line-height: 1.0; letter-spacing: var(--ls-tight); margin: 0.2em 0 0.1em; text-wrap: balance; }
+        .facit .artist { font-family: var(--font-display); font-style: italic; font-weight: var(--w-bold);
+            font-size: clamp(1.5rem, 3.2vw, 4.25rem); color: var(--bone-muted); }
+        .facit .artist .year { font-family: var(--font-numeric); font-style: normal; color: var(--bone-dim); margin-left: 0.45em; }
+        .facit.waiting .title { color: var(--bone-dim); font-weight: var(--w-bold); }
+        .facit.bump { animation: facitBump 520ms cubic-bezier(.2,.7,.2,1) both; }
+        @keyframes facitBump { from { opacity: 0.3; transform: translateY(14px) scale(0.99); } to { opacity: 1; transform: none; } }
+
+        /* ===== Søjler ===== */
+        .bars { display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(1rem, 2.5vw, 3rem); align-items: end; min-height: 0; }
+        .bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-height: 0; gap: clamp(0.5rem, 1.2vh, 1.2rem); }
+        .bar-track { width: 100%; flex: 1; min-height: 0; display: flex; align-items: flex-end;
+            background: color-mix(in oklch, var(--ink-card) 70%, transparent);
+            border: 1px solid var(--ink-border-soft); border-radius: 16px 16px 10px 10px; overflow: hidden; box-shadow: var(--shadow-low); }
+        .bar-fill { width: 100%; height: 0%;
+            background: linear-gradient(to top, var(--team-color), color-mix(in oklch, var(--team-color) 78%, white));
+            border-radius: 12px 12px 0 0; transition: height 0.7s cubic-bezier(.2,.7,.2,1);
+            box-shadow: 0 0 40px color-mix(in oklch, var(--team-color) 45%, transparent);
+            display: flex; align-items: flex-start; justify-content: center; }
+        .bar-score { font-family: var(--font-numeric); font-weight: var(--w-black);
+            font-size: clamp(1.5rem, 2.4vw, 3.25rem); color: oklch(99% 0.01 60); padding-top: 0.4em;
+            text-shadow: 0 1px 8px oklch(20% 0.05 30 / 0.5); }
+        .bar-score.outside { color: var(--bone); text-shadow: none; margin-top: -1.7em; } /* lav søjle → tal over toppen */
+        .bar-label { text-align: center; }
+        .bar-label .bar-name { font-family: var(--font-display); font-weight: var(--w-bold);
+            font-size: clamp(1.1rem, 1.7vw, 2.25rem); letter-spacing: var(--ls-tight); line-height: 1.05; color: var(--bone); }
+        .bar-dot { display: inline-block; width: 0.7em; height: 0.7em; border-radius: 50%; background: var(--team-color); margin-right: 0.35em; vertical-align: baseline; }
+
+        .state-msg { grid-row: 1 / -1; align-self: center; text-align: center; color: var(--bone-muted); font-size: clamp(1.25rem, 2vw, 2.5rem); }
+        @media (prefers-reduced-motion: reduce) {
+            .facit.bump { animation: none; }
+            .bar-fill { transition: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="app-nav">
+        <a href="./cards-h.html">Scoreboard</a>
+        <a href="./qr.html">Hold</a>
+        <a href="./musikquiz.html" class="current">Quiz</a>
+    </nav>
+    <div class="shell" id="shell">
+        <div class="state-msg">Henter data…</div>
+    </div>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const MAX_PER_SONG = 3;
+        const POLL_MS = 4000;
+        const shell = document.getElementById("shell");
+        function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
+        function esc(s) { return s == null ? "" : String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+        const teamColorVar = (t) => `var(--team-${cssVarSafe(t.team_color)})`;
+
+        let built = false;          // skelet bygget?
+        let facitKey = null;        // sidst malede facit-sang → kun re-anim ved skift
+
+        async function fetchAll() {
+            const [t, k, s] = await Promise.all([
+                supabase.from("DimTeam").select("*").order("team_key"),
+                supabase.from("MusicQuizKey").select("*").order("round_number"),
+                supabase.from("MusicQuizScore").select("*"),
+            ]);
+            if (t.error || k.error || s.error) throw new Error(t.error?.message || k.error?.message || s.error?.message);
+            return { teams: t.data, songs: k.data, scores: s.data };
+        }
+
+        // Skelet bygges ÉN gang → poll opdaterer kun højder/tal (CSS-transition animerer, intet blink).
+        function buildSkeleton(teams) {
+            shell.innerHTML = `
+                <div class="facit waiting" id="facit">
+                    <div class="kicker">Musikquiz · facit</div>
+                    <div class="title">Venter på første facit</div>
+                    <div class="artist"></div>
+                </div>
+                <div class="bars" id="bars">
+                    ${teams.map(t => `
+                        <div class="bar-col" style="--team-color:${teamColorVar(t)}" data-team="${t.team_key}">
+                            <div class="bar-track"><div class="bar-fill"><span class="bar-score">0</span></div></div>
+                            <div class="bar-label"><span class="bar-name"><span class="bar-dot"></span>${esc(t.team_name)}</span></div>
+                        </div>`).join("")}
+                </div>`;
+            built = true;
+        }
+
+        function updateFacit(songs) {
+            const facitEl = document.getElementById("facit");
+            if (!facitEl) return;
+            const revealed = songs.filter(s => s.revealed);
+            if (!revealed.length) {
+                if (facitKey !== "none") {
+                    facitKey = "none";
+                    facitEl.classList.add("waiting");
+                    facitEl.querySelector(".kicker").innerHTML = `Musikquiz · facit`;
+                    facitEl.querySelector(".title").textContent = "Venter på første facit";
+                    facitEl.querySelector(".artist").textContent = "";
+                }
+                return;
+            }
+            // nyeste afslørede sang (højeste round_number) = den aktuelle facit
+            const k = revealed.reduce((a, b) => (a.round_number >= b.round_number ? a : b));
+            if (facitKey === k.key_id) return;   // uændret → ingen re-anim
+            facitKey = k.key_id;
+            facitEl.classList.remove("waiting");
+            facitEl.querySelector(".kicker").innerHTML = `Musikquiz · facit · <span class="song-no">sang ${esc(k.round_number)} / ${songs.length}</span>`;
+            facitEl.querySelector(".title").textContent = k.title;
+            const yr = k.release_year ? ` ${k.release_year}` : "";
+            facitEl.querySelector(".artist").innerHTML = `${esc(k.artist)}${yr ? `<span class="year">${esc(k.release_year)}</span>` : ""}`;
+            facitEl.classList.remove("bump"); void facitEl.offsetWidth; facitEl.classList.add("bump");
+        }
+
+        function updateBars(teams, songs, scores) {
+            // Skala: total / (alle sange × 3) → søjlerne stiger langsomt gennem hele quizzen.
+            const maxPossible = Math.max(1, songs.length * MAX_PER_SONG);
+            for (const t of teams) {
+                const total = scores.filter(r => r.team_key === t.team_key).reduce((a, r) => a + r.correct, 0);
+                const col = shell.querySelector(`.bar-col[data-team="${t.team_key}"]`);
+                if (!col) continue;
+                const pct = Math.min(100, total / maxPossible * 100);
+                const fill = col.querySelector(".bar-fill");
+                const score = col.querySelector(".bar-score");
+                fill.style.height = pct + "%";
+                score.textContent = total;
+                // lav søjle → vis tallet OVER toppen så det ikke klippes
+                score.classList.toggle("outside", pct < 10);
+            }
+        }
+
+        async function poll() {
+            let data;
+            try { data = await fetchAll(); }
+            catch (e) {
+                if (!built) shell.innerHTML = `<div class="state-msg">Fejl: ${esc(e.message)}</div>`;
+                return;
+            }
+            if (!data.teams.length) { shell.innerHTML = `<div class="state-msg">Ingen hold endnu.</div>`; built = false; return; }
+            if (!built) buildSkeleton(data.teams);
+            updateFacit(data.songs);
+            updateBars(data.teams, data.songs, data.scores);
+        }
+        poll(); setInterval(poll, POLL_MS);
+    </script>
+</body>
+</html>

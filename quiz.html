@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>mk40 — Quizmaster</title>
+    <title>mk40 — Musikquiz (Dommer)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900&family=JetBrains+Mono:wght@500;700;800&display=swap">
     <style>
-        /* Genbruger host.html's "Dommer"-lystema, så quizmaster-fladen er visuelt søskende. */
+        /* Dommer-konsol til musikquizzen (dashboard-030). Genbruger host.html's lystema.
+           Eneste vej til musikquiz-scoring: tast 0-3 rigtige pr. hold pr. sang → SUM bliver
+           disciplin 7's placering ved lås. */
         :root {
             --ink-void: oklch(94% 0.012 60);
             --ink-deep: oklch(97% 0.008 60);
@@ -20,6 +22,11 @@
             --bone-dim: oklch(58% 0.012 30);
             --ok-green: oklch(55% 0.15 150);
             --signal-error: oklch(58% 0.22 25);
+            --team-pink: oklch(58% 0.22 5);
+            --team-navy: oklch(42% 0.20 258);
+            --team-grøn: oklch(50% 0.18 145);
+            --team-gul: oklch(82% 0.16 85);
+            --team-lilla: oklch(52% 0.18 295);
             --font-display: "Fraunces", Georgia, serif;
             --font-label: "Segoe UI", system-ui, sans-serif;
             --font-numeric: "JetBrains Mono", ui-monospace, monospace;
@@ -35,7 +42,7 @@
             font-family: var(--font-label); min-height: 100vh; -webkit-font-smoothing: antialiased;
             -webkit-tap-highlight-color: transparent;
         }
-        .wrap { max-width: 900px; margin: 0 auto; padding: 0 0 calc(4rem + env(safe-area-inset-bottom)); }
+        .wrap { max-width: 760px; margin: 0 auto; padding: 0 0 calc(5rem + env(safe-area-inset-bottom)); }
         .head {
             position: sticky; top: 0; z-index: 10; background: var(--bone); color: var(--ink-card);
             padding: calc(1rem + env(safe-area-inset-top)) 1.25rem 1rem; box-shadow: var(--shadow-medium);
@@ -45,63 +52,66 @@
         .head .sub { font-size: 0.75rem; letter-spacing: var(--ls-label); text-transform: uppercase; opacity: 0.7; font-weight: var(--w-bold); }
         .head .conn { margin-left: auto; font-size: 0.75rem; font-family: var(--font-numeric); opacity: 0.8; }
 
-        /* App-nav (dashboard-029) — Scoreboard · Hold · Quiz. */
-        .app-nav {
-            display: flex; gap: 0.5rem; padding: 0.6rem 1.25rem;
-            background: var(--ink-card); border-bottom: 1px solid var(--ink-border-soft);
-            font-family: var(--font-label); font-size: 0.72rem; font-weight: var(--w-bold);
-            letter-spacing: var(--ls-label); text-transform: uppercase;
-        }
-        .app-nav a {
-            color: var(--bone-muted); text-decoration: none;
-            padding: 0.3rem 0.85rem; border-radius: 7px; border: 1px solid transparent;
-        }
-        .app-nav a.current { color: var(--bone); border-color: var(--ink-border); }
-        .app-nav a:hover { color: var(--bone); }
+        .progress-bar { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem 0; }
+        .progress-bar .count { font-family: var(--font-numeric); font-weight: var(--w-bold); font-size: 0.85rem; color: var(--bone-muted); }
+        .progress-bar .track { flex: 1; height: 6px; border-radius: 999px; background: var(--ink-border-soft); overflow: hidden; }
+        .progress-bar .fill { height: 100%; background: var(--ok-green); transition: width 0.4s; }
 
-        .bar {
-            display: flex; gap: 0.6rem; padding: 1rem 1rem 0.25rem; align-items: center; flex-wrap: wrap;
+        /* Aktuel sang — facit står stort så dommeren ved hvad der er rigtigt. */
+        .song-card {
+            margin: 1rem 1.25rem 0; background: var(--ink-card); border: 1px solid var(--ink-border-soft);
+            border-radius: 14px; box-shadow: var(--shadow-low); padding: 1.1rem 1.25rem 1.25rem;
         }
-        .bar .progress { font-family: var(--font-numeric); font-weight: var(--w-bold); font-size: 0.85rem; color: var(--bone-muted); margin-right: auto; }
+        .song-card .song-kicker { display: flex; align-items: center; justify-content: space-between; }
+        .song-card .song-no { font-size: 0.72rem; font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--bone-dim); }
+        .song-card .reveal-state { font-size: 0.68rem; font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--bone-dim); }
+        .song-card .reveal-state.on { color: var(--ok-green); }
+        .song-card .title { font-family: var(--font-display); font-weight: var(--w-black); font-size: 1.7rem; line-height: 1.05; letter-spacing: var(--ls-tight); margin: 0.35rem 0 0.15rem; }
+        .song-card .artist { font-family: var(--font-display); font-style: italic; font-weight: var(--w-bold); font-size: 1.05rem; color: var(--bone-muted); }
+        .song-card .artist .year { font-family: var(--font-numeric); font-style: normal; color: var(--bone-dim); margin-left: 0.4em; }
+        .song-card .reveal-btn { margin-top: 0.9rem; width: 100%; }
 
-        .list { padding: 0.75rem 1rem 0; display: flex; flex-direction: column; gap: 0.6rem; }
-        .song {
+        .teams { padding: 1rem 1.25rem 0; display: flex; flex-direction: column; gap: 0.6rem; }
+        .team-row {
             background: var(--ink-card); border: 1px solid var(--ink-border-soft); border-radius: 12px;
-            box-shadow: var(--shadow-low); padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.9rem;
+            box-shadow: var(--shadow-low); padding: 0.7rem 0.85rem; display: flex; align-items: center; gap: 0.75rem;
         }
-        .song.revealed { border-color: color-mix(in oklch, var(--ok-green) 50%, var(--ink-border-soft)); background: color-mix(in oklch, var(--ok-green) 6%, var(--ink-card)); }
-        .song .num {
-            font-family: var(--font-numeric); font-weight: var(--w-black); font-size: 1.1rem;
-            color: var(--bone-dim); width: 2.1rem; text-align: center; flex: none;
+        .team-row .dot { width: 0.85rem; height: 0.85rem; border-radius: 50%; background: var(--team-color); flex: none; }
+        .team-row .name { font-weight: var(--w-bold); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .team-row .total { font-family: var(--font-numeric); font-size: 0.75rem; color: var(--bone-dim); flex: none; }
+        /* 0-3 tap-stepper: fire segmenterede knapper, ét tap = valgt. */
+        .stepper { display: inline-flex; gap: 0; border: 1.5px solid var(--ink-border); border-radius: 9px; overflow: hidden; flex: none; }
+        .stepper button {
+            font-family: var(--font-numeric); font-weight: var(--w-bold); font-size: 1.05rem;
+            width: 2.9rem; min-height: 46px; border: none; border-left: 1.5px solid var(--ink-border);
+            background: var(--ink-deep); color: var(--bone-muted); cursor: pointer; transition: background 0.1s, color 0.1s;
         }
-        .song .meta { flex: 1; min-width: 0; }
-        .song .title { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 1.1rem; letter-spacing: var(--ls-tight); }
-        .song .artist { font-size: 0.85rem; color: var(--bone-muted); margin-top: 0.1rem; }
-        .song .artist .year { font-family: var(--font-numeric); color: var(--bone-dim); margin-left: 0.4em; }
-        .song .state-pill {
-            font-size: 0.66rem; font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase;
-            color: var(--ok-green); flex: none;
-        }
-        .song:not(.revealed) .state-pill { color: var(--bone-dim); }
+        .stepper button:first-child { border-left: none; }
+        .stepper button.sel { background: var(--team-color, var(--bone)); color: oklch(98% 0.01 60); }
+        .stepper button:active { transform: scale(0.95); }
 
+        .actions { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+            background: color-mix(in oklch, var(--ink-deep) 92%, transparent); backdrop-filter: blur(8px);
+            border-top: 1px solid var(--ink-border-soft);
+            padding: 0.85rem 1.25rem calc(0.85rem + env(safe-area-inset-bottom)); display: flex; gap: 0.6rem; }
         .btn {
-            font-family: var(--font-label); font-weight: var(--w-bold); font-size: 0.9rem;
-            min-height: 44px; padding: 0.55rem 1.1rem; border: none; border-radius: 8px; cursor: pointer;
-            box-shadow: var(--shadow-low); transition: transform 0.08s, opacity 0.2s; white-space: nowrap;
+            font-family: var(--font-label); font-weight: var(--w-bold); font-size: 0.95rem;
+            min-height: 50px; padding: 0.6rem 1.1rem; border: none; border-radius: 10px; cursor: pointer;
+            box-shadow: var(--shadow-low); transition: transform 0.08s, opacity 0.2s;
         }
-        .btn:active { transform: scale(0.97); }
+        .btn:active { transform: scale(0.98); }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-prev { background: transparent; color: var(--bone-muted); border: 1.5px solid var(--ink-border); box-shadow: none; flex: none; }
+        .btn-next { background: var(--bone); color: var(--ink-card); flex: 1; }
         .btn-reveal { background: var(--ok-green); color: oklch(98% 0.01 60); }
-        .btn-hide { background: transparent; color: var(--bone-muted); border: 1.5px solid var(--ink-border); box-shadow: none; }
-        .btn-primary { background: var(--bone); color: var(--ink-card); }
-        .btn-ghost { background: transparent; color: var(--bone-muted); border: 1.5px solid var(--ink-border); box-shadow: none; }
-        .song .btn { min-width: 7.5rem; flex: none; }
+        .btn-reveal.is-on { background: transparent; color: var(--bone-muted); border: 1.5px solid var(--ink-border); box-shadow: none; }
+        .btn-lock { background: var(--ok-green); color: oklch(98% 0.01 60); flex: 1; }
 
         .state-msg { padding: 3rem 1.5rem; text-align: center; color: var(--bone-muted); }
         .state-msg.error { color: var(--signal-error); }
         .hint { padding: 0.5rem 1.25rem 0; font-size: 0.75rem; color: var(--bone-dim); }
         .toast {
-            position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(2rem);
+            position: fixed; left: 50%; bottom: calc(5rem + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(2rem);
             background: var(--bone); color: var(--ink-card); font-weight: var(--w-bold); font-size: 0.85rem;
             padding: 0.7rem 1.2rem; border-radius: 999px; box-shadow: var(--shadow-medium);
             opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 50;
@@ -111,18 +121,12 @@
     </style>
 </head>
 <body>
-    <nav class="app-nav">
-        <a href="./cards-h.html">Scoreboard</a>
-        <a href="./qr.html">Hold</a>
-        <a href="./quiz.html" class="current">Quiz</a>
-    </nav>
     <div class="wrap">
         <div class="head">
-            <h1>Quizmaster</h1>
-            <span class="sub">Musikquiz · facit</span>
+            <h1>Musikquiz</h1>
+            <span class="sub">Dommer</span>
             <span class="conn" id="conn">●</span>
         </div>
-        <p class="hint">Afslør facit én sang ad gangen — den dukker op i karrusellen på TV'et. Display-only, rører ikke pointene (dem taster dommeren).</p>
         <div id="content"><div class="state-msg">Indlæser…</div></div>
     </div>
     <div id="toast" class="toast"></div>
@@ -130,98 +134,209 @@
     <script type="module">
         import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
         import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+        import { computePlacements } from "./score.js";
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const POLL_MS = 5000;
+        const POLL_MS = 6000;
+        const MUSIKQUIZ_DISC = 7;     // disciplin-key for Musikquiz (DimDiscipline)
+        const MAX_PER_SONG = 3;       // titel + kunstner + år
         const contentEl = document.getElementById("content");
         const connEl = document.getElementById("conn");
         const toastEl = document.getElementById("toast");
 
+        function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
         function esc(s) { return s == null ? "" : String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
         let toastTimer;
         function toast(msg, isError = false) {
             clearTimeout(toastTimer);
             toastEl.textContent = msg;
             toastEl.className = "toast show" + (isError ? " error" : "");
-            toastTimer = setTimeout(() => { toastEl.className = "toast"; }, 2000);
+            toastTimer = setTimeout(() => { toastEl.className = "toast"; }, 2200);
         }
 
-        let songs = [];
-        let busy = false; // pause poll-re-render mens et write er i gang
+        let teams = [], songs = [], scores = [];
+        let curIdx = 0;                 // hvilken sang vises/scores nu (index i songs)
+        const pending = new Map();      // team_key → valgt 0-3 for den aktuelle sang (ugemt)
+        let dirty = false;              // ugemte stepper-valg → pause poll-re-render
 
         async function load() {
-            const { data, error } = await supabase.from("MusicQuizKey").select("*").order("round_number");
-            if (error) throw new Error(error.message);
-            songs = data || [];
+            const [t, k, s] = await Promise.all([
+                supabase.from("DimTeam").select("*").order("team_key"),
+                supabase.from("MusicQuizKey").select("*").order("round_number"),
+                supabase.from("MusicQuizScore").select("*"),
+            ]);
+            if (t.error) throw new Error(t.error.message);
+            if (k.error) throw new Error(k.error.message);
+            if (s.error) throw new Error(s.error.message);
+            teams = t.data; songs = k.data; scores = s.data;
+        }
+
+        const scoredSongKeys = () => new Set(scores.map(r => r.song_key));
+        function scoreFor(songKey, teamKey) {
+            const r = scores.find(x => x.song_key === songKey && x.team_key === teamKey);
+            return r ? r.correct : null;
+        }
+        const teamTotal = (teamKey) => scores.filter(r => r.team_key === teamKey).reduce((a, r) => a + r.correct, 0);
+
+        // Resume: spring til første sang uden scores (ellers bliv hvor vi var).
+        function deriveStart() {
+            const done = scoredSongKeys();
+            const i = songs.findIndex(s => !done.has(s.key_id));
+            curIdx = i === -1 ? songs.length - 1 : i;
+        }
+
+        // Fyld pending fra gemte scores for den aktuelle sang (så man kan rette).
+        function loadPending() {
+            pending.clear();
+            const song = songs[curIdx];
+            if (!song) return;
+            for (const tm of teams) {
+                const v = scoreFor(song.key_id, tm.team_key);
+                pending.set(tm.team_key, v == null ? 0 : v);
+            }
         }
 
         function render() {
             if (!songs.length) {
-                contentEl.innerHTML = `<div class="state-msg">Ingen sange i facit-listen endnu.<br>Seed <code>MusicQuizKey</code> i Supabase (se seed.sql).</div>`;
+                contentEl.innerHTML = `<div class="state-msg">Ingen sange i facit-listen.<br>Seed <code>MusicQuizKey</code> i Supabase (se seed.sql).</div>`;
                 return;
             }
-            const revealedCount = songs.filter(s => s.revealed).length;
-            const nextUnrevealed = songs.find(s => !s.revealed);
+            const song = songs[curIdx];
+            const scoredCount = scoredSongKeys().size;
+            const allScored = scoredCount === songs.length;
+            const isScored = scoredSongKeys().has(song.key_id);
+            const yr = song.release_year ? ` <span class="year">${esc(song.release_year)}</span>` : "";
 
             let rows = "";
-            for (const s of songs) {
-                const yr = s.release_year ? `<span class="year">${esc(s.release_year)}</span>` : "";
-                rows += `<div class="song ${s.revealed ? "revealed" : ""}" data-id="${s.key_id}">
-                    <span class="num">${esc(s.round_number)}</span>
-                    <span class="meta">
-                        <span class="title">${esc(s.title)}</span>
-                        <span class="artist">${esc(s.artist)} ${yr}</span>
-                    </span>
-                    <span class="state-pill">${s.revealed ? "På TV" : "Skjult"}</span>
-                    <button class="btn ${s.revealed ? "btn-hide" : "btn-reveal"}" data-action="${s.revealed ? "hide" : "reveal"}" data-id="${s.key_id}">
-                        ${s.revealed ? "Skjul" : "Afslør"}
-                    </button>
+            for (const tm of teams) {
+                const teamVar = `var(--team-${cssVarSafe(tm.team_color)})`;
+                const sel = pending.get(tm.team_key) ?? 0;
+                let steps = "";
+                for (let n = 0; n <= MAX_PER_SONG; n++) {
+                    steps += `<button data-team="${tm.team_key}" data-val="${n}" class="${n === sel ? "sel" : ""}">${n}</button>`;
+                }
+                rows += `<div class="team-row" style="--team-color:${teamVar}">
+                    <span class="dot"></span>
+                    <span class="name">${esc(tm.team_name)}</span>
+                    <span class="total">∑ ${teamTotal(tm.team_key)}</span>
+                    <span class="stepper">${steps}</span>
                 </div>`;
             }
 
             contentEl.innerHTML = `
-                <div class="bar">
-                    <span class="progress">${revealedCount}/${songs.length} afsløret</span>
-                    <button class="btn btn-primary" data-action="reveal-next" ${nextUnrevealed ? "" : "disabled"}>Afslør næste</button>
-                    <button class="btn btn-ghost" data-action="hide-all" ${revealedCount ? "" : "disabled"}>Skjul alle</button>
+                <div class="progress-bar">
+                    <span class="count">${scoredCount}/${songs.length} scoret</span>
+                    <span class="track"><span class="fill" style="width:${(scoredCount / songs.length * 100).toFixed(0)}%"></span></span>
                 </div>
-                <div class="list">${rows}</div>`;
+                <div class="song-card">
+                    <div class="song-kicker">
+                        <span class="song-no">Sang ${esc(song.round_number)} / ${songs.length}${isScored ? " · scoret" : ""}</span>
+                        <span class="reveal-state ${song.revealed ? "on" : ""}">${song.revealed ? "● vist på TV" : "skjult"}</span>
+                    </div>
+                    <div class="title">${esc(song.title)}</div>
+                    <div class="artist">${esc(song.artist)}${yr}</div>
+                    <button class="btn btn-reveal ${song.revealed ? "is-on" : ""}" data-action="reveal">
+                        ${song.revealed ? "Skjul på TV" : "Afslør på TV"}
+                    </button>
+                </div>
+                <p class="hint">Tast hvert holds antal rigtige (0–3: titel · kunstner · år), så ét tryk videre. Summen bliver musikquizzens placering til sidst.</p>
+                <div class="teams">${rows}</div>
+                <div class="actions">
+                    <button class="btn btn-prev" data-action="prev" ${curIdx === 0 ? "disabled" : ""}>← forrige</button>
+                    ${curIdx < songs.length - 1
+                        ? `<button class="btn btn-next" data-action="next">Gem &amp; næste sang →</button>`
+                        : `<button class="btn btn-next" data-action="next">Gem sidste sang</button>`}
+                    ${allScored ? `<button class="btn btn-lock" data-action="lock">Afslut &amp; lås 🔒</button>` : ""}
+                </div>`;
             wire();
+            dirty = false;
         }
 
         function wire() {
-            for (const btn of contentEl.querySelectorAll("[data-action]")) {
+            for (const btn of contentEl.querySelectorAll(".stepper button")) {
                 btn.addEventListener("click", () => {
-                    const action = btn.dataset.action;
-                    if (action === "reveal") setRevealed([Number(btn.dataset.id)], true);
-                    else if (action === "hide") setRevealed([Number(btn.dataset.id)], false);
-                    else if (action === "reveal-next") {
-                        const next = songs.find(s => !s.revealed);
-                        if (next) setRevealed([next.key_id], true);
-                    } else if (action === "hide-all") {
-                        setRevealed(songs.filter(s => s.revealed).map(s => s.key_id), false);
-                    }
+                    const tk = Number(btn.dataset.team), val = Number(btn.dataset.val);
+                    pending.set(tk, val);
+                    dirty = true;
+                    // opdatér valgt-state i den ene stepper uden fuld re-render
+                    for (const sib of btn.parentElement.children) sib.classList.toggle("sel", sib === btn);
+                });
+            }
+            for (const btn of contentEl.querySelectorAll("[data-action]")) {
+                const action = btn.dataset.action;
+                btn.addEventListener("click", () => {
+                    if (action === "reveal") toggleReveal();
+                    else if (action === "next") saveAndAdvance();   // gemmer + frem
+                    else if (action === "prev") navTo(curIdx - 1);  // kun navigér (gemmer ikke 0'er)
+                    else if (action === "lock") finishLock();
                 });
             }
         }
 
-        // Flip `revealed` på de(n) valgte sang(e). Eneste write quiz.html laver.
-        async function setRevealed(keyIds, revealed) {
-            if (!keyIds.length) return;
-            busy = true;
+        async function toggleReveal() {
+            const song = songs[curIdx];
             const { error } = await supabase.from("MusicQuizKey")
-                .update({ revealed }).in("key_id", keyIds);
-            busy = false;
-            if (error) { toast("Fejl ved opdatering", true); return; }
-            toast(revealed ? (keyIds.length > 1 ? `${keyIds.length} sange afsløret` : "Afsløret på TV") : (keyIds.length > 1 ? "Alle skjult" : "Skjult"));
-            await refresh(true);
+                .update({ revealed: !song.revealed }).eq("key_id", song.key_id);
+            if (error) { toast("Fejl ved afsløring", true); return; }
+            song.revealed = !song.revealed;
+            toast(song.revealed ? "Vist på TV" : "Skjult");
+            render();
+        }
+
+        // Navigér uden at gemme (til at rette en tidligere sang).
+        function navTo(i) {
+            if (i < 0 || i >= songs.length) return;
+            curIdx = i; loadPending(); render();
+        }
+
+        // Gem den aktuelle sangs 5 scores (upsert) → ryk én sang frem.
+        async function saveAndAdvance() {
+            const song = songs[curIdx];
+            const rows = teams.map(tm => ({
+                song_key: song.key_id, team_key: tm.team_key,
+                correct: Math.max(0, Math.min(MAX_PER_SONG, pending.get(tm.team_key) ?? 0)),
+            }));
+            const { error } = await supabase.from("MusicQuizScore")
+                .upsert(rows, { onConflict: "song_key,team_key" });
+            if (error) { toast("Fejl ved gem", true); return; }
+            // opdatér lokal scores-cache så totaler/progress er friske uden round-trip
+            for (const nr of rows) {
+                const ex = scores.find(x => x.song_key === nr.song_key && x.team_key === nr.team_key);
+                if (ex) ex.correct = nr.correct; else scores.push({ ...nr });
+            }
+            const nextIdx = curIdx + 1;
+            if (nextIdx < songs.length) curIdx = nextIdx;
+            else toast("Alle sange scoret — tryk Afslut & lås 🔒");
+            loadPending();
+            render();
+        }
+
+        // Afslut: SUM pr. hold → placerings-point (flest rigtige vinder) → skriv FactScore disc 7.
+        async function finishLock() {
+            const totals = teams.map(tm => ({ team_key: tm.team_key, raw_value: teamTotal(tm.team_key) }));
+            const placements = computePlacements(totals, "desc");   // desc = flest rigtige → 1. plads
+            const updates = totals.map(t => {
+                const p = placements.get(t.team_key);
+                const breakdown = songs
+                    .map(s => { const c = scoreFor(s.key_id, t.team_key); return c == null ? null : `${s.round_number}:${c}`; })
+                    .filter(Boolean).join(" · ");
+                return supabase.from("FactScore").upsert({
+                    team_key: t.team_key, discipline_key: MUSIKQUIZ_DISC, round_number: 1,
+                    raw_value: t.raw_value, points: p ? p.points : null, is_final: true,
+                    breakdown: breakdown || null,
+                }, { onConflict: "team_key,discipline_key,round_number" });
+            });
+            const results = await Promise.all(updates);
+            if (results.some(r => r.error)) { toast("Fejl ved lås", true); console.error(results); return; }
+            toast("Musikquiz låst — point tæller nu i totalen");
         }
 
         async function refresh(force = false) {
             try {
                 await load();
                 connEl.style.color = "var(--ok-green)";
-                if (force || !busy) render();
+                if (force) { deriveStart(); loadPending(); }
+                if (force || !dirty) render();
             } catch (err) {
                 connEl.style.color = "var(--signal-error)";
                 if (force) contentEl.innerHTML = `<div class="state-msg error">Fejl: ${esc(err.message)}</div>`;

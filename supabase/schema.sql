@@ -113,8 +113,26 @@ create table public."MusicQuizKey" (
     revealed      boolean not null default false  -- quizmaster flipper → vises i TV-karrusellen
 );
 
-comment on table public."MusicQuizKey" is 'Display-only facit-liste til musikquizzen. Quizmaster flipper revealed pr. sang → TV-karrusel. Ikke scoring-koblet.';
-comment on column public."MusicQuizKey".revealed is 'Quizmaster (quiz.html) har afsløret sangen → den vises i TV-karrusellen (cards-h.html).';
+comment on table public."MusicQuizKey" is 'Facit-liste til musikquizzen. Quizmaster flipper revealed pr. sang → TV-visning. Sang-listen er også grain-reference for MusicQuizScore.';
+comment on column public."MusicQuizKey".revealed is 'Dommeren (quiz.html-konsollen) har afsløret sangen → den vises på TV (musikquiz.html + cards-h-karrusel).';
+
+-- ============================================================================
+-- 4c. MusicQuizScore — per-sang per-hold rigtige (dashboard-030)
+-- ============================================================================
+-- Dommer-konsollen (quiz.html) er den ENESTE vej til musikquiz-scoring (besluttet
+-- 2026-06-20). Pr. sang taster dommeren hvor mange rigtige hvert hold havde (0-3:
+-- titel/kunstner/år). Grain = (sang × hold). Holdets løbende SUM driver de fem søjler
+-- på TV-quiz-siden; ved quiz-slut skrives summen som disciplin 7's FactScore.raw_value
+-- → den normale placerings-model (flest rigtige → 10/7/5/3/1). Musikquiz er derfor
+-- IKKE længere i kaptajn/host-flowet.
+create table public."MusicQuizScore" (
+    song_key   smallint not null references public."MusicQuizKey"(key_id),
+    team_key   smallint not null references public."DimTeam"(team_key),
+    correct    smallint not null default 0 check (correct between 0 and 3),
+    constraint uq_musicquizscore unique (song_key, team_key)
+);
+
+comment on table public."MusicQuizScore" is 'Per-(sang × hold) rigtige (0-3) i musikquizzen. SUM pr. hold = søjle-højde + disciplin 7 raw_value ved lås. Dommer-konsol er eneste skriver.';
 
 -- ============================================================================
 -- 5. Row Level Security — anon læser alt, skriver kun FactScore
@@ -127,6 +145,7 @@ alter table public."DimTeam"       enable row level security;
 alter table public."DimDiscipline" enable row level security;
 alter table public."FactScore"     enable row level security;
 alter table public."MusicQuizKey"  enable row level security;
+alter table public."MusicQuizScore" enable row level security;
 
 -- Læsning for alle (TV, kaptajn-view, host-view kører alle på anon-key).
 create policy "anon_read_DimTeam"       on public."DimTeam"       for select to anon using (true);
@@ -138,6 +157,12 @@ create policy "anon_read_MusicQuizKey"  on public."MusicQuizKey"  for select to 
 -- Som de øvrige flader: fuld tillid + ingen godkendelses-flow (ADR-2). Ingen insert/
 -- delete for anon — sang-listen seedes af ejeren via SQL-editoren (som Dim-tabellerne).
 create policy "anon_update_MusicQuizKey" on public."MusicQuizKey" for update to anon using (true) with check (true);
+
+-- Dommer-konsollen (musikquiz, anon-key) taster per-sang-scores → read + insert + update.
+-- Samme fulde-tillid-model (ADR-2). correct-clamp (0-3) håndhæves af CHECK uanset skriver.
+create policy "anon_read_MusicQuizScore"   on public."MusicQuizScore" for select to anon using (true);
+create policy "anon_insert_MusicQuizScore" on public."MusicQuizScore" for insert to anon with check (true);
+create policy "anon_update_MusicQuizScore" on public."MusicQuizScore" for update to anon using (true) with check (true);
 
 -- Skrivning på FactScore: insert (kaptajn-upsert) + update (kaptajn-rettelse + host-lås).
 -- points-clamp håndhæves af chk_factscore_points uanset hvem der skriver.

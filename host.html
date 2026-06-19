@@ -204,7 +204,9 @@
             if (t.error) throw new Error(t.error.message);
             if (d.error) throw new Error(d.error.message);
             if (s.error) throw new Error(s.error.message);
-            teams = t.data; disciplines = d.data; scores = s.data;
+            // Musikquiz (disc 7) scores KUN fra dommer-konsollen (quiz.html, dashboard-030) →
+            // udelad den her, så host ikke tilbyder en parallel scoring/lås-vej.
+            teams = t.data; disciplines = d.data.filter(x => x.discipline_key !== 7); scores = s.data;
         }
 
         // ===== Per-spiller-snit (skal matche kaptajn.html readScoreData) =====
