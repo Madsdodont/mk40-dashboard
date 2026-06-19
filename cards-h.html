@@ -2314,19 +2314,23 @@
         let quizTimer = null;           // auto-advance-interval (kun aktivt når >1 sang)
         const quizSeen = new Set();     // key_id vi har vist → en ny afsløring hopper til front
         let quizPaintKey = null;        // signatur (sange+idx) sidst malet → repaint KUN ved ændring (dræber poll-blink)
+        let quizTotal = 0;              // samlet antal sange i quizzen (21) → tæller "Sang X / total"
 
         async function fetchQuiz() {
+            // Hent ALLE sange (filtrér revealed klient-side) så vi også kender totalen (21)
+            // til tælleren "Sang X / 21" — ikke bare antal afslørede.
             const { data, error } = await supabase.from("MusicQuizKey")
-                .select("*").eq("revealed", true).order("round_number");
+                .select("*").order("round_number");
             if (error) throw new Error(error.message);
-            return data || [];
+            const all = data || [];
+            return { revealed: all.filter(r => r.revealed), total: all.length };
         }
 
         function paintCarousel() {
             if (!quizSongs.length) { carouselEl.classList.remove("show"); quizPaintKey = null; return; }
             // Repaint KUN når indholdet skifter (ny afsløring / cyklus-skift). Uden denne guard
             // genmaler + gen-animerer hver 4s-poll kortet = synligt blink (Mads 06-19).
-            const paintKey = quizSongs.map(s => s.key_id).join(",") + "|" + quizIdx;
+            const paintKey = quizSongs.map(s => s.key_id).join(",") + "|" + quizIdx + "|" + quizTotal;
             if (paintKey === quizPaintKey) return;
             quizPaintKey = paintKey;
             const k = quizSongs[Math.min(quizIdx, quizSongs.length - 1)];
@@ -2338,7 +2342,7 @@
                 <div class="qc-card">
                     <div class="qc-tag">
                         <span class="qc-label">Musikquiz · facit</span>
-                        <span class="qc-count">${quizIdx + 1} / ${quizSongs.length}</span>
+                        <span class="qc-count">${esc(k.round_number)} / ${quizTotal}</span>
                     </div>
                     <div class="qc-round">Sang ${esc(k.round_number)}</div>
                     <div class="qc-title">${esc(k.title)}</div>
@@ -2359,9 +2363,11 @@
         function stopQuizTimer() { if (quizTimer) { clearInterval(quizTimer); quizTimer = null; } }
 
         async function pollQuiz() {
-            let rows;
-            try { rows = await fetchQuiz(); }
+            let res;
+            try { res = await fetchQuiz(); }
             catch { return; }   // graceful: behold sidste visning, prøv igen næste poll
+            const rows = res.revealed;
+            quizTotal = res.total;
             quizSongs = rows;
             if (!rows.length) { quizSeen.clear(); quizIdx = 0; quizPaintKey = null; stopQuizTimer(); carouselEl.classList.remove("show"); return; }
             // Ny afsløring siden sidst → hop til den nyeste (højeste afslørede round_number).
