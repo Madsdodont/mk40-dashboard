@@ -9,14 +9,14 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900&family=JetBrains+Mono:wght@500;700;800&display=swap">
     <style>
         :root {
-            --ink-void: oklch(94% 0.012 60);
-            --ink-deep: oklch(97% 0.008 60);
-            --ink-card: oklch(99% 0.005 60);
-            --ink-border-soft: oklch(88% 0.012 60);
-            --ink-border: oklch(75% 0.012 60);
-            --bone: oklch(20% 0.014 30);
-            --bone-muted: oklch(40% 0.014 30);
-            --bone-dim: oklch(58% 0.012 30);
+            --paper-void: oklch(94% 0.012 60);
+            --paper-deep: oklch(97% 0.008 60);
+            --paper-card: oklch(99% 0.005 60);
+            --paper-border-soft: oklch(88% 0.012 60);
+            --paper-border: oklch(75% 0.012 60);
+            --ink: oklch(20% 0.014 30);
+            --ink-muted: oklch(40% 0.014 30);
+            --ink-dim: oklch(58% 0.012 30);
             --ok-green: oklch(55% 0.15 150);
             --wait-amber: oklch(60% 0.13 75);
             --team-pink: oklch(58% 0.22 5);
@@ -35,14 +35,14 @@
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }
         body {
-            background: var(--ink-void); color: var(--bone);
+            background: var(--paper-void); color: var(--ink);
             font-family: var(--font-label); min-height: 100vh; -webkit-font-smoothing: antialiased;
             -webkit-tap-highlight-color: transparent;
         }
         /* iPad landscape: bredt canvas → giv plads til 2-3 kolonner. */
         .wrap { max-width: 1280px; margin: 0 auto; padding: 0 0 calc(4rem + env(safe-area-inset-bottom)); }
         .head {
-            position: sticky; top: 0; z-index: 10; background: var(--bone); color: var(--ink-card);
+            position: sticky; top: 0; z-index: 10; background: var(--ink); color: var(--paper-card);
             padding: calc(1rem + env(safe-area-inset-top)) 1.25rem 1rem; box-shadow: var(--shadow-medium);
             display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;
         }
@@ -54,47 +54,47 @@
            min 440px holder hver disciplin læselig. align-items:start så kort ikke strækkes. */
         .list { padding: 1rem 1rem 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 1rem; align-items: start; }
         .disc { break-inside: avoid; }
-        .disc { background: var(--ink-card); border: 1px solid var(--ink-border-soft); border-radius: 12px; box-shadow: var(--shadow-low); overflow: hidden; }
-        .disc.locked { border-color: color-mix(in oklch, var(--ok-green) 45%, var(--ink-border-soft)); }
+        .disc { background: var(--paper-card); border: 1px solid var(--paper-border-soft); border-radius: 12px; box-shadow: var(--shadow-low); overflow: hidden; }
+        .disc.locked { border-color: color-mix(in oklch, var(--ok-green) 45%, var(--paper-border-soft)); }
 
         /* Accordion: disciplin-kort foldes ud/ind ligesom på kaptajn-siden (dashboard-026). */
         .disc-top { padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.6rem; cursor: pointer; user-select: none; }
-        .disc.open .disc-top { border-bottom: 1px solid var(--ink-border-soft); }
+        .disc.open .disc-top { border-bottom: 1px solid var(--paper-border-soft); }
         .disc-top h2 { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 1.15rem; margin: 0; flex: 1; }
-        .disc-top .chevron { color: var(--bone-dim); font-size: 1rem; transition: transform 0.2s; }
+        .disc-top .chevron { color: var(--ink-dim); font-size: 1rem; transition: transform 0.2s; }
         .disc.open .disc-top .chevron { transform: rotate(180deg); }
         .disc-body { display: none; }
         .disc.open .disc-body { display: block; }
-        .count-chip { font-family: var(--font-numeric); font-size: 0.8rem; font-weight: var(--w-bold); color: var(--bone-muted); }
+        .count-chip { font-family: var(--font-numeric); font-size: 0.8rem; font-weight: var(--w-bold); color: var(--ink-muted); }
         .count-chip.full { color: var(--ok-green); }
         .lock-tag { font-size: 0.7rem; font-weight: var(--w-bold); color: var(--ok-green); letter-spacing: var(--ls-label); text-transform: uppercase; }
 
         table { width: 100%; border-collapse: collapse; }
         td, th { padding: 0.5rem 1rem; text-align: left; }
-        thead th { font-size: 0.62rem; letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--bone-dim); font-weight: var(--w-bold); }
-        tbody tr { border-top: 1px solid var(--ink-border-soft); }
-        tbody tr.pending td { color: var(--bone-dim); }
-        .rank-cell { font-family: var(--font-numeric); font-weight: var(--w-black); font-size: 1.05rem; width: 2.2rem; color: var(--team-color, var(--bone)); }
+        thead th { font-size: 0.62rem; letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--ink-dim); font-weight: var(--w-bold); }
+        tbody tr { border-top: 1px solid var(--paper-border-soft); }
+        tbody tr.pending td { color: var(--ink-dim); }
+        .rank-cell { font-family: var(--font-numeric); font-weight: var(--w-black); font-size: 1.05rem; width: 2.2rem; color: var(--team-color, var(--ink)); }
         .team-cell { font-weight: var(--w-bold); }
         .team-dot { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--team-color); margin-right: 0.45rem; vertical-align: -1px; }
         .raw-cell input {
             width: 5.5rem; font-family: var(--font-numeric); font-size: 1rem; text-align: right;
-            min-height: 40px; padding: 0.4rem 0.55rem; border: 1.5px solid var(--ink-border); border-radius: 7px;
-            background: var(--ink-deep); color: var(--bone); -webkit-appearance: none; appearance: none;
+            min-height: 40px; padding: 0.4rem 0.55rem; border: 1.5px solid var(--paper-border); border-radius: 7px;
+            background: var(--paper-deep); color: var(--ink); -webkit-appearance: none; appearance: none;
         }
-        .raw-cell input:disabled { background: transparent; border-color: transparent; color: var(--bone-muted); text-align: right; }
-        .raw-cell input:focus { outline: none; border-color: var(--bone); }
+        .raw-cell input:disabled { background: transparent; border-color: transparent; color: var(--ink-muted); text-align: right; }
+        .raw-cell input:focus { outline: none; border-color: var(--ink); }
         .pts-cell { font-family: var(--font-numeric); font-weight: var(--w-bold); width: 4rem; text-align: right; }
-        .note-cell { font-size: 0.78rem; color: var(--bone-dim); max-width: 12rem; }
+        .note-cell { font-size: 0.78rem; color: var(--ink-dim); max-width: 12rem; }
 
         /* Per-spiller-blokke (bowling + dart): host kan se og rette hver enkelt spillers tal,
            ikke kun holdets snit (dashboard-026 fix 1). Snit genberegnes live af de viste tal. */
-        .team-block { border-top: 1px solid var(--ink-border-soft); padding: 0.7rem 1rem 0.85rem; }
+        .team-block { border-top: 1px solid var(--paper-border-soft); padding: 0.7rem 1rem 0.85rem; }
         .tb-head { display: flex; align-items: baseline; gap: 0.5rem; }
         .tb-head .rank-cell { width: 1.9rem; }
         .tb-head .team-cell { flex: 1; }
-        .tb-snit { font-family: var(--font-numeric); font-size: 0.78rem; color: var(--bone-dim); }
-        .tb-snit b { color: var(--team-color, var(--bone)); font-weight: var(--w-black); font-size: 0.95rem; }
+        .tb-snit { font-family: var(--font-numeric); font-size: 0.78rem; color: var(--ink-dim); }
+        .tb-snit b { color: var(--team-color, var(--ink)); font-weight: var(--w-black); font-size: 0.95rem; }
         .tb-head .pts-cell { width: auto; }
         /* Fast 2-kolonne-grid: navn | felt | «deltog ikke» justeret i bånd (ikke rodet flex-wrap). */
         .player-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem 1.5rem; margin-top: 0.6rem; }
@@ -104,22 +104,22 @@
         .player-grid .absent-toggle { justify-self: end; }
         .player-grid .player-input {
             width: 100%; min-width: 0; font-family: var(--font-numeric); font-size: 0.95rem; text-align: right;
-            min-height: 40px; padding: 0.35rem 0.5rem; border: 1.5px solid var(--ink-border); border-radius: 7px;
-            background: var(--ink-deep); color: var(--bone); -webkit-appearance: none; appearance: none;
+            min-height: 40px; padding: 0.35rem 0.5rem; border: 1.5px solid var(--paper-border); border-radius: 7px;
+            background: var(--paper-deep); color: var(--ink); -webkit-appearance: none; appearance: none;
         }
-        .player-grid .player-input:focus { outline: none; border-color: var(--bone); }
+        .player-grid .player-input:focus { outline: none; border-color: var(--ink); }
         .player-grid .player-input:disabled { opacity: 0.5; }
         .absent-toggle {
-            font-size: 0.66rem; font-weight: var(--w-bold); background: none; border: 1px solid var(--ink-border);
-            border-radius: 999px; padding: 0.2rem 0.5rem; color: var(--bone-muted); cursor: pointer; white-space: nowrap;
+            font-size: 0.66rem; font-weight: var(--w-bold); background: none; border: 1px solid var(--paper-border);
+            border-radius: 999px; padding: 0.2rem 0.5rem; color: var(--ink-muted); cursor: pointer; white-space: nowrap;
         }
-        .player-row.absent .absent-toggle { background: color-mix(in oklch, var(--bone-muted) 14%, transparent); color: var(--bone); }
+        .player-row.absent .absent-toggle { background: color-mix(in oklch, var(--ink-muted) 14%, transparent); color: var(--ink); }
         .absent-toggle[hidden] { display: none; }
-        .tb-note { font-size: 0.76rem; color: var(--bone-dim); margin-top: 0.45rem; }
-        .tb-empty { font-size: 0.76rem; color: var(--bone-dim); margin-top: 0.5rem; }
+        .tb-note { font-size: 0.76rem; color: var(--ink-dim); margin-top: 0.45rem; }
+        .tb-empty { font-size: 0.76rem; color: var(--ink-dim); margin-top: 0.5rem; }
 
-        .disc-foot { padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.6rem; border-top: 1px solid var(--ink-border-soft); }
-        .hint { font-size: 0.72rem; color: var(--bone-dim); flex: 1; }
+        .disc-foot { padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.6rem; border-top: 1px solid var(--paper-border-soft); }
+        .hint { font-size: 0.72rem; color: var(--ink-dim); flex: 1; }
         .btn {
             font-family: var(--font-label); font-weight: var(--w-bold); font-size: 0.9rem;
             min-height: 44px; padding: 0.55rem 1.25rem; border: none; border-radius: 8px; cursor: pointer;
@@ -128,14 +128,14 @@
         .btn:active { transform: scale(0.97); }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-lock { background: var(--ok-green); color: oklch(98% 0.01 60); }
-        .btn-unlock { background: transparent; color: var(--bone-muted); border: 1.5px solid var(--ink-border); box-shadow: none; }
-        .btn-save { background: var(--bone); color: var(--ink-card); }
+        .btn-unlock { background: transparent; color: var(--ink-muted); border: 1.5px solid var(--paper-border); box-shadow: none; }
+        .btn-save { background: var(--ink); color: var(--paper-card); }
 
-        .state-msg { padding: 3rem 1.5rem; text-align: center; color: var(--bone-muted); }
+        .state-msg { padding: 3rem 1.5rem; text-align: center; color: var(--ink-muted); }
         .state-msg.error { color: var(--team-pink); }
         .toast {
             position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(2rem);
-            background: var(--bone); color: var(--ink-card); font-weight: var(--w-bold); font-size: 0.85rem;
+            background: var(--ink); color: var(--paper-card); font-weight: var(--w-bold); font-size: 0.85rem;
             padding: 0.7rem 1.2rem; border-radius: 999px; box-shadow: var(--shadow-medium);
             opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 50;
         }

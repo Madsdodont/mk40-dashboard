@@ -11,14 +11,14 @@
         /* Dedikeret TV-quiz-side (dashboard-030): facit øverst + fem voksende søjler.
            Paper-æstetik som Scoreboardet (cards-h). 4K-clamshell @ 100% zoom, F11. */
         :root {
-            --ink-void: oklch(94% 0.012 60);
-            --ink-deep: oklch(97% 0.008 60);
-            --ink-card: oklch(99% 0.005 60);
-            --ink-border-soft: oklch(88% 0.012 60);
-            --ink-border: oklch(75% 0.012 60);
-            --bone: oklch(20% 0.014 30);
-            --bone-muted: oklch(40% 0.014 30);
-            --bone-dim: oklch(58% 0.012 30);
+            --paper-void: oklch(94% 0.012 60);
+            --paper-deep: oklch(97% 0.008 60);
+            --paper-card: oklch(99% 0.005 60);
+            --paper-border-soft: oklch(88% 0.012 60);
+            --paper-border: oklch(75% 0.012 60);
+            --ink: oklch(20% 0.014 30);
+            --ink-muted: oklch(40% 0.014 30);
+            --ink-dim: oklch(58% 0.012 30);
             --team-pink: oklch(58% 0.22 5);
             --team-navy: oklch(42% 0.20 258);
             --team-grøn: oklch(50% 0.18 145);
@@ -38,19 +38,19 @@
             background:
                 radial-gradient(ellipse 60% 55% at 12% 10%, color-mix(in oklch, var(--team-pink) 12%, transparent) 0%, transparent 60%),
                 radial-gradient(ellipse 60% 55% at 88% 90%, color-mix(in oklch, var(--team-navy) 12%, transparent) 0%, transparent 60%),
-                var(--ink-void);
-            color: var(--bone); font-family: var(--font-label); min-height: 100vh;
+                var(--paper-void);
+            color: var(--ink); font-family: var(--font-label); min-height: 100vh;
             -webkit-font-smoothing: antialiased;
         }
         .app-nav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 30;
             background: oklch(96% 0.008 60 / 0.85); backdrop-filter: blur(8px);
-            border-bottom: 1px solid var(--ink-border-soft);
+            border-bottom: 1px solid var(--paper-border-soft);
             padding: 0.5rem 1.5rem; display: flex; gap: 0.5rem;
             font-family: var(--font-label); font-size: clamp(0.875rem, 0.8vw, 1.5rem);
             font-weight: var(--w-regular); letter-spacing: var(--ls-label); text-transform: uppercase;
         }
-        .app-nav a { color: var(--bone-muted); text-decoration: none; padding: 0.25rem 0.75rem; border: 1px solid transparent; border-radius: 6px; }
+        .app-nav a { color: var(--ink-muted); text-decoration: none; padding: 0.25rem 0.75rem; border: 1px solid transparent; border-radius: 6px; }
         .app-nav a.current { color: oklch(45% 0.16 50); border-color: oklch(45% 0.16 50); }
 
         .shell { min-height: 100vh; padding: clamp(4rem, 7vh, 7rem) clamp(2rem, 4vw, 5rem) clamp(2rem, 4vh, 4rem);
@@ -59,14 +59,14 @@
         /* ===== Facit-panel ===== */
         .facit { text-align: center; }
         .facit .kicker { font-family: var(--font-label); font-weight: var(--w-bold);
-            font-size: clamp(1rem, 1.4vw, 1.875rem); letter-spacing: var(--ls-wide); text-transform: uppercase; color: var(--bone-dim); }
-        .facit .kicker .song-no { color: var(--bone-muted); }
+            font-size: clamp(1rem, 1.4vw, 1.875rem); letter-spacing: var(--ls-wide); text-transform: uppercase; color: var(--ink-dim); }
+        .facit .kicker .song-no { color: var(--ink-muted); }
         .facit .title { font-family: var(--font-display); font-weight: var(--w-black);
             font-size: clamp(2.5rem, 6vw, 8rem); line-height: 1.0; letter-spacing: var(--ls-tight); margin: 0.2em 0 0.1em; text-wrap: balance; }
         .facit .artist { font-family: var(--font-display); font-style: italic; font-weight: var(--w-bold);
-            font-size: clamp(1.5rem, 3.2vw, 4.25rem); color: var(--bone-muted); }
-        .facit .artist .year { font-family: var(--font-numeric); font-style: normal; color: var(--bone-dim); margin-left: 0.45em; }
-        .facit.waiting .title { color: var(--bone-dim); font-weight: var(--w-bold); }
+            font-size: clamp(1.5rem, 3.2vw, 4.25rem); color: var(--ink-muted); }
+        .facit .artist .year { font-family: var(--font-numeric); font-style: normal; color: var(--ink-dim); margin-left: 0.45em; }
+        .facit.waiting .title { color: var(--ink-dim); font-weight: var(--w-bold); }
         .facit.bump { animation: facitBump 520ms cubic-bezier(.2,.7,.2,1) both; }
         @keyframes facitBump { from { opacity: 0.3; transform: translateY(14px) scale(0.99); } to { opacity: 1; transform: none; } }
 
@@ -74,8 +74,8 @@
         .bars { display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(1rem, 2.5vw, 3rem); align-items: end; min-height: 0; }
         .bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-height: 0; gap: clamp(0.5rem, 1.2vh, 1.2rem); }
         .bar-track { width: 100%; flex: 1; min-height: 0; display: flex; align-items: flex-end;
-            background: color-mix(in oklch, var(--ink-card) 70%, transparent);
-            border: 1px solid var(--ink-border-soft); border-radius: 16px 16px 10px 10px; overflow: hidden; box-shadow: var(--shadow-low); }
+            background: color-mix(in oklch, var(--paper-card) 70%, transparent);
+            border: 1px solid var(--paper-border-soft); border-radius: 16px 16px 10px 10px; overflow: hidden; box-shadow: var(--shadow-low); }
         .bar-fill { width: 100%; height: 0%;
             background: linear-gradient(to top, var(--team-color), color-mix(in oklch, var(--team-color) 78%, white));
             border-radius: 12px 12px 0 0; transition: height 0.7s cubic-bezier(.2,.7,.2,1);
@@ -84,15 +84,15 @@
         .bar-score { font-family: var(--font-numeric); font-weight: var(--w-black);
             font-size: clamp(1.5rem, 2.4vw, 3.25rem); color: oklch(99% 0.01 60); padding-top: 0.4em;
             text-shadow: 0 1px 8px oklch(20% 0.05 30 / 0.5); }
-        .bar-score.outside { color: var(--bone); text-shadow: none; margin-top: -1.7em; } /* lav søjle → tal over toppen */
+        .bar-score.outside { color: var(--ink); text-shadow: none; margin-top: -1.7em; } /* lav søjle → tal over toppen */
         /* Fast 2-linjers højde → alle søjle-baselines flugter uanset om navnet er 1 eller 2 linjer. */
         .bar-label { text-align: center; font-size: clamp(1.1rem, 1.7vw, 2.25rem); line-height: 1.1;
             height: 2.3em; display: flex; align-items: flex-start; justify-content: center; }
         .bar-label .bar-name { font-family: var(--font-display); font-weight: var(--w-bold);
-            letter-spacing: var(--ls-tight); color: var(--bone); }
+            letter-spacing: var(--ls-tight); color: var(--ink); }
         .bar-dot { display: inline-block; width: 0.7em; height: 0.7em; border-radius: 50%; background: var(--team-color); margin-right: 0.35em; vertical-align: baseline; }
 
-        .state-msg { grid-row: 1 / -1; align-self: center; text-align: center; color: var(--bone-muted); font-size: clamp(1.25rem, 2vw, 2.5rem); }
+        .state-msg { grid-row: 1 / -1; align-self: center; text-align: center; color: var(--ink-muted); font-size: clamp(1.25rem, 2vw, 2.5rem); }
         @media (prefers-reduced-motion: reduce) {
             .facit.bump { animation: none; }
             .bar-fill { transition: none; }

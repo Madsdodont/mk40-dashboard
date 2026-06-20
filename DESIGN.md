@@ -2,17 +2,17 @@
 name: mk40 — Kongerigernes Kamp
 description: Live scoretavle som håndsat festens program — editorial monument cream, subtil lækkerhed, eksklusivitets-farve.
 colors:
-  # Paper palette — light cream surfaces. Token-navne (--ink-*) er retained fra dark-version origin, refactor til --paper-* pending.
-  ink-void: "oklch(94% 0.012 60)"    # page background — slight cream
-  ink-deep: "oklch(97% 0.008 60)"    # shell background — paper white
-  ink-card: "oklch(99% 0.005 60)"    # card surface — brightest
-  ink-elevated: "oklch(96% 0.010 60)" # mid surface — tinted paper
-  ink-border-soft: "oklch(88% 0.012 60)" # subtle divider
-  ink-border: "oklch(75% 0.012 60)"  # visible divider
-  # Text scale — warm dark ink. Token-navne (--bone-*) retained, refactor til --text-* pending.
-  bone: "oklch(20% 0.014 30)"        # primary text — near-black, warm
-  bone-muted: "oklch(40% 0.014 30)"  # secondary text
-  bone-dim: "oklch(58% 0.012 30)"    # tertiary text — labels, hints
+  # Paper palette — light cream surfaces. Renamed 2026-06-20 (dashboard-016): --ink-* → --paper-*, så token-navnet matcher light-pivoten. Værdier uændret.
+  paper-void: "oklch(94% 0.012 60)"    # page background — slight cream
+  paper-deep: "oklch(97% 0.008 60)"    # shell background — paper white
+  paper-card: "oklch(99% 0.005 60)"    # card surface — brightest
+  paper-elevated: "oklch(96% 0.010 60)" # mid surface — tinted paper
+  paper-border-soft: "oklch(88% 0.012 60)" # subtle divider
+  paper-border: "oklch(75% 0.012 60)"  # visible divider
+  # Text scale — warm dark ink. Renamed 2026-06-20 (dashboard-016): --bone-* → --ink-* (blæk på papir; undgår kollision med --text-{xs,sm,md} størrelse-scale). Værdier uændret.
+  ink: "oklch(20% 0.014 30)"         # primary text — near-black, warm
+  ink-muted: "oklch(40% 0.014 30)"   # secondary text
+  ink-dim: "oklch(58% 0.012 30)"     # tertiary text — labels, hints
   # Live red — broadcast pill only
   live-red: "oklch(58% 0.22 25)"
   # Team colors — bandana-mapped, names = bandana identity (locked 2026-06-14), L-calibrated for paper bg contrast
@@ -67,16 +67,16 @@ spacing:
   banner: "4rem"
 components:
   scoreboard-row:
-    backgroundColor: "{colors.ink-deep}"
-    textColor: "{colors.bone}"
+    backgroundColor: "{colors.paper-deep}"
+    textColor: "{colors.ink}"
     padding: "1.25rem 2rem"
   scoreboard-header-row:
-    backgroundColor: "{colors.ink-elevated}"
-    textColor: "{colors.bone-muted}"
+    backgroundColor: "{colors.paper-elevated}"
+    textColor: "{colors.ink-muted}"
     typography: "{typography.label}"
     padding: "1rem 2rem"
   scoreboard-total-row:
-    backgroundColor: "{colors.ink-elevated}"
+    backgroundColor: "{colors.paper-elevated}"
     textColor: "{colors.gold-ceremonial}"
     typography: "{typography.numeric-total}"
     padding: "1.5rem 2rem"
@@ -108,21 +108,21 @@ Brand-pivot dokumenteret 2026-05-30: tidligere "OL Olympic Hall Scoreboard" + de
 Paletten styres af de 5 hold-farver. Paper-canvas (cream-tinted neutral) er backdrop, warm-ink er text-foreground, og resten af supporting-paletten holdes stille så hold-identiteten bæres uden konkurrence. Gold retired 2026-05-30.
 
 ### Paper canvas (primary surface scale)
-- **Ink Void** (oklch(94% 0.012 60)): Page background bag shell — slight cream undertone.
-- **Ink Deep** (oklch(97% 0.008 60)): Shell background — paper white.
-- **Ink Card** (oklch(99% 0.005 60)): Card surface — brightest paper.
-- **Ink Elevated** (oklch(96% 0.010 60)): Mid surface — tinted paper, banner-clock-block.
-- **Ink Border Soft** (oklch(88% 0.012 60)): Subtle divider, fine line.
-- **Ink Border** (oklch(75% 0.012 60)): Visible divider, sektion-breaks.
+- **Paper Void** (oklch(94% 0.012 60)): Page background bag shell — slight cream undertone.
+- **Paper Deep** (oklch(97% 0.008 60)): Shell background — paper white.
+- **Paper Card** (oklch(99% 0.005 60)): Card surface — brightest paper.
+- **Paper Elevated** (oklch(96% 0.010 60)): Mid surface — tinted paper, banner-clock-block.
+- **Paper Border Soft** (oklch(88% 0.012 60)): Subtle divider, fine line.
+- **Paper Border** (oklch(75% 0.012 60)): Visible divider, sektion-breaks.
 
-*NB:* Token-navne (`--ink-*`) er retained fra dark-version origin. Semantisk er de nu paper-surfaces, ikke ink. Rename til `--paper-*` parkeret som follow-up refactor (mekanisk, holder ikke designet tilbage).
+*NB:* Token-navnene blev omdøbt 2026-06-20 (dashboard-016) fra `--ink-*` → `--paper-*`, så de matcher light-pivoten (surfaces = paper). Værdier uændret.
 
 ### Tekst (foreground scale — warm ink hue 30)
-- **Bone** (oklch(20% 0.014 30)): Primary text — near-black, warm hue 30.
-- **Bone Muted** (oklch(40% 0.014 30)): Secondary text — supporting numerics, sub-context.
-- **Bone Dim** (oklch(58% 0.012 30)): Tertiary text — labels, hints, placeholder-text.
+- **Ink** (oklch(20% 0.014 30)): Primary text — near-black, warm hue 30.
+- **Ink Muted** (oklch(40% 0.014 30)): Secondary text — supporting numerics, sub-context.
+- **Ink Dim** (oklch(58% 0.012 30)): Tertiary text — labels, hints, placeholder-text.
 
-*NB:* `--bone-*` retained fra dark-origin; semantisk er de nu dark text. Rename til `--text-*` parkeret.
+*NB:* Token-navnene blev omdøbt 2026-06-20 (dashboard-016) fra `--bone-*` → `--ink-*` (blæk på papir). Valgte `--ink-*` frem for `--text-*` for at undgå kollision med cards-h's `--text-{xs,sm,md}` størrelse-scale. Værdier uændret.
 
 ### 5 hold-farver (drive the entire palette)
 - **Team Rød** (oklch(58% 0.22 5)): Pink bandana — "Pink Rødder" (rename pending).
@@ -143,7 +143,7 @@ Hver hold-farve har én rolle: identifikator. Aldrig decoration, aldrig UI-chrom
 
 **The No-Gold Rule.** Gold-ceremonial token retired 2026-05-30 efter Mads' diagnose: gold + ink overdøvede de 5 team-farver, gjorde dem til pynt frem for styring. Leader signaleres nu via egen team-color amplified (deeper bake 75% top vs default 50%, team-color glow 50px, border-top 10px vs 6px, total-tal 1.3x scale med team-color text-halo). Ingen gold nogensteder i fest-dashboardet — kun proto-nav (dev-chrome) har en hardcoded amber, ikke en brand-token.
 
-**The Team-Bake Rule.** Hver hold-card har sin team-farve bagt ind i baggrunden (linear-gradient team@50% top → team@18% middle → ink-card bottom). Cards er territorier, ikke ens-paper med stripe-accent.
+**The Team-Bake Rule.** Hver hold-card har sin team-farve bagt ind i baggrunden (linear-gradient team@50% top → team@18% middle → paper-card bottom). Cards er territorier, ikke ens-paper med stripe-accent.
 
 ## 3. Typography
 
@@ -223,7 +223,7 @@ Change detected (cell-value differs fra forrige render):
 - **Do** brug Fraunces (eller specified faldback) på holdnavne. Editorial serif er den valgte voice.
 - **Do** brug JetBrains Mono med `font-feature-settings: "tnum" 1` på alle tal. Tabular figures er ikke-forhandelbar for kolonne-alignment.
 - **Do** brug OKLCH for alle neutrals — paper-tints hue 60 (cream), tekst-tints hue 30 (warm ink). Aldrig `#000` eller `#fff` (undtagelse: paper-highlight `oklch(100% 0 0 / 0.7)` på top-edges + live-pill white).
-- **Do** bake team-color ind i card-overflader (linear-gradient team@50% top → team@18% middle → ink-card). Cards er territorier, ikke ens-paper med stripe.
+- **Do** bake team-color ind i card-overflader (linear-gradient team@50% top → team@18% middle → paper-card). Cards er territorier, ikke ens-paper med stripe.
 - **Do** signalér leader via egen team-color amplified — deeper bake, team-color glow, tykkere stripe, scale-bump på total-tal. Aldrig via fremmed accent-farve.
 - **Do** brug 3-level shadow tokens (low/medium/high) med warm-tint hue 30 + opacity 0.06-0.14. Subtile, paper-on-paper.
 - **Do** brug 1px paper-highlight top-edges (`oklch(100% 0 0 / 0.7)`) på cards/panels/banner som light-catch-from-above.

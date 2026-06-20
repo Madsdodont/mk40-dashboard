@@ -9,15 +9,15 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900&family=JetBrains+Mono:wght@500;700;800&display=swap">
     <style>
         :root {
-            --ink-void: oklch(94% 0.012 60);
-            --ink-deep: oklch(97% 0.008 60);
-            --ink-card: oklch(99% 0.005 60);
-            --ink-elevated: oklch(96% 0.010 60);
-            --ink-border-soft: oklch(88% 0.012 60);
-            --ink-border: oklch(75% 0.012 60);
-            --bone: oklch(20% 0.014 30);
-            --bone-muted: oklch(40% 0.014 30);
-            --bone-dim: oklch(58% 0.012 30);
+            --paper-void: oklch(94% 0.012 60);
+            --paper-deep: oklch(97% 0.008 60);
+            --paper-card: oklch(99% 0.005 60);
+            --paper-elevated: oklch(96% 0.010 60);
+            --paper-border-soft: oklch(88% 0.012 60);
+            --paper-border: oklch(75% 0.012 60);
+            --ink: oklch(20% 0.014 30);
+            --ink-muted: oklch(40% 0.014 30);
+            --ink-dim: oklch(58% 0.012 30);
             --ok-green: oklch(55% 0.15 150);
             --wait-amber: oklch(60% 0.13 75);
             --signal-error: oklch(55% 0.22 25);
@@ -37,14 +37,14 @@
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }
         body {
-            background: var(--ink-void); color: var(--bone); font-family: var(--font-label);
+            background: var(--paper-void); color: var(--ink); font-family: var(--font-label);
             min-height: 100vh; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
         }
         .wrap { max-width: 540px; margin: 0 auto; padding: 0 0 calc(4rem + env(safe-area-inset-bottom)); }
 
         /* ===== Team header ===== */
         .team-head {
-            position: sticky; top: 0; z-index: 10; background: var(--team-color, var(--bone));
+            position: sticky; top: 0; z-index: 10; background: var(--team-color, var(--ink));
             color: oklch(98% 0.01 60); padding: calc(1.1rem + env(safe-area-inset-top)) 1.25rem 1rem;
             box-shadow: var(--shadow-medium);
         }
@@ -53,31 +53,31 @@
         .team-head .progress { margin-top: 0.6rem; font-size: 0.8rem; font-weight: var(--w-bold); font-family: var(--font-numeric); opacity: 0.92; }
 
         /* ===== Kaptajn-instruktioner ===== */
-        .instructions { margin: 1rem 1rem 0; padding: 0.9rem 1rem; background: var(--ink-card); border: 1px solid var(--ink-border-soft); border-left: 4px solid var(--team-color, var(--ink-border)); border-radius: 10px; box-shadow: var(--shadow-low); }
-        .instructions p { margin: 0; font-size: 0.85rem; line-height: 1.4; color: var(--bone-muted); }
+        .instructions { margin: 1rem 1rem 0; padding: 0.9rem 1rem; background: var(--paper-card); border: 1px solid var(--paper-border-soft); border-left: 4px solid var(--team-color, var(--paper-border)); border-radius: 10px; box-shadow: var(--shadow-low); }
+        .instructions p { margin: 0; font-size: 0.85rem; line-height: 1.4; color: var(--ink-muted); }
         .instructions p + p { margin-top: 0.45rem; }
         .instr-toggle { width: 100%; background: none; border: none; padding: 0; font: inherit; color: inherit; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; text-align: left; }
-        .instr-title { flex: 1; margin: 0; font-family: var(--font-display); font-weight: var(--w-bold); font-size: 0.95rem; color: var(--bone); }
-        .instr-toggle .chevron { color: var(--bone-dim); font-size: 1rem; transition: transform 0.2s; }
+        .instr-title { flex: 1; margin: 0; font-family: var(--font-display); font-weight: var(--w-bold); font-size: 0.95rem; color: var(--ink); }
+        .instr-toggle .chevron { color: var(--ink-dim); font-size: 1rem; transition: transform 0.2s; }
         .instructions.collapsed .instr-toggle .chevron { transform: rotate(-90deg); }
         .instr-body { margin-top: 0.5rem; }
         .instructions.collapsed .instr-body { display: none; }
-        .instr-tip { color: var(--bone-dim) !important; }
+        .instr-tip { color: var(--ink-dim) !important; }
 
         /* ===== Discipline cards (accordion) ===== */
         .list { padding: 1rem 1rem 0; display: flex; flex-direction: column; gap: 0.85rem; }
-        .disc { background: var(--ink-card); border: 1px solid var(--ink-border-soft); border-radius: 12px; box-shadow: var(--shadow-low); overflow: hidden; }
-        .disc-top { width: 100%; text-align: left; background: var(--ink-card); border: none; font: inherit; color: inherit; cursor: pointer; user-select: none; padding: 0.9rem 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .disc { background: var(--paper-card); border: 1px solid var(--paper-border-soft); border-radius: 12px; box-shadow: var(--shadow-low); overflow: hidden; }
+        .disc-top { width: 100%; text-align: left; background: var(--paper-card); border: none; font: inherit; color: inherit; cursor: pointer; user-select: none; padding: 0.9rem 1rem; display: flex; align-items: center; gap: 0.5rem; }
         .disc-name { flex: 1; min-width: 0; }
         .disc-name h2 { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 1.15rem; margin: 0; line-height: 1.1; }
-        .disc-hint { font-size: 0.72rem; color: var(--bone-dim); margin-top: 0.2rem; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
-        .type-badge { font-size: 0.62rem; letter-spacing: var(--ls-label); text-transform: uppercase; font-weight: var(--w-bold); color: var(--bone-muted); border: 1px solid var(--ink-border-soft); border-radius: 999px; padding: 0.1rem 0.5rem; }
-        .disc-summary { font-family: var(--font-numeric); font-weight: var(--w-bold); font-size: 0.9rem; color: var(--team-color, var(--bone-muted)); white-space: nowrap; }
+        .disc-hint { font-size: 0.72rem; color: var(--ink-dim); margin-top: 0.2rem; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+        .type-badge { font-size: 0.62rem; letter-spacing: var(--ls-label); text-transform: uppercase; font-weight: var(--w-bold); color: var(--ink-muted); border: 1px solid var(--paper-border-soft); border-radius: 999px; padding: 0.1rem 0.5rem; }
+        .disc-summary { font-family: var(--font-numeric); font-weight: var(--w-bold); font-size: 0.9rem; color: var(--team-color, var(--ink-muted)); white-space: nowrap; }
         .status-chip { font-size: 0.7rem; font-weight: var(--w-bold); white-space: nowrap; padding: 0.25rem 0.55rem; border-radius: 999px; }
-        .status-chip.missing { background: oklch(92% 0.012 60); color: var(--bone-dim); }
+        .status-chip.missing { background: oklch(92% 0.012 60); color: var(--ink-dim); }
         .status-chip.entered { background: color-mix(in oklch, var(--wait-amber) 18%, transparent); color: var(--wait-amber); }
         .status-chip.locked  { background: color-mix(in oklch, var(--ok-green) 18%, transparent); color: var(--ok-green); }
-        .chevron { color: var(--bone-dim); font-size: 1rem; transition: transform 0.2s; }
+        .chevron { color: var(--ink-dim); font-size: 1rem; transition: transform 0.2s; }
         .disc.open .chevron { transform: rotate(180deg); }
 
         .disc-body { padding: 0 1rem 1rem; display: none; }
@@ -85,12 +85,12 @@
 
         input[type="number"], input[type="text"] {
             width: 100%; font-family: var(--font-numeric); font-size: 1rem; min-height: 48px;
-            padding: 0.7rem 0.8rem; border: 1.5px solid var(--ink-border); border-radius: 9px;
-            background: var(--ink-deep); color: var(--bone); -webkit-appearance: none; appearance: none;
+            padding: 0.7rem 0.8rem; border: 1.5px solid var(--paper-border); border-radius: 9px;
+            background: var(--paper-deep); color: var(--ink); -webkit-appearance: none; appearance: none;
         }
         input[type="text"] { font-family: var(--font-label); font-size: 1rem; }
-        input:focus { outline: none; border-color: var(--team-color, var(--bone)); }
-        input[readonly], input:disabled { background: var(--ink-elevated); color: var(--bone-muted); border-color: var(--ink-border-soft); }
+        input:focus { outline: none; border-color: var(--team-color, var(--ink)); }
+        input[readonly], input:disabled { background: var(--paper-elevated); color: var(--ink-muted); border-color: var(--paper-border-soft); }
 
         /* Score-felter (per-spiller + enkelt-tal) */
         .player-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
@@ -98,40 +98,40 @@
         .player-row .pname { flex: 1; min-width: 0; font-weight: var(--w-bold); font-size: 0.95rem; }
         .player-row .player-input, .player-row .single-input { width: 5rem; min-width: 5rem; flex: none; text-align: right; }
         .player-row .time-min, .player-row .time-sec { width: 3.5rem; min-width: 3.5rem; flex: none; text-align: right; }
-        .time-sep { font-weight: var(--w-bold); color: var(--bone-muted); }
+        .time-sep { font-weight: var(--w-bold); color: var(--ink-muted); }
         .pencil { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0 0.2rem; line-height: 1; }
-        .absent-toggle { font-size: 0.66rem; font-weight: var(--w-bold); background: none; border: 1px solid var(--ink-border); border-radius: 999px; padding: 0.25rem 0.5rem; color: var(--bone-muted); cursor: pointer; white-space: nowrap; }
-        .player-row.absent .absent-toggle { background: color-mix(in oklch, var(--bone-muted) 14%, transparent); color: var(--bone); }
+        .absent-toggle { font-size: 0.66rem; font-weight: var(--w-bold); background: none; border: 1px solid var(--paper-border); border-radius: 999px; padding: 0.25rem 0.5rem; color: var(--ink-muted); cursor: pointer; white-space: nowrap; }
+        .player-row.absent .absent-toggle { background: color-mix(in oklch, var(--ink-muted) 14%, transparent); color: var(--ink); }
         .absent-toggle[hidden] { display: none; }
 
-        .snit-preview { font-family: var(--font-numeric); font-weight: var(--w-bold); margin: 0.5rem 0 0.7rem; color: var(--team-color, var(--bone)); }
+        .snit-preview { font-family: var(--font-numeric); font-weight: var(--w-bold); margin: 0.5rem 0 0.7rem; color: var(--team-color, var(--ink)); }
         .id-field { margin-bottom: 0.7rem; }
-        .id-label { display: block; font-size: 0.72rem; font-weight: var(--w-bold); color: var(--bone-muted); letter-spacing: 0.02em; margin-bottom: 0.3rem; }
-        .id-hint { font-weight: var(--w-regular); color: var(--bone-dim); }
-        textarea.id-input { width: 100%; font-family: var(--font-label); font-size: 1rem; line-height: 1.4; min-height: 96px; padding: 0.7rem 0.8rem; border: 1.5px solid var(--ink-border); border-radius: 9px; background: var(--ink-deep); color: var(--bone); resize: vertical; -webkit-appearance: none; appearance: none; }
-        textarea.id-input:focus { outline: none; border-color: var(--team-color, var(--bone)); }
-        textarea.id-input[readonly] { background: var(--ink-elevated); color: var(--bone-muted); border-color: var(--ink-border-soft); }
+        .id-label { display: block; font-size: 0.72rem; font-weight: var(--w-bold); color: var(--ink-muted); letter-spacing: 0.02em; margin-bottom: 0.3rem; }
+        .id-hint { font-weight: var(--w-regular); color: var(--ink-dim); }
+        textarea.id-input { width: 100%; font-family: var(--font-label); font-size: 1rem; line-height: 1.4; min-height: 96px; padding: 0.7rem 0.8rem; border: 1.5px solid var(--paper-border); border-radius: 9px; background: var(--paper-deep); color: var(--ink); resize: vertical; -webkit-appearance: none; appearance: none; }
+        textarea.id-input:focus { outline: none; border-color: var(--team-color, var(--ink)); }
+        textarea.id-input[readonly] { background: var(--paper-elevated); color: var(--ink-muted); border-color: var(--paper-border-soft); }
         textarea.drama-input { min-height: 52px; }
-        .id-scoring { font-size: 0.78rem; line-height: 1.4; color: var(--bone-muted); background: var(--ink-elevated); border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 0.85rem; }
-        .id-scoring strong { color: var(--bone); font-weight: var(--w-bold); }
-        .hint-line { font-size: 0.72rem; color: var(--bone-dim); margin: 0.5rem 0; }
+        .id-scoring { font-size: 0.78rem; line-height: 1.4; color: var(--ink-muted); background: var(--paper-elevated); border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 0.85rem; }
+        .id-scoring strong { color: var(--ink); font-weight: var(--w-bold); }
+        .hint-line { font-size: 0.72rem; color: var(--ink-dim); margin: 0.5rem 0; }
         .id-foot { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.3rem; }
-        .id-foot .dommer-note { flex: 1; font-size: 0.72rem; color: var(--bone-dim); }
+        .id-foot .dommer-note { flex: 1; font-size: 0.72rem; color: var(--ink-dim); }
 
-        .save-btn { width: 100%; font-family: var(--font-label); font-weight: var(--w-bold); font-size: 1rem; min-height: 48px; padding: 0.7rem 1.25rem; border: none; border-radius: 9px; white-space: nowrap; background: var(--team-color, var(--bone)); color: oklch(98% 0.01 60); box-shadow: var(--shadow-low); cursor: pointer; transition: transform 0.08s, opacity 0.2s; }
+        .save-btn { width: 100%; font-family: var(--font-label); font-weight: var(--w-bold); font-size: 1rem; min-height: 48px; padding: 0.7rem 1.25rem; border: none; border-radius: 9px; white-space: nowrap; background: var(--team-color, var(--ink)); color: oklch(98% 0.01 60); box-shadow: var(--shadow-low); cursor: pointer; transition: transform 0.08s, opacity 0.2s; }
         .save-btn:active { transform: scale(0.98); }
         .save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .save-btn.btn-secondary { background: transparent; color: var(--bone-muted); border: 1.5px solid var(--ink-border); box-shadow: none; width: auto; }
+        .save-btn.btn-secondary { background: transparent; color: var(--ink-muted); border: 1.5px solid var(--paper-border); box-shadow: none; width: auto; }
 
         .locked-result { display: flex; align-items: baseline; gap: 0.6rem; padding: 0.4rem 0; font-family: var(--font-numeric); }
-        .locked-result .place { font-size: 1.6rem; font-weight: var(--w-black); color: var(--team-color, var(--bone)); }
-        .locked-result .raw { font-size: 0.78rem; color: var(--bone-dim); margin-left: auto; }
+        .locked-result .place { font-size: 1.6rem; font-weight: var(--w-black); color: var(--team-color, var(--ink)); }
+        .locked-result .raw { font-size: 0.78rem; color: var(--ink-dim); margin-left: auto; }
 
         /* Låste individuelle scores (synlige efter lås) */
-        .locked-breakdown { margin: 0.5rem 0 0.2rem; border-top: 1px solid var(--ink-border-soft); padding-top: 0.55rem; }
-        .locked-breakdown .lb-label { font-size: 0.72rem; font-weight: var(--w-bold); letter-spacing: 0.02em; color: var(--bone-muted); margin: 0 0 0.4rem; }
+        .locked-breakdown { margin: 0.5rem 0 0.2rem; border-top: 1px solid var(--paper-border-soft); padding-top: 0.55rem; }
+        .locked-breakdown .lb-label { font-size: 0.72rem; font-weight: var(--w-bold); letter-spacing: 0.02em; color: var(--ink-muted); margin: 0 0 0.4rem; }
         .locked-breakdown .player-row { margin-bottom: 0.3rem; }
-        .locked-breakdown .locked-val { font-family: var(--font-numeric); font-weight: var(--w-bold); color: var(--bone-muted); margin-left: auto; }
+        .locked-breakdown .locked-val { font-family: var(--font-numeric); font-weight: var(--w-bold); color: var(--ink-muted); margin-left: auto; }
         .locked-breakdown .player-row.absent .locked-val { font-family: var(--font-label); font-weight: var(--w-regular); }
 
         /* Cap-validering mod umulige scores */
@@ -140,12 +140,12 @@
         .cap-warn[hidden] { display: none; }
 
         .waiting { font-size: 0.78rem; margin: 0.6rem 0 0; color: var(--ok-green); font-weight: var(--w-bold); }
-        .waiting.muted { color: var(--bone-dim); font-weight: var(--w-regular); }
+        .waiting.muted { color: var(--ink-dim); font-weight: var(--w-regular); }
 
-        .state-msg { padding: 3rem 1.5rem; text-align: center; color: var(--bone-muted); }
+        .state-msg { padding: 3rem 1.5rem; text-align: center; color: var(--ink-muted); }
         .state-msg.error { color: var(--signal-error); }
 
-        .toast { position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(2rem); background: var(--bone); color: var(--ink-card); font-weight: var(--w-bold); font-size: 0.85rem; padding: 0.7rem 1.2rem; border-radius: 999px; box-shadow: var(--shadow-medium); opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 50; }
+        .toast { position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(2rem); background: var(--ink); color: var(--paper-card); font-weight: var(--w-bold); font-size: 0.85rem; padding: 0.7rem 1.2rem; border-radius: 999px; box-shadow: var(--shadow-medium); opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 50; }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast.error { background: var(--signal-error); }
     </style>

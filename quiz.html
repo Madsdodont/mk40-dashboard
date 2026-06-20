@@ -12,14 +12,14 @@
            Eneste vej til musikquiz-scoring: tast 0-3 rigtige pr. hold pr. sang → SUM bliver
            disciplin 7's placering ved lås. */
         :root {
-            --ink-void: oklch(94% 0.012 60);
-            --ink-deep: oklch(97% 0.008 60);
-            --ink-card: oklch(99% 0.005 60);
-            --ink-border-soft: oklch(88% 0.012 60);
-            --ink-border: oklch(75% 0.012 60);
-            --bone: oklch(20% 0.014 30);
-            --bone-muted: oklch(40% 0.014 30);
-            --bone-dim: oklch(58% 0.012 30);
+            --paper-void: oklch(94% 0.012 60);
+            --paper-deep: oklch(97% 0.008 60);
+            --paper-card: oklch(99% 0.005 60);
+            --paper-border-soft: oklch(88% 0.012 60);
+            --paper-border: oklch(75% 0.012 60);
+            --ink: oklch(20% 0.014 30);
+            --ink-muted: oklch(40% 0.014 30);
+            --ink-dim: oklch(58% 0.012 30);
             --ok-green: oklch(55% 0.15 150);
             --signal-error: oklch(58% 0.22 25);
             --team-pink: oklch(58% 0.22 5);
@@ -38,13 +38,13 @@
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }
         body {
-            background: var(--ink-void); color: var(--bone);
+            background: var(--paper-void); color: var(--ink);
             font-family: var(--font-label); min-height: 100vh; -webkit-font-smoothing: antialiased;
             -webkit-tap-highlight-color: transparent;
         }
         .wrap { max-width: 760px; margin: 0 auto; padding: 0 0 calc(5rem + env(safe-area-inset-bottom)); }
         .head {
-            position: sticky; top: 0; z-index: 10; background: var(--bone); color: var(--ink-card);
+            position: sticky; top: 0; z-index: 10; background: var(--ink); color: var(--paper-card);
             padding: calc(1rem + env(safe-area-inset-top)) 1.25rem 1rem; box-shadow: var(--shadow-medium);
             display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;
         }
@@ -53,46 +53,46 @@
         .head .conn { margin-left: auto; font-size: 0.75rem; font-family: var(--font-numeric); opacity: 0.8; }
 
         .progress-bar { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem 0; }
-        .progress-bar .count { font-family: var(--font-numeric); font-weight: var(--w-bold); font-size: 0.85rem; color: var(--bone-muted); }
-        .progress-bar .track { flex: 1; height: 6px; border-radius: 999px; background: var(--ink-border-soft); overflow: hidden; }
+        .progress-bar .count { font-family: var(--font-numeric); font-weight: var(--w-bold); font-size: 0.85rem; color: var(--ink-muted); }
+        .progress-bar .track { flex: 1; height: 6px; border-radius: 999px; background: var(--paper-border-soft); overflow: hidden; }
         .progress-bar .fill { height: 100%; background: var(--ok-green); transition: width 0.4s; }
 
         /* Aktuel sang — facit står stort så dommeren ved hvad der er rigtigt. */
         .song-card {
-            margin: 1rem 1.25rem 0; background: var(--ink-card); border: 1px solid var(--ink-border-soft);
+            margin: 1rem 1.25rem 0; background: var(--paper-card); border: 1px solid var(--paper-border-soft);
             border-radius: 14px; box-shadow: var(--shadow-low); padding: 1.1rem 1.25rem 1.25rem;
         }
         .song-card .song-kicker { display: flex; align-items: center; justify-content: space-between; }
-        .song-card .song-no { font-size: 0.72rem; font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--bone-dim); }
-        .song-card .reveal-state { font-size: 0.68rem; font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--bone-dim); }
+        .song-card .song-no { font-size: 0.72rem; font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--ink-dim); }
+        .song-card .reveal-state { font-size: 0.68rem; font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--ink-dim); }
         .song-card .reveal-state.on { color: var(--ok-green); }
         .song-card .title { font-family: var(--font-display); font-weight: var(--w-black); font-size: 1.7rem; line-height: 1.05; letter-spacing: var(--ls-tight); margin: 0.35rem 0 0.15rem; }
-        .song-card .artist { font-family: var(--font-display); font-style: italic; font-weight: var(--w-bold); font-size: 1.05rem; color: var(--bone-muted); }
-        .song-card .artist .year { font-family: var(--font-numeric); font-style: normal; color: var(--bone-dim); margin-left: 0.4em; }
+        .song-card .artist { font-family: var(--font-display); font-style: italic; font-weight: var(--w-bold); font-size: 1.05rem; color: var(--ink-muted); }
+        .song-card .artist .year { font-family: var(--font-numeric); font-style: normal; color: var(--ink-dim); margin-left: 0.4em; }
         .song-card .reveal-btn { margin-top: 0.9rem; width: 100%; }
 
         .teams { padding: 1rem 1.25rem 0; display: flex; flex-direction: column; gap: 0.6rem; }
         .team-row {
-            background: var(--ink-card); border: 1px solid var(--ink-border-soft); border-radius: 12px;
+            background: var(--paper-card); border: 1px solid var(--paper-border-soft); border-radius: 12px;
             box-shadow: var(--shadow-low); padding: 0.7rem 0.85rem; display: flex; align-items: center; gap: 0.75rem;
         }
         .team-row .dot { width: 0.85rem; height: 0.85rem; border-radius: 50%; background: var(--team-color); flex: none; }
         .team-row .name { font-weight: var(--w-bold); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .team-row .total { font-family: var(--font-numeric); font-size: 0.75rem; color: var(--bone-dim); flex: none; }
+        .team-row .total { font-family: var(--font-numeric); font-size: 0.75rem; color: var(--ink-dim); flex: none; }
         /* 0-3 tap-stepper: fire segmenterede knapper, ét tap = valgt. */
-        .stepper { display: inline-flex; gap: 0; border: 1.5px solid var(--ink-border); border-radius: 9px; overflow: hidden; flex: none; }
+        .stepper { display: inline-flex; gap: 0; border: 1.5px solid var(--paper-border); border-radius: 9px; overflow: hidden; flex: none; }
         .stepper button {
             font-family: var(--font-numeric); font-weight: var(--w-bold); font-size: 1.05rem;
-            width: 2.9rem; min-height: 46px; border: none; border-left: 1.5px solid var(--ink-border);
-            background: var(--ink-deep); color: var(--bone-muted); cursor: pointer; transition: background 0.1s, color 0.1s;
+            width: 2.9rem; min-height: 46px; border: none; border-left: 1.5px solid var(--paper-border);
+            background: var(--paper-deep); color: var(--ink-muted); cursor: pointer; transition: background 0.1s, color 0.1s;
         }
         .stepper button:first-child { border-left: none; }
-        .stepper button.sel { background: var(--team-color, var(--bone)); color: oklch(98% 0.01 60); }
+        .stepper button.sel { background: var(--team-color, var(--ink)); color: oklch(98% 0.01 60); }
         .stepper button:active { transform: scale(0.95); }
 
         .actions { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-            background: color-mix(in oklch, var(--ink-deep) 92%, transparent); backdrop-filter: blur(8px);
-            border-top: 1px solid var(--ink-border-soft);
+            background: color-mix(in oklch, var(--paper-deep) 92%, transparent); backdrop-filter: blur(8px);
+            border-top: 1px solid var(--paper-border-soft);
             padding: 0.85rem 1.25rem calc(0.85rem + env(safe-area-inset-bottom)); display: flex; gap: 0.6rem; }
         .btn {
             font-family: var(--font-label); font-weight: var(--w-bold); font-size: 0.95rem;
@@ -101,18 +101,18 @@
         }
         .btn:active { transform: scale(0.98); }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-prev { background: transparent; color: var(--bone-muted); border: 1.5px solid var(--ink-border); box-shadow: none; flex: none; }
-        .btn-next { background: var(--bone); color: var(--ink-card); flex: 1; }
+        .btn-prev { background: transparent; color: var(--ink-muted); border: 1.5px solid var(--paper-border); box-shadow: none; flex: none; }
+        .btn-next { background: var(--ink); color: var(--paper-card); flex: 1; }
         .btn-reveal { background: var(--ok-green); color: oklch(98% 0.01 60); }
-        .btn-reveal.is-on { background: transparent; color: var(--bone-muted); border: 1.5px solid var(--ink-border); box-shadow: none; }
+        .btn-reveal.is-on { background: transparent; color: var(--ink-muted); border: 1.5px solid var(--paper-border); box-shadow: none; }
         .btn-lock { background: var(--ok-green); color: oklch(98% 0.01 60); flex: 1; }
 
-        .state-msg { padding: 3rem 1.5rem; text-align: center; color: var(--bone-muted); }
+        .state-msg { padding: 3rem 1.5rem; text-align: center; color: var(--ink-muted); }
         .state-msg.error { color: var(--signal-error); }
-        .hint { padding: 0.5rem 1.25rem 0; font-size: 0.75rem; color: var(--bone-dim); }
+        .hint { padding: 0.5rem 1.25rem 0; font-size: 0.75rem; color: var(--ink-dim); }
         .toast {
             position: fixed; left: 50%; bottom: calc(5rem + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(2rem);
-            background: var(--bone); color: var(--ink-card); font-weight: var(--w-bold); font-size: 0.85rem;
+            background: var(--ink); color: var(--paper-card); font-weight: var(--w-bold); font-size: 0.85rem;
             padding: 0.7rem 1.2rem; border-radius: 999px; box-shadow: var(--shadow-medium);
             opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 50;
         }
