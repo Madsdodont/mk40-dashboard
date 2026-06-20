@@ -80,7 +80,7 @@ insert into public."DimDiscipline" (discipline_key, discipline_name, discipline_
 -- ============================================================================
 -- Mads' faktiske quiz-sange (21). round_number = quiz-rækkefølge; release_year verificeret
 -- mod Wikipedia/Discogs (Claude-research 2026-06-19, kurateret m. Mads). revealed = false →
--- quizmasteren afslører hver sang live fra quiz.html; TV-karrusellen (cards-h.html) viser kun
+-- quizmasteren afslører hver sang live fra quiz.html; TV-quiz-siden (musikquiz.html) viser kun
 -- de afslørede. Ikke scoring-koblet: musikquiz-POINT tastes uafhængigt på discipline_key=7.
 --
 -- Skåret ned fra 24→20-mål, landede på 21 (Mads). Fjernet: Wolfmother, The xx, Jamiroquai,

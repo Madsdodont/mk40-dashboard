@@ -99,22 +99,22 @@ comment on column public."FactScore".notes is 'Fri tekst, fx "5 strikes i træk"
 -- ============================================================================
 -- 4b. MusicQuizKey — display-only facit-reference (dashboard-013)
 -- ============================================================================
--- Quizmaster-styret karrusel: hver row = én sang i musikquizzen (facit). Quizmasteren
--- afslører sangene én ad gangen fra quiz.html (flipper `revealed`), og TV-karrusellen
--- (cards-h.html) viser de afslørede sange. HELT decoupled fra scoring (FactScore):
--- musikquiz-point tastes/lås uafhængigt på discipline_key=7. Fejler karrusellen at loade,
--- mister man kun facit-visningen — scoringen kører videre (ADR-2 failure-mode-integritet).
+-- Quizmaster-styret facit: hver row = én sang i musikquizzen (facit). Dommeren
+-- afslører sangene én ad gangen fra quiz.html (flipper `revealed`), og TV-quiz-siden
+-- (musikquiz.html) viser de afslørede sange. HELT decoupled fra scoring (FactScore):
+-- musikquiz-point tastes/lås uafhængigt på discipline_key=7. Fejler facit-visningen at loade,
+-- mister man kun den — scoringen kører videre (ADR-2 failure-mode-integritet).
 create table public."MusicQuizKey" (
     key_id        smallint primary key,
     round_number  smallint not null,              -- sangens nummer i quizzen (1..N)
     title         text not null,                  -- sangtitel (facit)
     artist        text not null,                  -- kunstner (facit)
     release_year  smallint,                       -- udgivelsesår (valgfrit)
-    revealed      boolean not null default false  -- quizmaster flipper → vises i TV-karrusellen
+    revealed      boolean not null default false  -- quizmaster flipper → vises på TV-quiz-siden
 );
 
 comment on table public."MusicQuizKey" is 'Facit-liste til musikquizzen. Quizmaster flipper revealed pr. sang → TV-visning. Sang-listen er også grain-reference for MusicQuizScore.';
-comment on column public."MusicQuizKey".revealed is 'Dommeren (quiz.html-konsollen) har afsløret sangen → den vises på TV (musikquiz.html + cards-h-karrusel).';
+comment on column public."MusicQuizKey".revealed is 'Dommeren (quiz.html-konsollen) har afsløret sangen → den vises på TV-quiz-siden (musikquiz.html).';
 
 -- ============================================================================
 -- 4c. MusicQuizScore — per-sang per-hold rigtige (dashboard-030)
