@@ -109,23 +109,6 @@
         .state-msg { padding: 3rem 1.5rem; text-align: center; color: var(--ink-muted); }
         .state-msg.error { color: var(--signal-error); }
         .hint { padding: 0.5rem 1.25rem 0; font-size: 0.75rem; color: var(--ink-dim); }
-        /* Review-matrix (dashboard-023): sange × holdfarver, klikbar sang-række. */
-        .mx-headblock { padding: 1rem 1.25rem 0; }
-        .mx-h { font-family: var(--font-display); font-weight: var(--w-black); font-size: 1.3rem; margin: 0 0 0.2rem; letter-spacing: var(--ls-tight); }
-        .mx-wrap { padding: 0.75rem 1.25rem 0; overflow-x: auto; }
-        table.matrix { width: 100%; border-collapse: collapse; }
-        table.matrix th, table.matrix td { padding: 0.5rem 0.6rem; text-align: center; }
-        table.matrix thead th { font-size: 0.7rem; letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--ink-dim); font-weight: var(--w-bold); border-bottom: 2px solid var(--paper-border); }
-        .mx-team .mx-dot { display: inline-block; width: 0.6em; height: 0.6em; border-radius: 50%; background: var(--team-color); margin-right: 0.3em; }
-        .mx-song-h, .mx-song { text-align: left; }
-        .mx-row { border-top: 1px solid var(--paper-border-soft); cursor: pointer; transition: background 0.1s; }
-        .mx-row:hover { background: color-mix(in oklch, var(--ink) 6%, transparent); }
-        .mx-song { font-weight: var(--w-bold); font-size: 0.85rem; max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .mx-no { color: var(--ink-dim); font-family: var(--font-numeric); }
-        .mx-cell { font-family: var(--font-numeric); font-weight: var(--w-bold); color: var(--ink); }
-        .mx-total { border-top: 2px solid var(--paper-border); }
-        .mx-total .mx-song { color: var(--ink-muted); text-transform: uppercase; letter-spacing: var(--ls-label); font-size: 0.72rem; font-weight: var(--w-bold); }
-        .mx-total-cell { font-size: 1.05rem; }
         .toast {
             position: fixed; left: 50%; bottom: calc(5rem + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(2rem);
             background: var(--ink); color: var(--paper-card); font-weight: var(--w-bold); font-size: 0.85rem;
@@ -189,7 +172,6 @@
         let curIdx = 0;                 // hvilken sang vises/scores nu (index i songs)
         const pending = new Map();      // team_key → valgt 0-3 for den aktuelle sang (ugemt)
         let dirty = false;              // ugemte stepper-valg → pause poll-re-render
-        let showMatrix = true;          // når alle sange er scoret: vis review-matrix (vs. sang-for-sang)
 
         async function load() {
             const [t, k, s] = await Promise.all([
@@ -236,7 +218,6 @@
             const song = songs[curIdx];
             const scoredCount = scoredSongKeys().size;
             const allScored = scoredCount === songs.length;
-            if (allScored && showMatrix) { renderMatrix(); return; }
             const isScored = scoredSongKeys().has(song.key_id);
             const yr = song.release_year ? ` <span class="year">${esc(song.release_year)}</span>` : "";
 
@@ -275,50 +256,11 @@
                     ${curIdx < songs.length - 1
                         ? `<button class="btn btn-next" data-action="next">Gem &amp; næste sang →</button>`
                         : `<button class="btn btn-next" data-action="next">Gem sidste sang</button>`}
-                    ${allScored ? `<button class="btn btn-prev" data-action="overview">← oversigt</button>` : ""}
+                    ${allScored ? `<button class="btn btn-lock" data-action="lock">Afslut &amp; lås 🔒</button>` : ""}
                 </div>
                 <p class="hint">Tast hvert holds antal rigtige (0–3: titel · kunstner · år), så ét tryk videre. Summen bliver musikquizzens placering til sidst.</p>
                 <div class="teams">${rows}</div>`;
             wire();
-            dirty = false;
-        }
-
-        // Review-matrix (dashboard-023): alle sange × holdfarver, klik en sang-række → ret den.
-        function renderMatrix() {
-            const head = teams.map(tm =>
-                `<th class="mx-team" style="--team-color:var(--team-${cssVarSafe(tm.team_color)})"><span class="mx-dot"></span>${esc(tm.team_short || tm.team_name)}</th>`
-            ).join("");
-            const body = songs.map((s, i) => {
-                const cells = teams.map(tm => {
-                    const v = scoreFor(s.key_id, tm.team_key);
-                    return `<td class="mx-cell">${v == null ? "–" : v}</td>`;
-                }).join("");
-                return `<tr class="mx-row" data-song-idx="${i}" role="button" tabindex="0">
-                    <th class="mx-song" scope="row"><span class="mx-no">${esc(s.round_number)}.</span> ${esc(s.title)}</th>
-                    ${cells}
-                </tr>`;
-            }).join("");
-            const totals = teams.map(tm => `<td class="mx-cell mx-total-cell">${teamTotal(tm.team_key)}</td>`).join("");
-            contentEl.innerHTML = `
-                <div class="mx-headblock">
-                    <h2 class="mx-h">Alle sange scoret — gennemgå</h2>
-                    <p class="hint">Klik en sang for at rette den. Tryk Afslut &amp; lås når alt er rigtigt.</p>
-                </div>
-                <div class="mx-wrap">
-                    <table class="matrix">
-                        <thead><tr><th class="mx-song-h">Sang</th>${head}</tr></thead>
-                        <tbody>${body}
-                            <tr class="mx-total"><th class="mx-song" scope="row">Total</th>${totals}</tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="actions">
-                    <button class="btn btn-lock" data-action="lock">Afslut &amp; lås 🔒</button>
-                </div>`;
-            for (const tr of contentEl.querySelectorAll(".mx-row")) {
-                tr.addEventListener("click", () => { showMatrix = false; navTo(Number(tr.dataset.songIdx)); });
-            }
-            contentEl.querySelector('[data-action="lock"]').addEventListener("click", finishLock);
             dirty = false;
         }
 
@@ -339,7 +281,6 @@
                     else if (action === "next") saveAndAdvance();   // gemmer + frem
                     else if (action === "prev") navTo(curIdx - 1);  // kun navigér (gemmer ikke 0'er)
                     else if (action === "lock") finishLock();
-                    else if (action === "overview") { showMatrix = true; render(); }
                 });
             }
         }
