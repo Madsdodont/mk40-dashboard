@@ -125,17 +125,13 @@
         let facitKey = null;        // sidst malede facit-sang → kun re-anim ved skift
 
         async function fetchAll() {
-            const [t, k, s, f] = await Promise.all([
+            const [t, k, s] = await Promise.all([
                 supabase.from("DimTeam").select("*").order("team_key"),
                 supabase.from("MusicQuizKey").select("*").order("round_number"),
                 supabase.from("MusicQuizScore").select("*"),
-                supabase.from("FactScore").select("is_final").eq("discipline_key", 7),
             ]);
             if (t.error || k.error || s.error) throw new Error(t.error?.message || k.error?.message || s.error?.message);
-            // Musikquiz låst (disc 7 is_final) → finalen er afgjort. ADR-5: en FactScore-fejl må aldrig
-            // bryde TV'et, så et fejl-svar tolkes bare som "ikke låst endnu".
-            const quizLocked = !f.error && Array.isArray(f.data) && f.data.some(r => r.is_final);
-            return { teams: t.data, songs: k.data, scores: s.data, quizLocked };
+            return { teams: t.data, songs: k.data, scores: s.data };
         }
 
         // Skelet bygges ÉN gang → poll opdaterer kun højder/tal (CSS-transition animerer, intet blink).
@@ -206,7 +202,6 @@
                 if (!built) shell.innerHTML = `<div class="state-msg">Fejl: ${esc(e.message)}</div>`;
                 return;
             }
-            if (data.quizLocked) { window.location.href = "./cards-h.html"; return; }   // finalen afgjort → tilbage til scoreboard
             if (!data.teams.length) { shell.innerHTML = `<div class="state-msg">Ingen hold endnu.</div>`; built = false; return; }
             if (!built) buildSkeleton(data.teams);
             updateFacit(data.songs);
