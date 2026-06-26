@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mk40 — Velkommen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900&family=JetBrains+Mono:wght@500;700&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        /* Velkomst-/holdside til TV'et (dashboard-023). Erstatter print: folk finder deres
+           kongerige + kaptajn og scanner kaptajn-QR'en direkte fra skærmen. 4K-clamshell, F11.
+           Ingen host-QR (kun kaptajner). Paper-æstetik som cards-h / musikquiz. */
+        :root {
+            --paper-void: oklch(94% 0.012 60);
+            --paper-card: oklch(99% 0.005 60);
+            --paper-border-soft: oklch(88% 0.012 60);
+            --paper-border: oklch(75% 0.012 60);
+            --ink: oklch(20% 0.014 30);
+            --ink-muted: oklch(40% 0.014 30);
+            --ink-dim: oklch(58% 0.012 30);
+            /* Ægte bandana-farver (delt med qr.html). team_key: pink=1 … lilla=5. */
+            --team-pink:  oklch(62% 0.22 0);
+            --team-navy:  oklch(28% 0.13 260);
+            --team-groen: oklch(52% 0.18 145);
+            --team-gul:   oklch(82% 0.16 85);
+            --team-lilla: oklch(58% 0.17 295);
+            --font-display: "Fraunces", Georgia, serif;
+            --font-label: "Segoe UI", system-ui, sans-serif;
+            --font-numeric: "JetBrains Mono", ui-monospace, monospace;
+            --shadow-low: 0 1px 2px oklch(20% 0.02 30 / 0.08), 0 2px 6px oklch(20% 0.02 30 / 0.06);
+            --shadow-paper: 0 4px 18px oklch(20% 0.02 30 / 0.10), 0 24px 64px oklch(20% 0.02 30 / 0.10);
+            --w-bold: 700; --w-black: 900; --ls-label: 0.14em; --ls-tight: -0.02em; --ls-wide: 0.2em;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; height: 100%; }
+        body {
+            background:
+                radial-gradient(ellipse 55% 50% at 10% 8%, color-mix(in oklch, var(--team-pink) 12%, transparent) 0%, transparent 60%),
+                radial-gradient(ellipse 55% 50% at 90% 92%, color-mix(in oklch, var(--team-navy) 12%, transparent) 0%, transparent 60%),
+                var(--paper-void);
+            color: var(--ink); font-family: var(--font-label); min-height: 100vh; -webkit-font-smoothing: antialiased;
+        }
+        .app-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+            background: oklch(96% 0.008 60 / 0.85); backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--paper-border-soft);
+            padding: 0.5rem 1.5rem; display: flex; gap: 0.5rem;
+            font-family: var(--font-label); font-size: clamp(0.875rem, 0.8vw, 1.5rem);
+            font-weight: 600; letter-spacing: var(--ls-label); text-transform: uppercase;
+        }
+        .app-nav a { color: var(--ink-muted); text-decoration: none; padding: 0.25rem 0.75rem; border: 1px solid transparent; border-radius: 6px; }
+        .app-nav a.current { color: oklch(45% 0.16 50); border-color: oklch(45% 0.16 50); }
+
+        .shell { min-height: 100vh; padding: clamp(4rem, 7vh, 7rem) clamp(2rem, 3.5vw, 5rem) clamp(2rem, 4vh, 4rem);
+            display: grid; grid-template-rows: auto 1fr; gap: clamp(1.5rem, 3vh, 3rem); }
+
+        /* ===== Velkomst-header ===== */
+        .welcome-head { text-align: center; }
+        .welcome-head .overline { font-family: var(--font-label); font-weight: var(--w-bold);
+            font-size: clamp(0.9rem, 1.1vw, 1.6rem); letter-spacing: var(--ls-wide); text-transform: uppercase; color: var(--ink-dim); }
+        .welcome-head h1 { font-family: var(--font-display); font-weight: var(--w-black);
+            font-size: clamp(2.5rem, 5.2vw, 7rem); line-height: 1.0; letter-spacing: var(--ls-tight); margin: 0.15em 0 0.12em; text-wrap: balance; }
+        .welcome-head .sub { font-family: var(--font-display); font-style: italic; font-weight: var(--w-bold);
+            font-size: clamp(1.25rem, 1.9vw, 2.75rem); color: var(--ink-muted); margin: 0; }
+
+        /* ===== 5 kongeriger ===== */
+        .kingdoms { display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(1rem, 1.5vw, 2.25rem); min-height: 0; }
+        .kingdom { display: flex; flex-direction: column; background: var(--paper-card);
+            border: 1px solid var(--paper-border-soft); border-radius: clamp(12px, 1vw, 22px); overflow: hidden; box-shadow: var(--shadow-paper); }
+        .kingdom-head { background: var(--team); color: var(--on, #fff);
+            padding: clamp(0.9rem, 1.5vh, 1.7rem) clamp(0.6rem, 1vw, 1.2rem); text-align: center; }
+        .kingdom-head .k-over { display: block; font-size: clamp(0.6rem, 0.7vw, 1.1rem);
+            letter-spacing: var(--ls-label); text-transform: uppercase; font-weight: var(--w-bold); opacity: 0.85; margin-bottom: 0.3em; }
+        .kingdom-head h2 { font-family: var(--font-display); font-weight: var(--w-black);
+            font-size: clamp(1.5rem, 2.4vw, 3.5rem); line-height: 1; letter-spacing: var(--ls-tight); margin: 0; }
+
+        .roster { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: clamp(0.3rem, 0.7vh, 0.9rem);
+            list-style: none; margin: 0; padding: clamp(0.8rem, 1.6vh, 1.7rem) clamp(0.5rem, 0.8vw, 1rem); min-height: 0; }
+        .roster li { text-align: center; font-size: clamp(1rem, 1.15vw, 1.95rem); font-weight: 600; color: var(--ink); line-height: 1.15; }
+        .roster li.is-captain { font-weight: var(--w-black); }
+        .roster li.is-captain .cap-label { display: block; font-size: clamp(0.55rem, 0.62vw, 1rem);
+            font-weight: var(--w-bold); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--team); margin-bottom: 0.2em; }
+
+        .k-qr { padding: clamp(0.8rem, 1.5vh, 1.7rem) clamp(0.6rem, 1vw, 1.2rem) clamp(1rem, 1.8vh, 2rem);
+            border-top: 1px dashed var(--paper-border-soft); text-align: center; }
+        .k-qr .qr-box { display: inline-flex; padding: clamp(0.4rem, 0.6vw, 0.9rem); background: #fff;
+            border-radius: clamp(6px, 0.6vw, 12px); box-shadow: var(--shadow-low); }
+        .k-qr .qr-box img, .k-qr .qr-box canvas { display: block; width: clamp(120px, 9vw, 360px); height: clamp(120px, 9vw, 360px); }
+        .k-qr .cap { margin: clamp(0.4rem, 0.8vh, 1rem) 0 0; font-size: clamp(0.7rem, 0.85vw, 1.4rem);
+            letter-spacing: var(--ls-label); text-transform: uppercase; font-weight: var(--w-bold); color: var(--team); }
+    </style>
+</head>
+<body>
+    <nav class="app-nav">
+        <a href="./cards-h.html">Scoreboard</a>
+        <a href="./velkommen.html" class="current">Velkommen</a>
+        <a href="./musikquiz.html">Quiz</a>
+    </nav>
+    <div class="shell">
+        <header class="welcome-head">
+            <p class="overline">Lørdag 27. juni 2026 · Gunnekær</p>
+            <h1>Velkommen til Kongerigernes Kamp</h1>
+            <p class="sub">Find dit kongerige — scan QR'en med din telefon</p>
+        </header>
+        <div class="kingdoms" id="kingdoms"></div>
+    </div>
+
+    <script>
+        // Holdopstilling — låst 2026-06-14 (delt med qr.html). Kaptajnen står først + markeres.
+        const TEAMS = [
+            { key: 1, varname: "pink",   color: "Pink",     on: "#fff", captain: "AH",
+              members: ["AH", "Johanne", "Theo", "Tim", "Morten A.", "Mira"] },
+            { key: 2, varname: "navy",   color: "Mørkeblå", on: "#fff", captain: "Niko",
+              members: ["Niko", "Margaux", "Satya", "Jesper", "Dirk", "Rose"] },
+            { key: 3, varname: "groen",  color: "Grøn",     on: "#fff", captain: "Anders",
+              members: ["Anders", "Mads", "Mikkel", "Julie", "Majbritt"] },
+            { key: 4, varname: "gul",    color: "Gul",      on: "oklch(25% 0.03 60)", captain: "Anne",
+              members: ["Anne", "Allan", "Christian", "Morten E.", "Ida", "AC"] },
+            { key: 5, varname: "lilla",  color: "Lilla",    on: "#fff", captain: "Buggi",
+              members: ["Buggi", "Oscar", "Michael", "Kirstine", "Freja"] },
+        ];
+
+        // Fast deployed-base så QR'erne peger på den rigtige kaptajn-side uanset hvor TV'et åbner siden.
+        const DEPLOYED_BASE = "https://madsdodont.github.io/mk40-dashboard/";
+        const el = document.getElementById("kingdoms");
+        const esc = (s) => s == null ? "" : String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+        for (const t of TEAMS) {
+            const url = `${DEPLOYED_BASE}kaptajn.html?team=${t.key}`;
+            const sec = document.createElement("section");
+            sec.className = "kingdom";
+            sec.style.setProperty("--team", `var(--team-${t.varname})`);
+            sec.style.setProperty("--on", t.on);
+            sec.innerHTML =
+                `<div class="kingdom-head">
+                    <span class="k-over">Kongerige</span>
+                    <h2>${esc(t.color)}</h2>
+                 </div>
+                 <ul class="roster">
+                    ${t.members.map(m => m === t.captain
+                        ? `<li class="is-captain"><span class="cap-label">Kaptajn</span>${esc(m)}</li>`
+                        : `<li>${esc(m)}</li>`).join("")}
+                 </ul>
+                 <div class="k-qr">
+                    <div class="qr-box"></div>
+                    <p class="cap">Kaptajn · scan mig</p>
+                 </div>`;
+            el.appendChild(sec);
+            new QRCode(sec.querySelector(".qr-box"), { text: url, width: 400, height: 400, correctLevel: QRCode.CorrectLevel.M });
+        }
+    </script>
+</body>
+</html>
