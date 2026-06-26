@@ -149,9 +149,10 @@
         }
         .head .tab:not(.active) {
             font-size: 0.78rem; font-weight: var(--w-bold); letter-spacing: var(--ls-label);
-            text-transform: uppercase; opacity: 0.55;
+            text-transform: uppercase; opacity: 0.55; padding-bottom: 0.12rem;
+            border-bottom: 2px solid transparent; transition: opacity 0.12s, border-color 0.12s;
         }
-        .head .tab:not(.active)::after { content: " →"; }
+        .head .tab:not(.active):hover { opacity: 1; border-bottom-color: color-mix(in oklch, var(--paper-card) 55%, transparent); }
     </style>
 </head>
 <body>
