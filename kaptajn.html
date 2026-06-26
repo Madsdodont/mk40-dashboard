@@ -316,7 +316,7 @@
                 html += `<div class="disc ${isOpen ? "open" : ""}" style="--team-color:${teamVar}" data-disc="${d.discipline_key}">
                     <div class="disc-top" role="button" tabindex="0" data-toggle aria-expanded="${isOpen}">
                         <div class="disc-name">
-                            <h2>${esc(d.discipline_name).replace("Skabelsesberetningen", "Skabelses<wbr>beretningen")}</h2>
+                            <h2>${esc(d.discipline_name).replace("Skabelsesberetningen", "Skabelses&shy;beretningen")}</h2>
                             <div class="disc-hint"><span>${dir}</span></div>
                         </div>
                         ${summary}
