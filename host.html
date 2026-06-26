@@ -120,6 +120,7 @@
 
         .disc-foot { padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.6rem; border-top: 1px solid var(--paper-border-soft); }
         .hint { font-size: 0.72rem; color: var(--ink-dim); flex: 1; }
+        .disc-rule { margin: 0; padding: 0.7rem 1rem; font-size: 0.78rem; line-height: 1.45; color: var(--ink-muted); background: var(--paper-deep); border-bottom: 1px solid var(--paper-border-soft); }
         .btn {
             font-family: var(--font-label); font-weight: var(--w-bold); font-size: 0.9rem;
             min-height: 44px; padding: 0.55rem 1.25rem; border: none; border-radius: 8px; cursor: pointer;
@@ -183,6 +184,16 @@
         // Disciplin-typer — skal matche kaptajn.html, så snit/breakdown udregnes ens i begge ender.
         const PER_PLAYER_KEYS = new Set([2, 3]); // Bowling + Dart — ét felt per spiller, holdets snit
         const ABSENT = "✕";                       // "deltog ikke"-markør i breakdown
+        // Regler pr. disciplin, vist under hver dropdown (samme som kaptajn-siden, dashboard-023).
+        // 2-6 = kaptajnens egen tekst; 1 = host-specifik (creation-myth tastes af dommeren).
+        const DISC_HOWTO = {
+            1: "Tæl brikkerne i hvert kongeriges skål og tast antal stemmer pr. hold. Flest stemmer vinder.",
+            2: "To runder bowling — tast hver spillers bedste runde (10 frames). Vi tager holdets snit.",
+            3: "Hver spiller kaster 3 pile — tast summen af de tre pile pr. spiller. Vi tager holdets snit.",
+            4: "24 poser pr. hold (alle kaster mindst 4). 1 point pr. pose på pladen, 3 point pr. pose i hul — tast holdets samlede point.",
+            5: "Tast tiden i minutter og sekunder — vi regner den sammen. Hurtigst (laveste) vinder.",
+            6: "6 søm — alle hjælpes ad og skiftes til at slå. Tast det samlede antal slag. Færrest vinder.",
+        };
 
         function cssVarSafe(name) { return String(name).replace(/\//g, "").replace(/\s+/g, ""); }
         function esc(s) { return s == null ? "" : String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
@@ -272,6 +283,7 @@
                         <span class="chevron" aria-hidden="true">▾</span>
                     </div>
                     <div class="disc-body">
+                        ${DISC_HOWTO[disc.discipline_key] ? `<p class="disc-rule">📋 ${DISC_HOWTO[disc.discipline_key]}</p>` : ``}
                         ${body}
                         <div class="disc-foot">
                             <span class="hint">${esc(disc.discipline_type)} · ${dirHint}${footHint}${isPP ? " · ret enkelt-tal direkte" : ""}</span>
