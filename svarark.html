@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mk40 — Musikquiz svarark (A4 print)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900&family=JetBrains+Mono:wght@500;700&display=swap">
+    <style>
+        :root {
+            /* Paper-palette delt med qr.html / kaptajn.html (canonical brand). */
+            --paper-void: oklch(94% 0.012 60);
+            --paper-card: oklch(99% 0.005 60);
+            --paper-border-soft: oklch(88% 0.012 60);
+            --paper-border: oklch(75% 0.012 60);
+            --ink: oklch(20% 0.014 30);
+            --ink-muted: oklch(40% 0.014 30);
+            --ink-dim: oklch(58% 0.012 30);
+            /* Ægte bandana-farver (delt med qr.html). team_key: pink=1 … lilla=5. */
+            --team-pink:  oklch(62% 0.22 0);
+            --team-navy:  oklch(28% 0.13 260);
+            --team-groen: oklch(52% 0.18 145);
+            --team-gul:   oklch(82% 0.16 85);
+            --team-lilla: oklch(58% 0.17 295);
+            --font-display: "Fraunces", Georgia, serif;
+            --font-label: "Segoe UI", system-ui, sans-serif;
+            --font-numeric: "JetBrains Mono", ui-monospace, monospace;
+            --shadow-paper: 0 4px 14px oklch(20% 0.02 30 / 0.12), 0 18px 50px oklch(20% 0.02 30 / 0.10);
+            --w-bold: 700; --w-black: 900; --ls-label: 0.14em; --ls-tight: -0.02em;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body { background: var(--paper-void); color: var(--ink); font-family: var(--font-label); -webkit-font-smoothing: antialiased; }
+
+        /* ---- Skærm-kontroller (printes ikke) ---- */
+        .controls { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; max-width: 210mm; margin: 1.25rem auto 0; padding: 0 0.5rem; }
+        .controls button { font-family: var(--font-label); font-weight: var(--w-bold); padding: 0.5rem 1.1rem; border: none; border-radius: 8px; background: var(--ink); color: var(--paper-card); cursor: pointer; }
+        .controls .hint { font-size: 0.72rem; color: var(--ink-dim); }
+
+        /* ---- A4 portrait-ark, ét pr. hold ---- */
+        .sheet {
+            width: 210mm; min-height: 297mm; margin: 1.25rem auto; padding: 12mm 12mm 10mm;
+            background: var(--paper-card); box-shadow: var(--shadow-paper);
+            display: flex; flex-direction: column; page-break-after: always;
+        }
+        .sheet:last-child { page-break-after: auto; }
+
+        /* Farvet holdbånd øverst */
+        .team-band { background: var(--team); color: var(--on, #fff); border-radius: 8px; padding: 4mm 5mm; display: flex; align-items: baseline; justify-content: space-between; gap: 4mm; }
+        .team-band .kingdom { font-size: 0.72rem; letter-spacing: var(--ls-label); text-transform: uppercase; font-weight: var(--w-bold); opacity: 0.85; }
+        .team-band .kingdom b { display: block; font-family: var(--font-display); font-weight: var(--w-black); font-size: 1.9rem; letter-spacing: var(--ls-tight); text-transform: none; opacity: 1; margin-top: 0.5mm; }
+        .team-band .quiz-title { font-family: var(--font-display); font-weight: var(--w-black); font-size: 2.3rem; letter-spacing: var(--ls-tight); }
+
+        .meta { padding: 4mm 1mm 3mm; border-bottom: 1.5px solid var(--paper-border-soft); }
+        .meta .overline { margin: 0; font-size: 0.7rem; letter-spacing: var(--ls-label); text-transform: uppercase; font-weight: var(--w-bold); color: var(--ink-dim); }
+        .meta .rules { margin: 1.5mm 0 0; font-size: 0.92rem; color: var(--ink-muted); line-height: 1.35; }
+
+        /* ---- Svar-tabel: 21 sange ---- */
+        table { width: 100%; border-collapse: collapse; flex: 1; margin-top: 4mm; table-layout: fixed; }
+        col.c-nr   { width: 9%; }
+        col.c-art  { width: 32%; }
+        col.c-title{ width: 35%; }
+        col.c-year { width: 13%; }
+        col.c-pt   { width: 11%; }
+        thead th {
+            font-family: var(--font-label); font-size: 0.66rem; letter-spacing: var(--ls-label); text-transform: uppercase;
+            font-weight: var(--w-bold); color: var(--ink-dim); text-align: left; padding: 2mm 2.5mm; border-bottom: 2px solid var(--team);
+        }
+        thead th.center { text-align: center; }
+        tbody td { border-bottom: 1px solid var(--paper-border-soft); padding: 0 2.5mm; height: 9.6mm; vertical-align: middle; }
+        tbody td.nr { font-family: var(--font-numeric); font-weight: var(--w-bold); font-size: 0.95rem; color: var(--ink-muted); text-align: center; }
+        tbody td.pt { text-align: center; }
+        tbody tr:nth-child(even) td { background: oklch(97% 0.006 60); }
+        tfoot td { padding: 3mm 2.5mm; font-weight: var(--w-bold); }
+        tfoot .total-label { text-align: right; font-family: var(--font-label); letter-spacing: var(--ls-label); text-transform: uppercase; font-size: 0.78rem; color: var(--ink-muted); }
+        tfoot .total-box { border: 2px solid var(--team); border-radius: 6px; height: 11mm; }
+
+        /* ---- Print: A4 portrait, ét hold pr. side ---- */
+        @page { size: A4 portrait; margin: 0; }
+        @media print {
+            body { background: #fff; }
+            .no-print { display: none !important; }
+            .sheet { margin: 0; box-shadow: none; width: 210mm; min-height: 297mm; }
+        }
+        .sheet, .team-band, thead th, tfoot .total-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    </style>
+</head>
+<body>
+    <div class="controls no-print">
+        <button onclick="window.print()">Print (5 sider)</button>
+        <span class="hint">A4 portrait · ét svarark pr. hold i holdfarven · 21 sange</span>
+    </div>
+
+    <div id="sheets"></div>
+
+    <script>
+        // Hold (delt med qr.html). Kun farve + kongerige-navn bruges her.
+        const TEAMS = [
+            { varname: "pink",  color: "Pink",     on: "#fff" },
+            { varname: "navy",  color: "Mørkeblå", on: "#fff" },
+            { varname: "groen", color: "Grøn",     on: "#fff" },
+            { varname: "gul",   color: "Gul",      on: "oklch(25% 0.03 60)" },
+            { varname: "lilla", color: "Lilla",    on: "#fff" },
+        ];
+        const SONGS = 21;
+        const sheetsEl = document.getElementById("sheets");
+
+        for (const t of TEAMS) {
+            const rows = Array.from({ length: SONGS }, (_, i) =>
+                `<tr><td class="nr">${i + 1}</td><td></td><td></td><td></td><td class="pt"></td></tr>`).join("");
+            const sec = document.createElement("section");
+            sec.className = "sheet";
+            sec.style.setProperty("--team", `var(--team-${t.varname})`);
+            sec.style.setProperty("--on", t.on);
+            sec.innerHTML =
+                `<div class="team-band">
+                    <span class="kingdom">Kongerige<b>${t.color}</b></span>
+                    <span class="quiz-title">Musikquiz</span>
+                 </div>
+                 <div class="meta">
+                    <p class="overline">Lørdag 27. juni 2026 · Gunnekær</p>
+                    <p class="rules">21 sange · I får det første minut af sangen — gæt kunstner, titel og årstal. 1 point pr. rigtigt svar — potentielt 3 point pr. sang.</p>
+                 </div>
+                 <table>
+                    <colgroup><col class="c-nr"><col class="c-art"><col class="c-title"><col class="c-year"><col class="c-pt"></colgroup>
+                    <thead><tr><th class="center">Nr</th><th>Kunstner</th><th>Titel</th><th>Årstal</th><th class="center">Point</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                    <tfoot><tr><td class="total-label" colspan="4">I alt</td><td class="total-box"></td></tr></tfoot>
+                 </table>`;
+            sheetsEl.appendChild(sec);
+        }
+    </script>
+</body>
+</html>
