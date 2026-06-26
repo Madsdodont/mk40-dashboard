@@ -1730,7 +1730,7 @@
 
                 const last = pts[pts.length - 1];
                 svg += `<circle class="team-end-dot" cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="5" fill="${colorVar}"/>`;
-                svg += `<text class="team-end-label" x="${(last.x + 11).toFixed(1)}" y="${(last.y + 5).toFixed(1)}" fill="${colorVar}">${esc(shortName(team.team_name))}</text>`;
+                svg += `<text class="team-end-label" x="${(last.x + 11).toFixed(1)}" y="${(last.y + 5).toFixed(1)}" fill="${colorVar}">${esc(team.team_short || shortName(team.team_name))}</text>`;
             }
 
             bumpSvg.innerHTML = svg;

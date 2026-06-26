@@ -39,7 +39,7 @@ const corsHeaders = {
 // Anthropic — Messages API, Sonnet 4.6.
 // ---------------------------------------------------------------------------
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-const MODEL = "claude-sonnet-4-6";
+const MODEL = "claude-opus-4-8";   // hævet fra Sonnet 4.6 (dashboard-023): renere dansk, færre opdigtede ord
 const ANTHROPIC_VERSION = "2023-06-01";
 
 // Delt brand-stemme — gælder begge modes.
@@ -57,10 +57,10 @@ Tone pr. disciplin-type:
 - Creative: legende, billedrig.
 - Luck: ironisk distance — held er ingen dyd, ikke en bedrift.
 
-Find aldrig på fakta.`;
+Find aldrig på fakta. Find aldrig på ord: brug kun gængse, korrekte danske ord og vendinger — er du i tvivl om et ord, vælg et enklere du er sikker på (skriv hellere "stående klapsalver" end et ord du ikke er sikker på findes). Undgå anglicismer: skriv "runde" eller "serie", ikke "frame".`;
 
 // MODE "score" — provisorisk, terse, gerne relativt til de andre indmeldte.
-const SCORE_PROMPT = `Du er kommentator-stemmen på en privat 40-års fødselsdags-scoretavle. Et hold har netop meldt et RÅ-resultat ind i en disciplin der STADIG er i gang — ikke alle fem hold har spillet endnu. Skriv ÉN kort, mundret dansk sætning (max ~110 tegn) som en løbende, levende kommentar til scoren.
+const SCORE_PROMPT = `Du er kommentator-stemmen på en privat 40-års fødselsdags-scoretavle. Et hold har netop meldt et RÅ-resultat ind i en disciplin der STADIG er i gang — ikke alle fem hold har spillet endnu. Skriv ÉN kort, mundret dansk sætning (max ~110 tegn) som en løbende, levende kommentar til scoren. Hold den kort og naturlig — én ren sætning uden lange indskudte bisætninger der sprænger længden; hellere enkel og præcis end blomstret.
 
 HOLDETS EGEN NOTE ER DIN VIGTIGSTE KILDE. Hvis der følger en note med (holdets egen beskrivelse af hvad der skete på stationen, fx "Sindsyge pile fra AC"), så er DEN næsten altid den bedste vinkel. Byg kommentaren rundt om den menneskelige detalje — navnet, situationen, anekdoten. Navne og detaljer der står i NOTEN må du gerne bruge direkte; det er holdets egen historie, ikke noget du finder på. En note slår altid tør statistik. Den relative stilling er så krydderi, ikke hovedret.
 

@@ -184,6 +184,15 @@
             6: "6 søm — alle hjælpes ad og skiftes til at slå. Tast det samlede antal slag. Færrest vinder.",
             7: "1 point for rigtig kunstner, 1 for rigtig sangtitel, 1 for rigtigt år (pr. sang) — tast holdets samlede point.",
         };
+        // Disciplin-specifikke drama-eksempler til note-feltets placeholder (dashboard-023):
+        // hvert eksempel peger på den disciplin det hører til — ingen bowling-reference på puslespil.
+        const DRAMA_EX = {
+            2: "fx 'Bo lukkede med en strike-serie!'",
+            3: "fx 'Sidste pil lukkede på dobbel-20!'",
+            4: "fx 'Tre poser i hul i træk — banen kogte!'",
+            5: "fx 'Fandt de fire hjørner på under et minut!'",
+            6: "fx 'Sænkede sidste søm på ét slag — kirurgisk!'",
+        };
         const ABSENT = "✕";                      // "deltog ikke"-markør i breakdown
 
         let instrCollapsed = false;
@@ -308,7 +317,7 @@
                     <div class="disc-top" role="button" tabindex="0" data-toggle aria-expanded="${isOpen}">
                         <div class="disc-name">
                             <h2>${esc(d.discipline_name)}</h2>
-                            <div class="disc-hint"><span class="type-badge">${esc(d.discipline_type)}</span><span>${dir}</span></div>
+                            <div class="disc-hint"><span>${dir}</span></div>
                         </div>
                         ${summary}
                         ${chip}
@@ -327,15 +336,15 @@
         function identityBody(t) {
             return `<div class="id-scoring">🏆 <strong>Sådan gives point:</strong> aftenens gæster stemmer på den bedste skabelsesberetning. Holdet med flest stemmer får <strong>10 point</strong> (1. plads), derefter 7 / 5 / 3 / 1. Dommeren tæller stemmerne og låser.</div>
                 <div class="id-field">
-                    <label class="id-label">Kongerige-navn</label>
+                    <label class="id-label">Kongerige-navn <span class="id-hint">— max 40 tegn</span></label>
                     <input type="text" class="id-input id-name" maxlength="40" placeholder="Jeres kongeriges navn" value="${esc(t.team_name ?? "")}">
                 </div>
                 <div class="id-field">
-                    <label class="id-label">Kælenavn <span class="id-hint">— kort navn til tavlen</span></label>
+                    <label class="id-label">Kælenavn <span class="id-hint">— kort navn til tavlen, max 14 tegn</span></label>
                     <input type="text" class="id-input id-short" maxlength="14" placeholder="fx Pink" value="${esc(t.team_short ?? "")}">
                 </div>
                 <div class="id-field">
-                    <label class="id-label">Motto <span class="id-hint">— kort slogan på storskærmen</span></label>
+                    <label class="id-label">Motto <span class="id-hint">— kort slogan på storskærmen, max 60 tegn</span></label>
                     <input type="text" class="id-input id-motto" maxlength="60" placeholder="Jeres kongeriges motto" value="${esc(t.team_motto ?? "")}">
                 </div>
                 <div class="id-field">
@@ -455,7 +464,7 @@
                 <p class="hint-line cap-warn" hidden></p>
                 <div class="id-field">
                     <label class="id-label">Drama til storskærmen <span class="id-hint">— fodrer AI-kommentaren</span></label>
-                    <textarea class="id-input drama-input" rows="2" maxlength="140" placeholder="fx 'Bo lukkede med en strike-serie!'" ${isDraft ? "readonly" : ""}>${esc(drama)}</textarea>
+                    <textarea class="id-input drama-input" rows="2" maxlength="140" placeholder="${esc(DRAMA_EX[d.discipline_key] || "fx en kort, dramatisk detalje fra stationen")}" ${isDraft ? "readonly" : ""}>${esc(drama)}</textarea>
                 </div>
                 <p class="hint-line">${hint}</p>
                 <button class="save-btn score-btn" type="button" data-mode="${btnMode}">${btnLabel}</button>
