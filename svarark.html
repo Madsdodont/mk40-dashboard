@@ -40,7 +40,7 @@
 
         /* ---- A4 portrait-ark, ét pr. hold ---- */
         .sheet {
-            width: 210mm; min-height: 297mm; margin: 1.25rem auto; padding: 12mm 12mm 10mm;
+            width: 210mm; min-height: 297mm; margin: 1.25rem auto; padding: 10mm 12mm 10mm;
             background: var(--paper-card); box-shadow: var(--shadow-paper);
             display: flex; flex-direction: column; page-break-after: always;
         }
@@ -57,7 +57,7 @@
         .meta .rules { margin: 1.5mm 0 0; font-size: 0.92rem; color: var(--ink-muted); line-height: 1.35; }
 
         /* ---- Svar-tabel: 21 sange ---- */
-        table { width: 100%; border-collapse: collapse; flex: 1; margin-top: 4mm; table-layout: fixed; }
+        table { width: 100%; border-collapse: collapse; margin-top: 4mm; table-layout: fixed; }
         col.c-nr   { width: 9%; }
         col.c-art  { width: 32%; }
         col.c-title{ width: 35%; }
@@ -68,7 +68,7 @@
             font-weight: var(--w-bold); color: var(--ink-dim); text-align: left; padding: 2mm 2.5mm; border-bottom: 2px solid var(--team);
         }
         thead th.center { text-align: center; }
-        tbody td { border-bottom: 1px solid var(--paper-border-soft); padding: 0 2.5mm; height: 9.6mm; vertical-align: middle; }
+        tbody td { border-bottom: 1px solid var(--paper-border-soft); padding: 0 2.5mm; height: 8.6mm; vertical-align: middle; }
         tbody td.nr { font-family: var(--font-numeric); font-weight: var(--w-bold); font-size: 0.95rem; color: var(--ink-muted); text-align: center; }
         tbody td.pt { text-align: center; }
         tbody tr:nth-child(even) td { background: oklch(97% 0.006 60); }
