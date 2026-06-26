@@ -118,26 +118,29 @@
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast.error { background: var(--signal-error); }
-        .tabnav { display: flex; gap: 0.4rem; margin: 0 0 0.85rem; padding: 0 1.25rem; }
-        .tabnav .tab {
-            font-family: var(--font-label, system-ui); font-weight: var(--w-bold); font-size: 0.85rem;
-            min-height: 40px; padding: 0.45rem 1.1rem; border-radius: 999px; border: 1.5px solid var(--paper-border);
-            color: var(--ink-muted); text-decoration: none; display: inline-flex; align-items: center;
+        .head .tabnav { display: flex; align-items: baseline; gap: 1.1rem; margin: 0; }
+        .head .tab { text-decoration: none; color: var(--paper-card); }
+        .head .tab.active {
+            font-family: var(--font-display); font-weight: var(--w-black); font-size: 1.4rem;
+            letter-spacing: var(--ls-tight); padding-bottom: 0.12rem; border-bottom: 2px solid var(--paper-card);
         }
-        .tabnav .tab.active { background: var(--ink); color: var(--paper-card); border-color: var(--ink); }
+        .head .tab:not(.active) {
+            font-size: 0.78rem; font-weight: var(--w-bold); letter-spacing: var(--ls-label);
+            text-transform: uppercase; opacity: 0.55;
+        }
+        .head .tab:not(.active)::after { content: " →"; }
     </style>
 </head>
 <body>
     <div class="wrap">
         <div class="head">
-            <h1>Musikquiz</h1>
-            <span class="sub">Dommer</span>
+            <nav class="tabnav">
+                <a class="tab" href="host.html">Dommer</a>
+                <a class="tab active" href="quiz.html">Musikquiz</a>
+            </nav>
+            <span class="sub">Kongerigernes Kamp</span>
             <span class="conn" id="conn">●</span>
         </div>
-        <nav class="tabnav">
-            <a class="tab" href="host.html">Dommer</a>
-            <a class="tab active" href="quiz.html">Musikquiz</a>
-        </nav>
         <div id="content"><div class="state-msg">Indlæser…</div></div>
     </div>
     <div id="toast" class="toast"></div>
