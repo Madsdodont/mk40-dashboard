@@ -355,8 +355,16 @@
                 team_creation: card.querySelector(".id-creation").value.trim() || null,
             };
             btn.disabled = true;
-            const { error } = await supabase.from("DimTeam").update(payload).eq("team_key", teamKey);
-            if (error) { btn.disabled = false; toast("Kunne ikke gemme — prøv igen", true); console.error(error); return; }
+            const { data, error } = await supabase.from("DimTeam").update(payload).eq("team_key", teamKey).select();
+            // RLS/0-row-guard (dashboard-023): en blokeret update giver 200 + 0 rows UDEN error →
+            // behandl tom respons som fejl, så vi aldrig viser falsk "gemt". Ingen refresh på fejl →
+            // kaptajnens indtastede tekst bevares i felterne i stedet for at blive ryddet.
+            if (error || !data || data.length === 0) {
+                btn.disabled = false;
+                toast("Kunne ikke gemme — prøv igen", true);
+                console.error("saveIdentity: 0 rækker skrevet", error);
+                return;
+            }
             toast("Jeres identitet er gemt");
             openKeys.add(CREATION_KEY);
             await refresh(true);

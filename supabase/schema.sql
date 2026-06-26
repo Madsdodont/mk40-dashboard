@@ -169,4 +169,11 @@ create policy "anon_update_MusicQuizScore" on public."MusicQuizScore" for update
 create policy "anon_insert_FactScore" on public."FactScore" for insert to anon with check (true);
 create policy "anon_update_FactScore" on public."FactScore" for update to anon using (true) with check (true);
 
--- Bevidst INGEN delete-policy og INGEN write-policy på Dim-tabeller for anon.
+-- Kaptajn (kaptajn.html, anon-key) sætter holdets identitet via Skabelsesberetningen →
+-- update på DimTeam (team_name/short/motto/creation). Samme fulde-tillid-model (ADR-2).
+-- KRITISK: uden denne policy afviser RLS skrivningen, men PostgREST returnerer 200 + 0 rows
+-- (ingen fejl) → frontenden tror den gemte (falsk succes) og kaptajnens tekst går tabt.
+-- Tilføjet 2026-06-26 efter generalprøve-fund (dashboard-023).
+create policy "anon_update_DimTeam" on public."DimTeam" for update to anon using (true) with check (true);
+
+-- Bevidst INGEN delete-policy for anon, og INGEN write-policy på DimDiscipline (seedes af ejer).
