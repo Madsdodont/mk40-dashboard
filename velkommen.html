@@ -88,7 +88,7 @@
         .k-qr .qr-box { display: inline-flex; padding: clamp(0.4rem, 0.6vw, 0.9rem); background: #fff;
             border-radius: clamp(6px, 0.6vw, 12px); box-shadow: var(--shadow-low); }
         .k-qr .qr-box img, .k-qr .qr-box canvas { display: block; width: clamp(120px, 9vw, 360px); height: clamp(120px, 9vw, 360px); }
-        .k-qr .cap { margin: clamp(0.4rem, 0.8vh, 1rem) 0 0; font-size: clamp(0.7rem, 0.85vw, 1.4rem);
+        .k-qr .cap { margin: 0 0 clamp(0.4rem, 0.8vh, 1rem); font-size: clamp(0.7rem, 0.85vw, 1.4rem);
             letter-spacing: var(--ls-label); text-transform: uppercase; font-weight: var(--w-bold); color: var(--team); }
     </style>
 </head>
@@ -102,7 +102,7 @@
         <header class="welcome-head">
             <p class="overline">Lørdag 27. juni 2026 · Gunnekær</p>
             <h1>Velkommen til Kongerigernes Kamp</h1>
-            <p class="sub">Find dit kongerige — scan QR'en med din telefon</p>
+            <p class="sub">Find dit kongerige</p>
         </header>
         <div class="kingdoms" id="kingdoms"></div>
     </div>
@@ -144,8 +144,8 @@
                         : `<li>${esc(m)}</li>`).join("")}
                  </ul>
                  <div class="k-qr">
-                    <div class="qr-box"></div>
                     <p class="cap">Kaptajn · scan mig</p>
+                    <div class="qr-box"></div>
                  </div>`;
             el.appendChild(sec);
             new QRCode(sec.querySelector(".qr-box"), { text: url, width: 400, height: 400, correctLevel: QRCode.CorrectLevel.M });
