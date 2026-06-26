@@ -141,6 +141,13 @@
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast.error { background: var(--team-pink); }
+        .tabnav { display: flex; gap: 0.4rem; margin: 0 0 0.85rem; }
+        .tabnav .tab {
+            font-family: var(--font-label); font-weight: var(--w-bold); font-size: 0.85rem;
+            min-height: 40px; padding: 0.45rem 1.1rem; border-radius: 999px; border: 1.5px solid var(--paper-border);
+            color: var(--ink-muted); text-decoration: none; display: inline-flex; align-items: center;
+        }
+        .tabnav .tab.active { background: var(--ink); color: var(--paper-card); border-color: var(--ink); }
     </style>
 </head>
 <body>
@@ -150,6 +157,10 @@
             <span class="sub">Kongerigernes Kamp</span>
             <span class="conn" id="conn">●</span>
         </div>
+        <nav class="tabnav">
+            <a class="tab active" href="host.html">Dommer</a>
+            <a class="tab" href="quiz.html">Musikquiz</a>
+        </nav>
         <div id="content"><div class="state-msg">Indlæser…</div></div>
     </div>
     <div id="toast" class="toast"></div>
@@ -298,9 +309,14 @@
                 </tr>`;
             }
             for (const tm of pendingTeams) {
-                bodyRows += `<tr class="pending"><td class="rank-cell">–</td>
-                    <td class="team-cell">${esc(tm.team_name)}</td>
-                    <td class="raw-cell">afventer</td><td class="pts-cell">–</td><td class="note-cell"></td></tr>`;
+                // Redigerbart felt fra bunden (dashboard-023): host kan oprette et rå-tal for et hold
+                // der ikke har et endnu — nødvendigt for creation-myth (stemmer tastes af host), og
+                // en backstop for de øvrige enkelt-tal-discipliner. data-team-key i stedet for score-id.
+                bodyRows += `<tr class="pending" style="--team-color:var(--team-${cssVarSafe(tm.team_color)})">
+                    <td class="rank-cell">–</td>
+                    <td class="team-cell"><span class="team-dot"></span>${esc(tm.team_name)}</td>
+                    <td class="raw-cell"><input type="number" step="any" inputmode="decimal" placeholder="–" data-team-key="${tm.team_key}" ${isLocked ? "disabled" : ""}></td>
+                    <td class="pts-cell">–</td><td class="note-cell"></td></tr>`;
             }
             return `<table>
                 <thead><tr><th>#</th><th>Hold</th><th>Resultat</th><th>Point</th><th>Note</th></tr></thead>
@@ -429,6 +445,15 @@
                     if (orig && Number(orig.raw_value) !== newVal) {
                         writes.push(supabase.from("FactScore").update({ raw_value: newVal }).eq("score_id", scoreId));
                     }
+                }
+                // Nye rækker: hold uden et rå-tal endnu (fx creation-myth-stemmer) → upsert fra bunden.
+                for (const inp of card.querySelectorAll(".raw-cell input[data-team-key]")) {
+                    const tk = Number(inp.dataset.teamKey);
+                    if (inp.value.trim() === "") continue;
+                    writes.push(supabase.from("FactScore").upsert(
+                        { team_key: tk, discipline_key: discKey, round_number: 1, raw_value: Number(inp.value) },
+                        { onConflict: "team_key,discipline_key,round_number" }
+                    ));
                 }
             }
             if (writes.length === 0) return 0;

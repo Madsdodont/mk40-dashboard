@@ -118,6 +118,13 @@
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast.error { background: var(--signal-error); }
+        .tabnav { display: flex; gap: 0.4rem; margin: 0 0 0.85rem; padding: 0 1.25rem; }
+        .tabnav .tab {
+            font-family: var(--font-label, system-ui); font-weight: var(--w-bold); font-size: 0.85rem;
+            min-height: 40px; padding: 0.45rem 1.1rem; border-radius: 999px; border: 1.5px solid var(--paper-border);
+            color: var(--ink-muted); text-decoration: none; display: inline-flex; align-items: center;
+        }
+        .tabnav .tab.active { background: var(--ink); color: var(--paper-card); border-color: var(--ink); }
     </style>
 </head>
 <body>
@@ -127,6 +134,10 @@
             <span class="sub">Dommer</span>
             <span class="conn" id="conn">●</span>
         </div>
+        <nav class="tabnav">
+            <a class="tab" href="host.html">Dommer</a>
+            <a class="tab active" href="quiz.html">Musikquiz</a>
+        </nav>
         <div id="content"><div class="state-msg">Indlæser…</div></div>
     </div>
     <div id="toast" class="toast"></div>
