@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>MK40 — Kongerigernes Kamp · aftenen rullet ud</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600;1,9..144,700&family=JetBrains+Mono:wght@500;700;800&display=swap">
+<style>
+:root{
+  /* ===== mk40 design language — tokens lifted verbatim from cards-h.html / DESIGN.md ===== */
+  --paper-void:        oklch(94% 0.012 60);
+  --paper-deep:        oklch(97% 0.008 60);
+  --paper-card:        oklch(99% 0.005 60);
+  --paper-elevated:    oklch(96% 0.010 60);
+  --paper-border-soft: oklch(88% 0.012 60);
+  --paper-border:      oklch(75% 0.012 60);
+
+  --ink:        oklch(20% 0.014 30);
+  --ink-muted:  oklch(40% 0.014 30);
+  --ink-dim:    oklch(58% 0.012 30);
+
+  /* Team colours — bandana-mapped (locked 2026-06-14). gul is LIGHT (L=82%) → dark text on it. */
+  --team-pink:  oklch(58% 0.22 5);
+  --team-navy:  oklch(42% 0.20 258);
+  --team-grøn: oklch(50% 0.18 145);
+  --team-gul:  oklch(82% 0.16 85);
+  --team-lilla:oklch(52% 0.18 295);
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-label:   "Segoe UI", system-ui, sans-serif;
+  --font-numeric: "JetBrains Mono", ui-monospace, monospace;
+
+  --shadow-low:    0 1px 2px oklch(20% 0.02 30 / 0.08), 0 2px 6px oklch(20% 0.02 30 / 0.06);
+  --shadow-medium: 0 2px 4px oklch(20% 0.02 30 / 0.10), 0 8px 24px oklch(20% 0.02 30 / 0.08);
+  --shadow-high:   0 4px 8px oklch(20% 0.02 30 / 0.14), 0 16px 48px oklch(20% 0.02 30 / 0.12);
+
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px;
+  --space-6:32px; --space-7:40px; --space-8:48px; --space-9:64px; --space-10:96px;
+
+  --ls-tight:-0.02em; --ls-normal:0; --ls-label:0.12em; --ls-wide:0.2em;
+  --w-regular:600; --w-bold:700; --w-black:900;
+
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+html,body{ margin:0; padding:0; }
+body{
+  /* Five-team aurora field — the shared arena, verbatim from cards-h. Colour lives here, not on cards. */
+  background:
+    radial-gradient(ellipse 55% 60% at 10% 6%,   color-mix(in oklch, var(--team-pink)  16%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 60% at 88% 12%,   color-mix(in oklch, var(--team-lilla) 16%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 65% at 50% 38%,   color-mix(in oklch, var(--team-grøn) 12%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 60% at 14% 72%,   color-mix(in oklch, var(--team-navy)  15%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 60% at 86% 92%,   color-mix(in oklch, var(--team-gul)  16%, transparent) 0%, transparent 60%),
+    var(--paper-void);
+  background-attachment:fixed;
+  color:var(--ink);
+  font-family:var(--font-label);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  padding-top:42px; /* clear the fixed app-nav (deploy build only) */
+}
+
+/* ===== App nav — matches the dashboard chrome so the timeline feels part of the site ===== */
+.app-nav{
+  position:fixed; top:0; left:0; right:0; z-index:50;
+  background:oklch(96% 0.008 60 / 0.85); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--paper-border-soft);
+  padding:0.5rem 1.5rem; display:flex; gap:0.5rem;
+  font-family:var(--font-label); font-size:0.8rem;
+  font-weight:var(--w-regular); letter-spacing:var(--ls-label); text-transform:uppercase;
+}
+.app-nav a{
+  color:var(--ink-muted); text-decoration:none; padding:0.25rem 0.75rem;
+  border:1px solid transparent; border-radius:4px;
+  transition:color 200ms var(--ease), border-color 200ms var(--ease);
+}
+.app-nav a.current{ color:oklch(45% 0.16 50); border-color:oklch(45% 0.16 50); }
+.app-nav a:hover{ color:var(--ink); }
+
+/* ===== Scroll-progress hairline — ambient readout, never clickable ===== */
+#progress{
+  position:fixed; top:0; left:0; height:2px; width:0%;
+  background:linear-gradient(90deg, var(--team-navy), var(--team-lilla));
+  z-index:60; transition:width 80ms linear;
+}
+
+/* ===== Running standings — the race. Re-ranks as you scroll. Ambient, not interactive. ===== */
+#standings{
+  position:fixed; right:var(--space-6); top:50%; transform:translateY(-50%);
+  width:248px; z-index:40;
+  background:color-mix(in oklch, var(--paper-card) 80%, transparent);
+  backdrop-filter:blur(16px) saturate(1.15);
+  border:1px solid var(--paper-border-soft);
+  border-radius:10px; padding:var(--space-4) var(--space-4) var(--space-3);
+  box-shadow:var(--shadow-medium);
+  opacity:0; pointer-events:none;
+  transition:opacity 500ms var(--ease);
+}
+#standings.show{ opacity:1; }
+#standings::before{
+  content:""; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent, oklch(100% 0 0 / 0.7), transparent);
+}
+#standings .st-head{
+  display:flex; justify-content:space-between; align-items:baseline;
+  margin-bottom:var(--space-3);
+}
+#standings .st-title{
+  font-family:var(--font-display); font-weight:var(--w-bold);
+  font-size:1.05rem; letter-spacing:var(--ls-tight); color:var(--ink);
+}
+#standings .st-live{
+  display:inline-flex; align-items:center; gap:0.35em;
+  font-family:var(--font-label); font-size:0.625rem; font-weight:var(--w-bold);
+  letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--ink-dim);
+}
+#standings .st-live::before{
+  content:""; width:6px; height:6px; border-radius:50%;
+  background:var(--team-navy); opacity:0.5;
+  animation:livedot 2.4s ease-in-out infinite;
+}
+@keyframes livedot{ 0%,100%{opacity:0.25;} 50%{opacity:0.9;} }
+#standings .st-rows{ display:flex; flex-direction:column; gap:2px; position:relative; }
+.st-row{
+  display:grid; grid-template-columns:1.1em 1fr auto; align-items:center; gap:var(--space-2);
+  padding:6px 8px; border-radius:6px;
+  transition:background 400ms var(--ease);
+}
+.st-row .st-rank{
+  font-family:var(--font-numeric); font-size:0.7rem; font-weight:var(--w-bold);
+  color:var(--ink-dim); text-align:center; font-variant-numeric:tabular-nums;
+}
+.st-row .st-name{
+  display:flex; align-items:center; gap:0.5em; min-width:0;
+  font-family:var(--font-display); font-weight:var(--w-bold); font-size:0.95rem;
+  color:var(--ink-muted); letter-spacing:var(--ls-tight);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.st-row .st-name::before{
+  content:""; width:9px; height:9px; border-radius:50%; flex-shrink:0;
+  background:var(--tc);
+}
+.st-row .st-pts{
+  font-family:var(--font-numeric); font-weight:var(--w-bold); font-size:1rem;
+  color:var(--ink-muted); font-variant-numeric:tabular-nums; letter-spacing:var(--ls-tight);
+}
+.st-row.lead{ background:color-mix(in oklch, var(--tc) 12%, transparent); }
+.st-row.lead .st-name{ color:var(--ink); }
+.st-row.lead .st-pts{
+  color:var(--ink);
+  text-shadow:0 0 16px color-mix(in oklch, var(--tc) 55%, transparent);
+}
+.st-row.lead .st-name::before{
+  box-shadow:0 0 9px color-mix(in oklch, var(--tc) 70%, transparent);
+}
+
+/* ===== The ribbon — one continuous scroll, no pages ===== */
+.ribbon{
+  max-width:1080px; margin:0 auto; padding:0 var(--space-6) var(--space-10);
+}
+/* keep the reading column clear of the fixed standings on wide screens */
+@media (min-width:1280px){ .ribbon{ padding-right:300px; } }
+
+/* ----- Hero ----- */
+.hero{
+  min-height:92vh; display:flex; flex-direction:column;
+  justify-content:center; align-items:flex-start;
+  padding:var(--space-9) 0 var(--space-8);
+}
+.hero .kicker{
+  font-family:var(--font-label); font-size:0.8rem; font-weight:var(--w-bold);
+  letter-spacing:var(--ls-wide); text-transform:uppercase; color:var(--ink-dim);
+  margin-bottom:var(--space-5);
+}
+.hero h1{
+  font-family:var(--font-display); font-weight:var(--w-black);
+  font-size:clamp(3rem, 9vw, 8rem); line-height:0.92; letter-spacing:var(--ls-tight);
+  margin:0; color:var(--ink); text-wrap:balance;
+}
+.hero h1 em{ font-style:italic; font-weight:var(--w-bold); }
+.hero .sub{
+  font-family:var(--font-label); font-size:clamp(0.95rem,1.4vw,1.25rem);
+  font-weight:var(--w-bold); letter-spacing:var(--ls-label); text-transform:uppercase;
+  color:var(--ink-muted); margin-top:var(--space-6);
+}
+.hero .dek{
+  font-family:var(--font-display); font-style:italic; font-weight:var(--w-regular);
+  font-size:clamp(1.05rem,1.5vw,1.4rem); line-height:1.55; color:var(--ink-muted);
+  max-width:54ch; margin-top:var(--space-5); text-wrap:pretty;
+}
+/* the five crests as a row under the dek */
+.hero .crests{ display:flex; gap:var(--space-4); margin-top:var(--space-8); flex-wrap:wrap; }
+.hero .crest{
+  display:flex; align-items:center; gap:0.5em;
+  font-family:var(--font-label); font-size:0.78rem; font-weight:var(--w-bold);
+  letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--ink-dim);
+}
+.hero .crest::before{
+  content:""; width:11px; height:11px; border-radius:50%; background:var(--tc);
+  box-shadow:0 0 12px color-mix(in oklch, var(--tc) 45%, transparent);
+}
+.scroll-cue{
+  font-family:var(--font-label); font-size:0.72rem; font-weight:var(--w-bold);
+  letter-spacing:var(--ls-wide); text-transform:uppercase; color:var(--ink-dim);
+  margin-top:var(--space-9); display:flex; align-items:center; gap:0.6em;
+}
+.scroll-cue::after{ content:"↓"; font-size:1.1em; animation:bob 2.2s var(--ease) infinite; }
+@keyframes bob{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(4px);} }
+
+/* ----- Movement headers (chapter dividers) ----- */
+.movement{ margin:var(--space-10) 0 var(--space-7); }
+.movement .mv-num{
+  font-family:var(--font-numeric); font-size:0.8rem; font-weight:var(--w-bold);
+  letter-spacing:var(--ls-wide); color:var(--ink-dim);
+}
+.movement h2{
+  font-family:var(--font-display); font-weight:var(--w-black);
+  font-size:clamp(2rem,4.5vw,3.5rem); line-height:1.0; letter-spacing:var(--ls-tight);
+  margin:var(--space-2) 0 0; color:var(--ink); text-wrap:balance;
+}
+.movement .mv-dek{
+  font-family:var(--font-display); font-style:italic; font-weight:var(--w-regular);
+  font-size:clamp(1.1rem,1.7vw,1.45rem); line-height:1.45; color:var(--ink-muted);
+  max-width:48ch; margin-top:var(--space-4); text-wrap:pretty;
+}
+
+/* ----- Reveal animation ----- */
+.reveal{ opacity:0; transform:translateY(26px); transition:opacity 680ms var(--ease), transform 680ms var(--ease); }
+.reveal.in{ opacity:1; transform:none; }
+
+/* ===== Overture — the five creation myths ===== */
+.myth{
+  position:relative; margin:var(--space-8) 0;
+  background:color-mix(in oklch, var(--paper-card) 74%, transparent);
+  backdrop-filter:blur(16px) saturate(1.15);
+  border:1px solid color-mix(in oklch, var(--tc) 20%, var(--paper-border-soft));
+  border-left:6px solid var(--tc);
+  border-radius:10px;
+  padding:var(--space-7) var(--space-7) var(--space-7) var(--space-8);
+  box-shadow:var(--shadow-low);
+  overflow:hidden;
+}
+.myth::before{
+  content:""; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent, oklch(100% 0 0 / 0.6), transparent);
+}
+.myth .crown{
+  display:flex; align-items:baseline; gap:0.6em; flex-wrap:wrap;
+  font-family:var(--font-label); font-size:0.75rem; font-weight:var(--w-bold);
+  letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--ink-dim);
+}
+.myth .crown .nick{ color:var(--tc); }
+.myth h3{
+  font-family:var(--font-display); font-weight:var(--w-black);
+  font-size:clamp(1.9rem,3.4vw,3rem); line-height:1.0; letter-spacing:var(--ls-tight);
+  margin:var(--space-2) 0 0; color:var(--ink); text-wrap:balance;
+}
+.myth .motto{
+  font-family:var(--font-display); font-style:italic; font-weight:var(--w-regular);
+  font-size:clamp(1.15rem,1.8vw,1.55rem); color:var(--tc); opacity:0.92;
+  margin-top:var(--space-2);
+}
+.myth .members{
+  font-family:var(--font-label); font-size:0.74rem; font-weight:var(--w-bold);
+  letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--ink-dim);
+  margin-top:var(--space-3); padding-top:var(--space-3);
+  border-top:1px solid color-mix(in oklch, var(--tc) 16%, var(--paper-border-soft));
+}
+.myth .creation{
+  font-family:var(--font-display); font-weight:var(--w-regular);
+  font-size:clamp(1.05rem,1.5vw,1.3rem); line-height:1.65; color:var(--ink-muted);
+  margin-top:var(--space-5); white-space:pre-line; text-wrap:pretty;
+  max-width:62ch;
+}
+.myth .creation::first-letter{
+  font-weight:var(--w-black); font-size:1.15em; color:var(--tc);
+}
+/* Long beretninger fold to the green one's height; everything taller gets a read-more toggle. */
+.myth .creation.clamp{
+  max-height:var(--cap); overflow:hidden;
+  -webkit-mask-image:linear-gradient(to bottom, #000 calc(100% - 2.6em), transparent);
+  mask-image:linear-gradient(to bottom, #000 calc(100% - 2.6em), transparent);
+}
+.myth .creation.clamp.expanded{
+  max-height:none; -webkit-mask-image:none; mask-image:none;
+}
+.myth-more{
+  margin-top:var(--space-4); display:inline-flex; align-items:center; gap:0.5em;
+  font-family:var(--font-label); font-size:0.78rem; font-weight:var(--w-bold);
+  letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--tc);
+  background:none;
+  border:1px solid color-mix(in oklch, var(--tc) 32%, var(--paper-border-soft));
+  border-radius:7px; padding:0.55em 1em; cursor:pointer;
+  transition:background 220ms var(--ease), border-color 220ms var(--ease);
+}
+.myth-more:hover{ background:color-mix(in oklch, var(--tc) 12%, transparent); border-color:var(--tc); }
+.myth-more:focus-visible{ outline:2px solid var(--tc); outline-offset:2px; }
+.myth-more .chev{ font-size:1.1em; line-height:1; }
+
+/* ===== Discipline beat ===== */
+.beat{
+  position:relative; margin:var(--space-7) 0;
+  display:grid; grid-template-columns:84px 1fr; gap:var(--space-5);
+}
+.beat .spine{ position:relative; }
+.beat .spine .time{
+  font-family:var(--font-numeric); font-size:0.85rem; font-weight:var(--w-bold);
+  color:var(--ink-dim); font-variant-numeric:tabular-nums; text-align:right;
+  padding-right:var(--space-4); position:relative; top:2px;
+}
+.beat .spine::before{ /* the thread */
+  content:""; position:absolute; right:-1px; top:0; bottom:-48px; width:2px;
+  background:linear-gradient(var(--paper-border) 0%, var(--paper-border-soft) 100%);
+}
+.beat:last-of-type .spine::before{ display:none; }
+.beat .spine::after{ /* node dot */
+  content:""; position:absolute; right:-5px; top:6px; width:10px; height:10px;
+  border-radius:50%; background:var(--paper-card);
+  border:2px solid var(--win-tc, var(--paper-border));
+  box-shadow:0 0 0 4px var(--paper-void);
+}
+.beat .card{
+  background:color-mix(in oklch, var(--paper-card) 74%, transparent);
+  backdrop-filter:blur(16px) saturate(1.15);
+  border:1px solid var(--paper-border-soft);
+  border-radius:10px; padding:var(--space-6);
+  box-shadow:var(--shadow-low); position:relative; overflow:hidden;
+}
+.beat .card::before{
+  content:""; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent, oklch(100% 0 0 / 0.6), transparent);
+}
+.beat .b-head{ display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-4); flex-wrap:wrap; }
+.beat .b-disc{
+  font-family:var(--font-label); font-size:clamp(1rem,1.5vw,1.3rem); font-weight:var(--w-bold);
+  letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--ink);
+}
+.beat .b-type{
+  font-family:var(--font-label); font-size:0.68rem; font-weight:var(--w-bold);
+  letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--ink-dim);
+}
+.beat .b-sowhat{
+  font-family:var(--font-display); font-style:italic; font-weight:var(--w-regular);
+  font-size:clamp(1.05rem,1.55vw,1.3rem); line-height:1.45; color:var(--ink-muted);
+  margin-top:var(--space-3); text-wrap:pretty; max-width:56ch;
+}
+/* ranking rows */
+.b-ranks{ margin-top:var(--space-5); display:flex; flex-direction:column; gap:var(--space-2); }
+.rk{
+  display:grid; grid-template-columns:1.4em 1fr auto auto; align-items:center; gap:var(--space-3);
+  padding:var(--space-2) var(--space-3); border-radius:7px;
+  background:color-mix(in oklch, var(--paper-elevated) 50%, transparent);
+}
+.rk.win{
+  background:color-mix(in oklch, var(--tc) 12%, transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in oklch, var(--tc) 28%, transparent);
+}
+.rk .pos{
+  font-family:var(--font-numeric); font-size:0.78rem; font-weight:var(--w-bold);
+  color:var(--ink-dim); text-align:center; font-variant-numeric:tabular-nums;
+}
+.rk .who{ display:flex; align-items:center; gap:0.55em; min-width:0; }
+.rk .who::before{ content:""; width:10px; height:10px; border-radius:50%; background:var(--tc); flex-shrink:0; }
+.rk .who .nm{
+  font-family:var(--font-display); font-weight:var(--w-bold); font-size:1rem;
+  color:var(--ink-muted); letter-spacing:var(--ls-tight);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.rk.win .who .nm{ color:var(--ink); }
+.rk.win .who::before{ box-shadow:0 0 10px color-mix(in oklch, var(--tc) 60%, transparent); }
+.rk .raw{
+  font-family:var(--font-numeric); font-size:0.85rem; font-weight:var(--w-regular);
+  color:var(--ink-dim); font-variant-numeric:tabular-nums; white-space:nowrap;
+}
+.rk .raw u{ font-style:normal; text-decoration:none; font-size:0.78em; opacity:0.7; margin-left:0.25em; }
+.rk .pts{
+  font-family:var(--font-numeric); font-size:1.05rem; font-weight:var(--w-bold);
+  color:var(--tc); font-variant-numeric:tabular-nums; min-width:2.4ch; text-align:right;
+}
+.rk.win .pts{ text-shadow:0 0 14px color-mix(in oklch, var(--tc) 45%, transparent); }
+.rk .pts::after{ content:" p"; font-size:0.55em; font-weight:var(--w-bold); color:var(--ink-dim); letter-spacing:0; }
+/* per-player breakdown (bowling/dart) */
+.rk-break{
+  grid-column:2 / -1; margin:-2px 0 2px;
+  font-family:var(--font-numeric); font-size:0.72rem; font-weight:var(--w-regular);
+  color:var(--ink-dim); letter-spacing:var(--ls-normal); line-height:1.5;
+}
+/* drama notes */
+.b-notes{ margin-top:var(--space-5); display:flex; flex-direction:column; gap:var(--space-4); }
+.note{
+  position:relative; padding-left:var(--space-5);
+  font-family:var(--font-display); font-style:italic; font-weight:var(--w-regular);
+  font-size:clamp(1rem,1.45vw,1.2rem); line-height:1.45; color:var(--ink); text-wrap:pretty;
+}
+.note::before{
+  content:"“"; position:absolute; left:-2px; top:-0.1em;
+  font-size:1.8em; line-height:1; color:var(--tc); opacity:0.7;
+}
+.note .by{
+  display:block; margin-top:0.3em;
+  font-family:var(--font-label); font-style:normal; font-size:0.68rem; font-weight:var(--w-bold);
+  letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--tc);
+}
+
+/* ===== Quiz movement ===== */
+.quiz-grid{
+  margin:var(--space-6) 0; border-radius:10px; overflow:hidden;
+  background:color-mix(in oklch, var(--paper-card) 74%, transparent);
+  backdrop-filter:blur(16px) saturate(1.15);
+  border:1px solid var(--paper-border-soft); box-shadow:var(--shadow-low);
+}
+.qg-head, .qg-row{
+  display:grid;
+  grid-template-columns:2.4em minmax(0,1fr) repeat(5, 2.6em);
+  align-items:center; gap:var(--space-2);
+  padding:var(--space-2) var(--space-4);
+}
+.qg-head{
+  background:color-mix(in oklch, var(--paper-elevated) 60%, transparent);
+  border-bottom:1px solid var(--paper-border-soft);
+  font-family:var(--font-label); font-size:0.66rem; font-weight:var(--w-bold);
+  letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--ink-dim);
+  position:sticky; top:0; z-index:1;
+}
+.qg-head .qh-team{ text-align:center; }
+.qg-head .qh-team::before{
+  content:""; display:inline-block; width:9px; height:9px; border-radius:50%;
+  background:var(--tc); vertical-align:middle;
+}
+.qg-row{ border-bottom:1px solid var(--paper-border-soft); }
+.qg-row:last-child{ border-bottom:none; }
+.qg-row .qn{
+  font-family:var(--font-numeric); font-size:0.78rem; font-weight:var(--w-bold);
+  color:var(--ink-dim); font-variant-numeric:tabular-nums; text-align:center;
+}
+.qg-row .song{ min-width:0; }
+.qg-row .song .ti{
+  display:block;
+  font-family:var(--font-display); font-weight:var(--w-bold); font-size:0.98rem;
+  color:var(--ink); letter-spacing:var(--ls-tight); line-height:1.15;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.qg-row .song .ar{
+  display:block; margin-top:0.1em;
+  font-family:var(--font-label); font-size:0.7rem; font-weight:var(--w-bold);
+  letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--ink-dim);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.qg-row .cell{
+  justify-self:center; width:1.9em; height:1.9em; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-numeric); font-size:0.78rem; font-weight:var(--w-bold);
+  font-variant-numeric:tabular-nums;
+  background:color-mix(in oklch, var(--tc) calc(var(--c) * 30%), transparent);
+  color:var(--ink-muted);
+}
+.qg-row .cell.c0{ color:var(--ink-dim); opacity:0.45; }
+.qg-row .cell.c3{ color:var(--ink); box-shadow:0 0 0 1.5px color-mix(in oklch, var(--tc) 55%, transparent); }
+
+/* ===== Finale podium ===== */
+.finale{ margin:var(--space-9) 0 var(--space-8); }
+.podium{ display:flex; flex-direction:column; gap:var(--space-3); margin-top:var(--space-6); }
+.pod{
+  position:relative; display:grid; grid-template-columns:2.2em 1fr auto; align-items:center; gap:var(--space-4);
+  padding:var(--space-4) var(--space-5); border-radius:10px;
+  background:color-mix(in oklch, var(--paper-card) 74%, transparent);
+  backdrop-filter:blur(16px) saturate(1.15);
+  border:1px solid color-mix(in oklch, var(--tc) 18%, var(--paper-border-soft));
+  border-left:6px solid var(--tc);
+  box-shadow:var(--shadow-low); overflow:hidden;
+}
+.pod::before{
+  content:""; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent, oklch(100% 0 0 / 0.6), transparent);
+}
+.pod.champ{
+  border-left-width:10px;
+  background:color-mix(in oklch, var(--paper-card) 90%, transparent);
+  box-shadow:var(--shadow-high), 0 0 50px color-mix(in oklch, var(--tc) 25%, transparent);
+}
+.pod .rank{
+  font-family:var(--font-numeric); font-size:1.4rem; font-weight:var(--w-bold);
+  color:var(--ink-dim); text-align:center; font-variant-numeric:tabular-nums;
+}
+.pod.champ .rank{ color:var(--tc); }
+.pod .pinfo{ min-width:0; }
+.pod .pname{
+  font-family:var(--font-display); font-weight:var(--w-bold);
+  font-size:clamp(1.3rem,2.2vw,1.9rem); line-height:1.0; letter-spacing:var(--ls-tight);
+  color:var(--ink); text-wrap:balance;
+}
+.pod.champ .pname{ font-weight:var(--w-black); }
+.pod .pmotto{
+  font-family:var(--font-display); font-style:italic; font-weight:var(--w-regular);
+  font-size:0.95rem; color:var(--ink-dim); margin-top:0.2em;
+}
+.pod .ptotal{
+  font-family:var(--font-numeric); font-weight:var(--w-bold);
+  font-size:clamp(2rem,4vw,3.2rem); color:var(--ink-muted); line-height:0.9;
+  font-variant-numeric:tabular-nums; letter-spacing:var(--ls-tight);
+}
+.pod.champ .ptotal{ color:var(--ink); text-shadow:0 0 30px color-mix(in oklch, var(--tc) 55%, transparent); }
+.pod .crown-mark{
+  position:absolute; top:-6px; right:14px; font-size:1.6rem;
+  filter:drop-shadow(0 2px 6px oklch(20% 0.02 30 / 0.25));
+}
+.finale .verdict{
+  margin-top:var(--space-7);
+  font-family:var(--font-display); font-weight:var(--w-regular);
+  font-size:clamp(1.2rem,2vw,1.6rem); line-height:1.5; color:var(--ink); text-wrap:pretty;
+  max-width:54ch;
+}
+.finale .verdict strong{ font-weight:var(--w-black); }
+.finale .verdict .navy{ color:var(--team-navy); }
+.finale .verdict .lilla{ color:var(--team-lilla); }
+.closing{
+  margin-top:var(--space-10); padding-top:var(--space-6);
+  border-top:1px solid var(--paper-border-soft);
+  font-family:var(--font-display); font-style:italic; font-weight:var(--w-regular);
+  font-size:clamp(1.05rem,1.6vw,1.35rem); line-height:1.5; color:var(--ink-muted);
+  max-width:50ch; text-wrap:pretty;
+}
+.colophon{
+  margin-top:var(--space-6);
+  font-family:var(--font-label); font-size:0.68rem; font-weight:var(--w-bold);
+  letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--ink-dim);
+}
+
+/* ===== Responsive ===== */
+@media (max-width:1279px){
+  #standings{ position:static; transform:none; width:auto; max-width:520px;
+    margin:var(--space-7) auto 0; opacity:1; }
+  #standings.show{ opacity:1; }
+}
+@media (max-width:760px){
+  .ribbon{ padding:0 var(--space-4) var(--space-9); }
+  .beat{ grid-template-columns:56px 1fr; gap:var(--space-3); }
+  .beat .card{ padding:var(--space-5); }
+  .beat .spine .time{ font-size:0.72rem; padding-right:var(--space-2); }
+  .qg-head, .qg-row{ grid-template-columns:1.9em minmax(0,1fr) repeat(5, 1.8em); padding-left:var(--space-2); padding-right:var(--space-2); }
+  .qg-row .cell{ width:1.6em; height:1.6em; font-size:0.68rem; }
+  .qg-row .song .ar{ font-size:0.62rem; }
+  .myth{ padding:var(--space-5) var(--space-5) var(--space-5) var(--space-6); }
+  .rk .raw{ display:none; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  html{ scroll-behavior:auto; }
+  .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
+  .scroll-cue::after, #standings .st-live::before{ animation:none; }
+  .st-row{ transition:none !important; }
+}
+</style>
+</head>
+<body>
+<nav class="app-nav">
+    <a href="./cards-h.html">Scoreboard</a>
+    <a href="./velkommen.html">Velkommen</a>
+    <a href="./musikquiz.html">Quiz</a>
+    <a href="./tidslinje.html" class="current">Tidslinje</a>
+</nav>
+<div id="progress"></div>
+
+<aside id="standings" aria-label="Stillingen — følger aftenen">
+  <div class="st-head">
+    <span class="st-title">Stillingen</span>
+    <span class="st-live">følger aftenen</span>
+  </div>
+  <div class="st-rows" id="st-rows"></div>
+</aside>
+
+<main class="ribbon" id="ribbon"></main>
+
+<script>
+/* ============================================================================
+   MK40 — Kongerigernes Kamp · infinite-scroll tidslinje
+   Self-contained. All five exported tables inlined verbatim below. 0 deps.
+   ========================================================================== */
+
+/* ----- 1 · Source data (verbatim from the 5 exported JSON files) ----------- */
+const DimTeam = [
+ {"team_key":1,"team_color":"pink","team_name":"Pink Panthers","team_short":"Pussycats","team_motto":"Who can — Pussycats can","team_creation":"I tidernes morgen, da alting var sort,\nkom Pussycats frem som det lyserøde fort.\n\nMed kugler i hånden og dartpil i klo,\nvi ramte det hele — ja, næsten da jo.\n\nVi slog vores søm, vi stod klar i en ring,\nog verden forstod, vi kan lidt af hver ting.\n\nSå råber vi højt, når kampen går an:\n“Who can? The Pussycats can!”","team_members":"AH, Johanne, Theo, Tim, Morten A., Mira"},
+ {"team_key":2,"team_color":"navy","team_name":"The Blue Planet","team_short":"HMS Madsdodont","team_motto":"Search and destroy","team_creation":"As we created the world of water, peace and freedom, we allowed smaller nations like the green, yellow, purple and pink to raise in prosperity and create their own sociaties. As they grew under our surveillance we discovered they developed an arrogance and spread chaos and demolishtion to our world. In order to restore the peace we set sails under The Sea Ruler, to knock down the disturbers of the peace. We sea, we destroy and bring back harmony to the world. Watch out as we sea you!","team_members":"Niko, Margaux, Satya, Jesper, Dirk, Rose"},
+ {"team_key":3,"team_color":"grøn","team_name":"Den Grønne Konklave","team_short":"Hakket makker","team_motto":"Håbet er lysegrønt!","team_creation":"2026. Verden er på nippet til total destruktion. Trump. Klima. Generel elendighed. I asken af årtiets 40 års fødselsdag sker der - verden lukker og slukker i en apokalyptisk askesky.\n\nDen grønne konklave - os - er fra fortiden. Der, hvor det lysegrønne håb blev til lysegrønne spirer. Der, hvor civilisationen genrejste sig. Vær hilset!\n\nHvis I vil se i morgen, så stem på os som aftenens hold - DEN GRØNNE KONKLAVE!\n\nOg så indvier vi jer i, hvordan I kan få lov at komme med.","team_members":"Anders, Mads, Mikkel, Julie, Majbritt"},
+ {"team_key":4,"team_color":"gul","team_name":"Solriget","team_short":"Soleros","team_motto":"Sammen skinner vi","team_creation":"Solrigets oprindelse\n\nDa landet var splittet af krig og mørke, samlede solens lys folket. De grundlagde Solriget, hvor styrke kommer fra sammenhold. Siden den dag har Soleros levet efter ét løfte:\n\n“Sammen skinner vi.”","team_members":"Anne, Allan, Christian, Morten E., Ida, AC"},
+ {"team_key":5,"team_color":"lilla","team_name":"Kongeriget Purpurpower","team_short":"Purpur","team_motto":"Purpur i hjertet — sejren i hænderne!","team_creation":"I den tid, før verden kendte sejren, fandt de første purpurfolk hinanden på håndboldgulvet — sveden på panden, bolden i hånden, blikket låst på målet. De lærte at læse spillet, før det skete, og da de en dag trådte ind i bowlinghallen, så de ikke ti kegler — de så et åbent straffekast. Præcist, roligt og med tillid til hinanden, var de sammen om alt. Sådan blev Purpurpower grundlagt: ikke af guder, men af mennesker, der turde give passet.\n\nPower i navnet Purpurpower bærer fire betydninger, der fletter sig ind i hinanden:\n\nEnergien — Power er den gnist, der får et hold til at rejse sig i det afgørende øjeblik. I Purpurpower er vi ikke bare til stede — vi fylder rummet med positiv, smittende energi, der løfter alle omkring os.\n\nStyrken — Ikke den rå, individuelle styrke, men den kollektive kraft, der opstår, når mennesker med tillid til hinanden trækker i samme retning. Håndboldholdet vinder ikke med én spiller — det vinder med ét hold.\n\nDrivet — Power er viljen til at blive ved, også når keglerne ikke falder første gang. Det er det indre maskinrum, der holder kongeriget i bevægelse, dag efter dag.\n\nGennemslagskraften — I bowlinghallen handler det om at ramme præcist med tilpas kraft. Hverken for hårdt eller for blødt. Purpurpower handler om at gøre en reel forskel — med omtanke og retning.\n\nKongeriget bærer fem samfundsværdier som sit skjold. Nærværet binder os sammen — ingen beslutning tages over andres hoveder. Modet driver os fremad, selv når vejen er usikker. Glæden løfter os i de små sejre, for kulturen bygges dag for dag. Tilliden er det pas, vi giver hinanden uden at tøve. Og inddragelsen sikrer, at alle stemmer bærer vægt i vores kongerige.\n\nOm aftenen samles vi om den gyldne aubergine — langsomt bagt, rig og altid bedst, når den deles. For i Purpurpas ved vi, at det største mod ikke er at score selv, men at skabe betingelserne for, at andre kan blomstre. Vi bærer purpur. Vi spiller som ét.","team_members":"Buggi, Oscar, Michael, Kirstine, Freja"}
+];
+
+const DimDiscipline = [
+ {"discipline_key":1,"discipline_name":"Skabelsesberetningen","discipline_type":"Creative","max_points":10,"sort_direction":"desc"},
+ {"discipline_key":2,"discipline_name":"Bowling","discipline_type":"Skill","max_points":10,"sort_direction":"desc"},
+ {"discipline_key":3,"discipline_name":"Dart","discipline_type":"Skill","max_points":10,"sort_direction":"desc"},
+ {"discipline_key":4,"discipline_name":"Cornhole","discipline_type":"Skill","max_points":10,"sort_direction":"desc"},
+ {"discipline_key":5,"discipline_name":"Puslespil på tid","discipline_type":"Skill","max_points":10,"sort_direction":"asc"},
+ {"discipline_key":6,"discipline_name":"Slå søm","discipline_type":"Luck","max_points":10,"sort_direction":"asc"},
+ {"discipline_key":7,"discipline_name":"Musikquiz","discipline_type":"Knowledge","max_points":10,"sort_direction":"desc"}
+];
+
+const FactScore = [
+ {"team_key":3,"discipline_key":2,"score_timestamp":"2026-06-27T12:41:17","raw_value":109,"points":5,"notes":null,"breakdown":"Anders: 134 · Mads: 132 · Mikkel: 77 · Julie: 118 · Majbritt: 84"},
+ {"team_key":1,"discipline_key":2,"score_timestamp":"2026-06-27T13:30:38","raw_value":101,"points":1,"notes":"Men hvem skate mest stemming - os os os","breakdown":"AH: 101 · Johanne: 91 · Theo: 120 · Tim: 108 · Morten A.: 106 · Mira: 81"},
+ {"team_key":5,"discipline_key":2,"score_timestamp":"2026-06-27T13:31:33","raw_value":130,"points":10,"notes":"Oscar er degraderet til vandhenter og skal hjem i træningslejr.","breakdown":"Buggi: 149 · Oscar: 86 · Michael: 155 · Kirstine: ✕ · Freja: 131"},
+ {"team_key":4,"discipline_key":2,"score_timestamp":"2026-06-27T13:32:28","raw_value":108,"points":3,"notes":"Større comeback ikke set","breakdown":"Anne: 93 · Allan: 114 · Christian: 144 · Morten E.: 120 · Ida: 76 · AC: 98"},
+ {"team_key":2,"discipline_key":2,"score_timestamp":"2026-06-27T13:39:42","raw_value":127,"points":7,"notes":"After multiable strikes and extraordinary unseen shots, Rose was ‘rightfully’ suspended of using performance enhanching drugs. Big loss..","breakdown":"Niko: 143 · Margaux: 86 · Satya: 109 · Jesper: 141 · Dirk: 154 · Rose: ✕"},
+ {"team_key":1,"discipline_key":6,"score_timestamp":"2026-06-27T15:04:31","raw_value":60,"points":5,"notes":"Fuck vi er nice","breakdown":"60"},
+ {"team_key":4,"discipline_key":4,"score_timestamp":"2026-06-27T15:07:10","raw_value":15,"points":1,"notes":null,"breakdown":"15"},
+ {"team_key":2,"discipline_key":4,"score_timestamp":"2026-06-27T15:08:12","raw_value":21,"points":5,"notes":null,"breakdown":"21"},
+ {"team_key":5,"discipline_key":6,"score_timestamp":"2026-06-27T15:12:09","raw_value":50,"points":10,"notes":"Oscar er tilbage!!","breakdown":"50"},
+ {"team_key":4,"discipline_key":3,"score_timestamp":"2026-06-27T15:25:29","raw_value":55,"points":3,"notes":null,"breakdown":"Anne: 49 · Allan: 66 · Christian: 33 · Morten E.: 48 · Ida: 59 · AC: 76"},
+ {"team_key":2,"discipline_key":6,"score_timestamp":"2026-06-27T16:06:47","raw_value":62,"points":3,"notes":"Yellow team was very good at cheering and learning.","breakdown":"14"},
+ {"team_key":3,"discipline_key":3,"score_timestamp":"2026-06-27T16:09:55","raw_value":59,"points":5,"notes":"Mikkel har levet et liv. Har det været svært? Ja! Har der været modstand? Bestemt! Men en sommeraften - BULLSEYE - livet er godt!","breakdown":"Anders: 70 · Mads: 40 · Mikkel: 70 · Julie: 45 · Majbritt: 71"},
+ {"team_key":4,"discipline_key":6,"score_timestamp":"2026-06-27T16:11:37","raw_value":54,"points":7,"notes":null,"breakdown":"12"},
+ {"team_key":1,"discipline_key":4,"score_timestamp":"2026-06-27T16:14:44","raw_value":28,"points":10,"notes":"Mira var vild","breakdown":"28"},
+ {"team_key":5,"discipline_key":3,"score_timestamp":"2026-06-27T16:16:58","raw_value":42,"points":1,"notes":"Guess who’s back. Kirle’s back!!","breakdown":"Buggi: 62 · Oscar: 41 · Michael: 17 · Kirstine: 48 · Freja: 43"},
+ {"team_key":3,"discipline_key":5,"score_timestamp":"2026-06-27T16:25:20","raw_value":302,"points":3,"notes":"Aldrig har et puslespil udspillet sig med denne hold ånd, anderkendende ord og hype","breakdown":"302"},
+ {"team_key":5,"discipline_key":4,"score_timestamp":"2026-06-27T16:26:25","raw_value":28,"points":10,"notes":"Teabaggin’","breakdown":"28"},
+ {"team_key":1,"discipline_key":5,"score_timestamp":"2026-06-27T16:35:14","raw_value":366,"points":1,"notes":null,"breakdown":"366"},
+ {"team_key":2,"discipline_key":5,"score_timestamp":"2026-06-27T16:50:47","raw_value":229,"points":10,"notes":null,"breakdown":"229"},
+ {"team_key":1,"discipline_key":3,"score_timestamp":"2026-06-27T16:53:31","raw_value":72,"points":10,"notes":"Vi er klar til poolen","breakdown":"AH: 135 · Johanne: 44 · Theo: 63 · Tim: 60 · Morten A.: 81 · Mira: 51"},
+ {"team_key":4,"discipline_key":5,"score_timestamp":"2026-06-27T17:01:51","raw_value":294,"points":5,"notes":null,"breakdown":"294"},
+ {"team_key":2,"discipline_key":3,"score_timestamp":"2026-06-27T17:02:19","raw_value":66,"points":7,"notes":null,"breakdown":"Niko: 66 · Margaux: ✕ · Satya: 73 · Jesper: 45 · Dirk: 56 · Rose: 92"},
+ {"team_key":3,"discipline_key":6,"score_timestamp":"2026-06-27T17:04:20","raw_value":63,"points":1,"notes":"Vi gjorde hvad vi kunne","breakdown":"63"},
+ {"team_key":5,"discipline_key":5,"score_timestamp":"2026-06-27T17:16:18","raw_value":271,"points":7,"notes":"Selv ikke en tyv kan få os ned med nakken.","breakdown":"271"},
+ {"team_key":3,"discipline_key":4,"score_timestamp":"2026-06-27T17:30:09","raw_value":21,"points":5,"notes":"Anders tang rammer alt, han havde placeret en magnet i hullet!","breakdown":"21"},
+ {"team_key":2,"discipline_key":1,"score_timestamp":"2026-06-27T19:27:34","raw_value":4,"points":5,"notes":null,"breakdown":null},
+ {"team_key":3,"discipline_key":1,"score_timestamp":"2026-06-27T19:27:34","raw_value":3,"points":3,"notes":null,"breakdown":null},
+ {"team_key":1,"discipline_key":1,"score_timestamp":"2026-06-27T19:27:34","raw_value":6,"points":10,"notes":null,"breakdown":null},
+ {"team_key":4,"discipline_key":1,"score_timestamp":"2026-06-27T19:27:34","raw_value":6,"points":10,"notes":null,"breakdown":null},
+ {"team_key":5,"discipline_key":1,"score_timestamp":"2026-06-27T19:27:34","raw_value":3,"points":3,"notes":null,"breakdown":null},
+ {"team_key":2,"discipline_key":7,"score_timestamp":"2026-06-27T20:36:22","raw_value":43,"points":10,"notes":null,"breakdown":null},
+ {"team_key":4,"discipline_key":7,"score_timestamp":"2026-06-27T20:36:22","raw_value":29,"points":1,"notes":null,"breakdown":null},
+ {"team_key":3,"discipline_key":7,"score_timestamp":"2026-06-27T20:36:22","raw_value":41,"points":7,"notes":null,"breakdown":null},
+ {"team_key":5,"discipline_key":7,"score_timestamp":"2026-06-27T20:36:22","raw_value":34,"points":5,"notes":null,"breakdown":null},
+ {"team_key":1,"discipline_key":7,"score_timestamp":"2026-06-27T20:36:22","raw_value":34,"points":5,"notes":null,"breakdown":null}
+];
+
+const MusicQuizKey = [
+ {"key_id":1,"title":"Mr. Brightside","artist":"The Killers","release_year":2003},
+ {"key_id":2,"title":"Take It as It Comes","artist":"Grand Avenue","release_year":2003},
+ {"key_id":3,"title":"Teenage Dirtbag","artist":"Wheatus","release_year":2000},
+ {"key_id":4,"title":"Butterfly","artist":"Crazy Town","release_year":2000},
+ {"key_id":5,"title":"By the Way","artist":"Red Hot Chili Peppers","release_year":2002},
+ {"key_id":6,"title":"Han får for lidt","artist":"Østkyst Hustlers","release_year":1996},
+ {"key_id":7,"title":"Everybody (Backstreet's Back)","artist":"Backstreet Boys","release_year":1997},
+ {"key_id":8,"title":"L'Amour Toujours","artist":"Gigi D'Agostino","release_year":1999},
+ {"key_id":9,"title":"505","artist":"Arctic Monkeys","release_year":2007},
+ {"key_id":10,"title":"American Boy","artist":"Estelle ft. Kanye West","release_year":2008},
+ {"key_id":11,"title":"Like I Love You","artist":"Justin Timberlake","release_year":2002},
+ {"key_id":12,"title":"Trouble Is","artist":"Turboweekend","release_year":2009},
+ {"key_id":13,"title":"Vil du","artist":"U$O","release_year":2005},
+ {"key_id":14,"title":"Stuck in a Moment You Can't Get Out Of","artist":"U2","release_year":2001},
+ {"key_id":15,"title":"Transparent & Glasslike","artist":"Carpark North","release_year":2003},
+ {"key_id":16,"title":"Save Tonight","artist":"Eagle-Eye Cherry","release_year":1997},
+ {"key_id":17,"title":"Clint Eastwood","artist":"Gorillaz","release_year":2001},
+ {"key_id":18,"title":"Don't Know Much About Love","artist":"Hanne Boel","release_year":1992},
+ {"key_id":19,"title":"Club Tropicana","artist":"Wham!","release_year":1983},
+ {"key_id":20,"title":"Never Gonna Give You Up","artist":"Rick Astley","release_year":1987},
+ {"key_id":21,"title":"Vi tager fuglen på dig","artist":"Malk de Koijn","release_year":2002}
+];
+
+const MusicQuizScore = [
+ {"song_key":1,"team_key":1,"correct":1},{"song_key":1,"team_key":2,"correct":2},{"song_key":1,"team_key":3,"correct":0},{"song_key":1,"team_key":4,"correct":1},{"song_key":1,"team_key":5,"correct":0},
+ {"song_key":2,"team_key":1,"correct":1},{"song_key":2,"team_key":2,"correct":1},{"song_key":2,"team_key":3,"correct":1},{"song_key":2,"team_key":4,"correct":0},{"song_key":2,"team_key":5,"correct":1},
+ {"song_key":3,"team_key":1,"correct":1},{"song_key":3,"team_key":2,"correct":3},{"song_key":3,"team_key":3,"correct":2},{"song_key":3,"team_key":4,"correct":1},{"song_key":3,"team_key":5,"correct":2},
+ {"song_key":4,"team_key":1,"correct":1},{"song_key":4,"team_key":2,"correct":1},{"song_key":4,"team_key":3,"correct":1},{"song_key":4,"team_key":4,"correct":1},{"song_key":4,"team_key":5,"correct":1},
+ {"song_key":5,"team_key":1,"correct":2},{"song_key":5,"team_key":2,"correct":3},{"song_key":5,"team_key":3,"correct":3},{"song_key":5,"team_key":4,"correct":1},{"song_key":5,"team_key":5,"correct":2},
+ {"song_key":6,"team_key":1,"correct":2},{"song_key":6,"team_key":2,"correct":3},{"song_key":6,"team_key":3,"correct":2},{"song_key":6,"team_key":4,"correct":2},{"song_key":6,"team_key":5,"correct":2},
+ {"song_key":7,"team_key":1,"correct":2},{"song_key":7,"team_key":2,"correct":3},{"song_key":7,"team_key":3,"correct":3},{"song_key":7,"team_key":4,"correct":2},{"song_key":7,"team_key":5,"correct":2},
+ {"song_key":8,"team_key":1,"correct":0},{"song_key":8,"team_key":2,"correct":1},{"song_key":8,"team_key":3,"correct":2},{"song_key":8,"team_key":4,"correct":1},{"song_key":8,"team_key":5,"correct":1},
+ {"song_key":9,"team_key":1,"correct":2},{"song_key":9,"team_key":2,"correct":2},{"song_key":9,"team_key":3,"correct":3},{"song_key":9,"team_key":4,"correct":0},{"song_key":9,"team_key":5,"correct":2},
+ {"song_key":10,"team_key":1,"correct":2},{"song_key":10,"team_key":2,"correct":2},{"song_key":10,"team_key":3,"correct":2},{"song_key":10,"team_key":4,"correct":3},{"song_key":10,"team_key":5,"correct":1},
+ {"song_key":11,"team_key":1,"correct":2},{"song_key":11,"team_key":2,"correct":1},{"song_key":11,"team_key":3,"correct":2},{"song_key":11,"team_key":4,"correct":1},{"song_key":11,"team_key":5,"correct":2},
+ {"song_key":12,"team_key":1,"correct":2},{"song_key":12,"team_key":2,"correct":2},{"song_key":12,"team_key":3,"correct":3},{"song_key":12,"team_key":4,"correct":2},{"song_key":12,"team_key":5,"correct":2},
+ {"song_key":13,"team_key":1,"correct":0},{"song_key":13,"team_key":2,"correct":2},{"song_key":13,"team_key":3,"correct":1},{"song_key":13,"team_key":4,"correct":1},{"song_key":13,"team_key":5,"correct":1},
+ {"song_key":14,"team_key":1,"correct":3},{"song_key":14,"team_key":2,"correct":2},{"song_key":14,"team_key":3,"correct":2},{"song_key":14,"team_key":4,"correct":2},{"song_key":14,"team_key":5,"correct":2},
+ {"song_key":15,"team_key":1,"correct":2},{"song_key":15,"team_key":2,"correct":2},{"song_key":15,"team_key":3,"correct":3},{"song_key":15,"team_key":4,"correct":2},{"song_key":15,"team_key":5,"correct":2},
+ {"song_key":16,"team_key":1,"correct":2},{"song_key":16,"team_key":2,"correct":2},{"song_key":16,"team_key":3,"correct":3},{"song_key":16,"team_key":4,"correct":2},{"song_key":16,"team_key":5,"correct":2},
+ {"song_key":17,"team_key":1,"correct":1},{"song_key":17,"team_key":2,"correct":2},{"song_key":17,"team_key":3,"correct":2},{"song_key":17,"team_key":4,"correct":1},{"song_key":17,"team_key":5,"correct":2},
+ {"song_key":18,"team_key":1,"correct":2},{"song_key":18,"team_key":2,"correct":3},{"song_key":18,"team_key":3,"correct":2},{"song_key":18,"team_key":4,"correct":2},{"song_key":18,"team_key":5,"correct":2},
+ {"song_key":19,"team_key":1,"correct":2},{"song_key":19,"team_key":2,"correct":2},{"song_key":19,"team_key":3,"correct":2},{"song_key":19,"team_key":4,"correct":2},{"song_key":19,"team_key":5,"correct":2},
+ {"song_key":20,"team_key":1,"correct":3},{"song_key":20,"team_key":2,"correct":2},{"song_key":20,"team_key":3,"correct":1},{"song_key":20,"team_key":4,"correct":2},{"song_key":20,"team_key":5,"correct":2},
+ {"song_key":21,"team_key":1,"correct":1},{"song_key":21,"team_key":2,"correct":2},{"song_key":21,"team_key":3,"correct":1},{"song_key":21,"team_key":4,"correct":0},{"song_key":21,"team_key":5,"correct":1}
+];
+
+/* ----- 2 · Narrative copy (Benoit — Fortælleren). Swappable block. ---------- */
+const NARR = {
+  heroKicker: "27. juni 2026 · en 40-års fødselsdag",
+  heroTitle: "Kongerigernes Kamp",
+  heroSub: "Fem kongeriger · syv discipliner · én krone, afgjort på ét point",
+  heroDek: "Kære venner.<br>Tusind tak for en fantastisk fest. Jeg er uendeligt taknemmelig for den dag, vi havde sammen. Jeg har her samlet hele turneringen op, og kan lade jer se, hvad I har skrevet, og hvordan konkurrencen udspillede sig. Det er mest for min egen skyld — for denne, sammenholdt med alle de billeder I har taget, giver mig den bedste måde at kunne genkalde en fantastisk dag på.",
+  scrollCue: "Rul ned gennem aftenen",
+
+  ouvertureNum: "Ouverture",
+  ouvertureTitle: "Fem kongeriger blev skabt",
+  ouvertureDek: "",
+
+  greneNum: "Første sats",
+  greneTitle: "Disciplinerne",
+  greneDek: "Syv stationer, fem kongeriger, og en føring der skiftede hænder hele aftenen. Hold øje med stillingen — den følger med.",
+
+  // per-discipline So-What (Benoit — act-on insight; verbatim drama-quotes live in the notes below each beat)
+  beats: {
+    2: "Aftenen åbner med en magtdemonstration — og en straf. Purpur slår 130 kegler og sætter sig i front fra første kast. Men dramaet sad på bænken: Purpur degraderede sin egen Oscar til vandhenter og sendte ham hjem i træningslejr. Husk det navn.",
+    3: "Føringen skifter hænder for første gang — og en mand finder fred ved skiven. Pink rammer plet med 72 og snupper toppen, mens Navy lister sig op og overtager den samlede føring. Og Grøns Mikkel? Han havde levet et liv, og en sommeraften faldt alt på plads.",
+    6: "Den degraderede vender hjem. Purpur slår færrest søm, tager disciplinen og generobrer føringen — og fra bænken meldte vandhenteren sig tilbage som comeback-konge. Purpur fører igen, og de slipper den ikke lige med det samme.",
+    5: "Navy melder sig som den eneste, der kan true tronen. 229 sekunder — knusende, klinisk, fire hold bagud. Purpur holder føringen, men nu sidder Navy i nakken med ét enkelt point imellem. Jagten er åben.",
+    4: "Begge tronkandidater nægter at give sig — så nogen rykker udstyret. Pink og Purpur deler disciplinen med 28 hver. Grøn havde en kreativ forklaring på, hvorfor toppen glippede. Purpur bevarer forspringet — men kun lige."
+  },
+
+  skabelseNum: "Mellemspil",
+  skabelseTitle: "Beretningerne bedømmes",
+  skabelseDek: "Under maden fik kongerigerne lov til at præsentere sig selv. Og Purpur fik i sandhed etableret, at man skal passe på med at lade en AI få for frie hænder, når det gælder om at skrive tekst.<br><br>På trods af at det her altså blev til en delt sidsteplads, så førte de stadig foran de lyserøde pantere og HMS Madsdodont på andenpladsen med 37 point. Nu manglede vi blot musikquizzen — Soleros og de hakkede makkere havde reelt udspillet deres chance.",
+
+  quizNum: "Anden sats — finalen",
+  quizTitle: "Musikquizzen",
+  quizDek: "21 sange med masser af gode historier bag dem skulle afgøre det, og med kun fire point mellem de førende kunne alt ske.",
+  quizOutro: "Navy svarer rigtigt på 43 og tager førstepladsen. Purpur snubler til 34. Føringen, der holdt i fem discipliner, fordamper på den allersidste.",
+
+  finaleNum: "Tæppefald",
+  finaleTitle: "Slutstillingen",
+  finaleVerdict: "Og sådan sluttede det — <strong class='navy'>HMS Madsdodont</strong> med <strong class='navy'>47 point</strong> mod <strong class='lilla'>Purpurs 46</strong>.<br><br>Tusind tak for en fuldstændig vidunderlig dag. Jeg er meget lykkelig og føler mig både privilegeret og heldig at have jer som venner og blive fejret på den måde.<br><br>Rigtig god sommer!",
+  closing: "",
+  colophon: "MK40 · Kongerigernes Kamp · privat keepsake · data: festens egen scoretavle"
+};
+
+/* ----- 3 · Lookups + derivations ------------------------------------------- */
+const teamByKey = Object.fromEntries(DimTeam.map(t => [t.team_key, t]));
+const discByKey = Object.fromEntries(DimDiscipline.map(d => [d.discipline_key, d]));
+const TEAM_KEYS = [1,2,3,4,5];
+const colorVar = k => `var(--team-${teamByKey[k].team_color})`;
+const hhmm = ts => ts.slice(11,16);
+
+// unit + direction copy per discipline
+const DISC_META = {
+  2:{unit:"kegler", dir:"flest vinder"},
+  3:{unit:"point",  dir:"flest vinder"},
+  4:{unit:"point",  dir:"flest vinder"},
+  5:{unit:"sek.",   dir:"hurtigst vinder"},
+  6:{unit:"slag",   dir:"færrest vinder"},
+  1:{unit:"stemmer",dir:"flest vinder"},
+  7:{unit:"rigtige",dir:"flest vinder"}
+};
+
+// scores grouped by discipline
+function scoresFor(dk){ return FactScore.filter(f => f.discipline_key === dk); }
+// completion time = latest timestamp among a discipline's rows
+function completionTs(dk){ return scoresFor(dk).reduce((m,f)=> f.score_timestamp>m? f.score_timestamp:m, ""); }
+// ranking: order teams by points desc, tie-break by raw in the winning direction
+function rankingFor(dk){
+  const dir = discByKey[dk].sort_direction;
+  return scoresFor(dk).slice().sort((a,b)=>{
+    if(b.points !== a.points) return b.points - a.points;
+    return dir==="asc" ? a.raw_value - b.raw_value : b.raw_value - a.raw_value;
+  });
+}
+// points map {teamKey:points} for the running tally
+function pointsMap(dk){
+  const m = {}; scoresFor(dk).forEach(f => m[f.team_key]=f.points); return m;
+}
+
+// the five physical grene, ordered by lock time
+const GRENE_ORDER = [2,3,6,5,4].sort((a,b)=> completionTs(a) < completionTs(b) ? -1 : 1);
+
+// final totals
+const finalTotals = {};
+TEAM_KEYS.forEach(k => finalTotals[k] = FactScore.filter(f=>f.team_key===k).reduce((s,f)=> s+(f.points||0), 0));
+
+/* ----- 4 · Render helpers -------------------------------------------------- */
+const el = (tag, cls, html) => { const n=document.createElement(tag); if(cls) n.className=cls; if(html!=null) n.innerHTML=html; return n; };
+const esc = s => (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const mvDek = s => (s && s.trim()) ? `<p class="mv-dek">${s}</p>` : ""; // skip removed deks cleanly
+
+function rankRows(dk){
+  const ranking = rankingFor(dk);
+  const meta = DISC_META[dk];
+  const showBreak = (dk===2 || dk===3); // bowling + dart have per-player detail
+  let html = "";
+  ranking.forEach((f, i) => {
+    const t = teamByKey[f.team_key];
+    const win = i===0 || f.points === ranking[0].points;
+    html += `<div class="rk${win?' win':''}" style="--tc:${colorVar(f.team_key)}">
+        <span class="pos">${i+1}</span>
+        <span class="who"><span class="nm">${esc(t.team_name)}</span></span>
+        <span class="raw">${f.raw_value}<u>${meta.unit}</u></span>
+        <span class="pts">${f.points}</span>
+      </div>`;
+    if(showBreak && f.breakdown){
+      html += `<div class="rk-break">${esc(f.breakdown)}</div>`;
+    }
+  });
+  return html;
+}
+
+function noteBlocks(dk){
+  const notes = scoresFor(dk).filter(f => f.notes && f.notes.trim());
+  if(!notes.length) return "";
+  let html = `<div class="b-notes">`;
+  notes.forEach(f => {
+    const t = teamByKey[f.team_key];
+    html += `<div class="note" style="--tc:${colorVar(f.team_key)}">${esc(f.notes)}<span class="by">— ${esc(t.team_name)}</span></div>`;
+  });
+  return html + `</div>`;
+}
+
+function disciplineBeat(dk){
+  const d = discByKey[dk];
+  const ranking = rankingFor(dk);
+  const winKey = ranking[0].team_key;
+  const ts = completionTs(dk);
+  const meta = DISC_META[dk];
+
+  const beat = el("section", "beat reveal");
+  beat.style.setProperty("--win-tc", colorVar(winKey));
+  beat.dataset.discPoints = JSON.stringify(pointsMap(dk));
+  beat.innerHTML = `
+    <div class="spine"><div class="time">${hhmm(ts)}</div></div>
+    <div class="card">
+      <div class="b-head">
+        <span class="b-disc">${esc(d.discipline_name)}</span>
+        <span class="b-type">${esc(d.discipline_type)} · ${meta.dir}</span>
+      </div>
+      <p class="b-sowhat">${NARR.beats[dk] || ""}</p>
+      <div class="b-ranks">${rankRows(dk)}</div>
+      ${noteBlocks(dk)}
+    </div>`;
+  return beat;
+}
+
+/* ----- 5 · Build the ribbon ------------------------------------------------ */
+const ribbon = document.getElementById("ribbon");
+
+// 5a · Hero
+const hero = el("header", "hero reveal in");
+hero.innerHTML = `
+  <div class="kicker">${NARR.heroKicker}</div>
+  <h1>MK40<br><em>${NARR.heroTitle}</em></h1>
+  <div class="sub">${NARR.heroSub}</div>
+  <p class="dek">${NARR.heroDek}</p>
+  <div class="crests">
+    ${DimTeam.map(t=>`<span class="crest" style="--tc:${colorVar(t.team_key)}">${esc(t.team_name)}</span>`).join("")}
+  </div>
+  <div class="scroll-cue">${NARR.scrollCue}</div>`;
+ribbon.appendChild(hero);
+
+// 5b · Ouverture — the five myths
+const ouv = el("section", "movement reveal");
+ouv.innerHTML = `<div class="mv-num">${NARR.ouvertureNum}</div><h2>${NARR.ouvertureTitle}</h2>${mvDek(NARR.ouvertureDek)}`;
+ribbon.appendChild(ouv);
+
+DimTeam.forEach(t => {
+  const m = el("article", "myth reveal");
+  m.dataset.key = t.team_key;
+  m.style.setProperty("--tc", colorVar(t.team_key));
+  m.innerHTML = `
+    <div class="crown"><span>Kongeriget</span> · <span class="nick">${esc(t.team_short)}</span></div>
+    <h3>${esc(t.team_name)}</h3>
+    <div class="motto">»${esc(t.team_motto)}«</div>
+    <div class="creation">${esc(t.team_creation)}</div>
+    <div class="members">Holdet · ${esc(t.team_members)}</div>`;
+  ribbon.appendChild(m);
+});
+
+// 5c · Grenene
+const gr = el("section", "movement reveal");
+gr.innerHTML = `<div class="mv-num">${NARR.greneNum}</div><h2>${NARR.greneTitle}</h2>${mvDek(NARR.greneDek)}`;
+ribbon.appendChild(gr);
+
+GRENE_ORDER.forEach(dk => ribbon.appendChild(disciplineBeat(dk)));
+
+// 5d · Skabelse bedømt (callback beat — feeds the tally at 19:27)
+const skab = el("section", "movement reveal");
+skab.innerHTML = `<div class="mv-num">${NARR.skabelseNum}</div><h2>${NARR.skabelseTitle}</h2><p class="mv-dek">${NARR.skabelseDek}</p>`;
+ribbon.appendChild(skab);
+ribbon.appendChild(disciplineBeat(1)); // Skabelsesberetningen — its points enter the race here
+
+// 5e · Quiz movement
+const quizMv = el("section", "movement reveal");
+quizMv.innerHTML = `<div class="mv-num">${NARR.quizNum}</div><h2>${NARR.quizTitle}</h2><p class="mv-dek">${NARR.quizDek}</p>`;
+ribbon.appendChild(quizMv);
+
+// quiz answer grid (21 songs × 5 teams) — this section carries D7's points for the tally
+const qWrap = el("section", "reveal");
+qWrap.dataset.discPoints = JSON.stringify(pointsMap(7));
+let qg = `<div class="quiz-grid"><div class="qg-head">
+    <span>#</span><span>Sang</span>
+    ${TEAM_KEYS.map(k=>`<span class="qh-team" style="--tc:${colorVar(k)}" title="${esc(teamByKey[k].team_short)}"></span>`).join("")}
+  </div>`;
+MusicQuizKey.forEach(s => {
+  const cells = TEAM_KEYS.map(k=>{
+    const r = MusicQuizScore.find(x=> x.song_key===s.key_id && x.team_key===k);
+    const c = r ? r.correct : 0;
+    return `<span class="cell c${c}" style="--tc:${colorVar(k)}; --c:${c}">${c}</span>`;
+  }).join("");
+  qg += `<div class="qg-row">
+      <span class="qn">${s.key_id}</span>
+      <span class="song"><span class="ti">${esc(s.title)}</span><span class="ar">${esc(s.artist)} · ${s.release_year}</span></span>
+      ${cells}
+    </div>`;
+});
+qg += `</div>`;
+qWrap.innerHTML = qg;
+ribbon.appendChild(qWrap);
+
+// quiz result ranking as a beat-style card
+const qResult = el("section", "beat reveal");
+qResult.style.setProperty("--win-tc", colorVar(2));
+qResult.innerHTML = `
+  <div class="spine"><div class="time">${hhmm(completionTs(7))}</div></div>
+  <div class="card">
+    <div class="b-head"><span class="b-disc">Musikquiz · resultat</span><span class="b-type">Knowledge · flest vinder</span></div>
+    <p class="b-sowhat">${NARR.quizOutro}</p>
+    <div class="b-ranks">${rankRows(7)}</div>
+  </div>`;
+ribbon.appendChild(qResult);
+
+// 5f · Finale
+const fin = el("section", "finale reveal");
+const sorted = TEAM_KEYS.slice().sort((a,b)=> finalTotals[b]-finalTotals[a]);
+let podium = `<div class="movement"><div class="mv-num">${NARR.finaleNum}</div><h2>${NARR.finaleTitle}</h2></div><div class="podium">`;
+sorted.forEach((k, i) => {
+  const t = teamByKey[k];
+  podium += `<div class="pod${i===0?' champ':''}" style="--tc:${colorVar(k)}">
+      ${i===0?'<span class="crown-mark">♛</span>':''}
+      <span class="rank">${i+1}</span>
+      <div class="pinfo">
+        <div class="pname">${esc(t.team_name)}</div>
+        <div class="pmotto">»${esc(t.team_motto)}«</div>
+      </div>
+      <span class="ptotal">${finalTotals[k]}</span>
+    </div>`;
+});
+podium += `</div>`;
+fin.innerHTML = podium +
+  `<p class="verdict">${NARR.finaleVerdict}</p>
+   ${NARR.closing && NARR.closing.trim() ? `<p class="closing">${NARR.closing}</p>` : ""}
+   <p class="colophon">${NARR.colophon}</p>`;
+ribbon.appendChild(fin);
+
+/* ----- 6 · Running standings — recompute on scroll, FLIP reorder ----------- */
+const stRowsWrap = document.getElementById("st-rows");
+const standings = document.getElementById("standings");
+const stRows = {}; // teamKey -> row element
+TEAM_KEYS.forEach(k => {
+  const t = teamByKey[k];
+  const row = el("div", "st-row");
+  row.style.setProperty("--tc", colorVar(k));
+  row.dataset.key = k;
+  row.innerHTML = `<span class="st-rank"></span><span class="st-name">${esc(t.team_short)}</span><span class="st-pts">0</span>`;
+  stRows[k] = row;
+  stRowsWrap.appendChild(row);
+});
+
+const discSections = [...document.querySelectorAll("[data-disc-points]")]; // DOM order = lock order
+const reduceMotion = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+function computeTotals(){
+  const triggerY = window.innerHeight * 0.5;
+  const totals = {1:0,2:0,3:0,4:0,5:0};
+  let anyPassed = false;
+  for(const sec of discSections){
+    const rect = sec.getBoundingClientRect();
+    if(rect.top < triggerY){
+      anyPassed = true;
+      const pts = JSON.parse(sec.dataset.discPoints);
+      for(const k in pts) totals[k] += pts[k];
+    }
+  }
+  return {totals, anyPassed};
+}
+
+let lastSig = "";
+function renderStandings(){
+  const {totals, anyPassed} = computeTotals();
+  standings.classList.toggle("show", anyPassed);
+
+  const order = TEAM_KEYS.slice().sort((a,b)=> totals[b]-totals[a] || a-b);
+  const sig = order.map(k=>k+":"+totals[k]).join("|");
+  if(sig === lastSig) return;
+
+  // FLIP — capture first positions
+  const first = {};
+  if(!reduceMotion) TEAM_KEYS.forEach(k => first[k] = stRows[k].getBoundingClientRect().top);
+
+  // reorder DOM + update numbers
+  order.forEach((k, i) => {
+    const row = stRows[k];
+    row.querySelector(".st-rank").textContent = i+1;
+    row.querySelector(".st-pts").textContent = totals[k];
+    row.classList.toggle("lead", i===0 && anyPassed);
+    stRowsWrap.appendChild(row); // append in sorted order
+  });
+
+  // invert + play
+  if(!reduceMotion){
+    TEAM_KEYS.forEach(k => {
+      const row = stRows[k];
+      const delta = first[k] - row.getBoundingClientRect().top;
+      if(delta){
+        row.style.transition = "none";
+        row.style.transform = `translateY(${delta}px)`;
+        requestAnimationFrame(()=>{
+          row.style.transition = "transform 520ms var(--ease)";
+          row.style.transform = "";
+        });
+      }
+    });
+  }
+  lastSig = sig;
+}
+
+/* ----- 7 · Scroll wiring + reveal observer --------------------------------- */
+const progress = document.getElementById("progress");
+let ticking = false;
+function onScroll(){
+  if(ticking) return;
+  ticking = true;
+  requestAnimationFrame(()=>{
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    progress.style.width = (max>0 ? (h.scrollTop/max*100) : 0) + "%";
+    renderStandings();
+    ticking = false;
+  });
+}
+window.addEventListener("scroll", onScroll, {passive:true});
+window.addEventListener("resize", ()=>{ lastSig=""; onScroll(); }, {passive:true});
+
+const revealNodes = document.querySelectorAll(".reveal:not(.in)");
+if("IntersectionObserver" in window){
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } });
+  }, {threshold:0.12, rootMargin:"0px 0px -8% 0px"});
+  revealNodes.forEach(n => io.observe(n));
+  // Fail-safe: if the tab loaded backgrounded (IO + rAF paused), reveal everything
+  // already scrolled past the moment it becomes visible — no blank page, ever.
+  document.addEventListener("visibilitychange", ()=>{
+    if(!document.hidden){
+      document.querySelectorAll(".reveal:not(.in)").forEach(n=>{
+        if(n.getBoundingClientRect().top < window.innerHeight) n.classList.add("in");
+      });
+    }
+  });
+}else{
+  revealNodes.forEach(n => n.classList.add("in"));
+}
+
+// 8 · Long beretninger fold to the green one's height + a read-more toggle.
+//     The one clickable affordance on the page — styled to look clickable (cursor + hover + label).
+function setupMythFolds(){
+  const myths = [...document.querySelectorAll(".myth")];
+  const green = myths.find(m => m.dataset.key === "3");
+  if(!green) return;
+  const cap = green.querySelector(".creation").offsetHeight; // "samme plads som de grønne"
+  myths.forEach(m => {
+    const c = m.querySelector(".creation");
+    if(c.scrollHeight > cap + 28){
+      c.style.setProperty("--cap", cap + "px");
+      c.classList.add("clamp");
+      const btn = el("button", "myth-more");
+      btn.type = "button";
+      const setLabel = open => btn.innerHTML = open
+        ? 'Vis mindre <span class="chev">↑</span>'
+        : 'Læs hele beretningen <span class="chev">↓</span>';
+      setLabel(false);
+      btn.addEventListener("click", () => setLabel(c.classList.toggle("expanded")));
+      c.insertAdjacentElement("afterend", btn);
+    }
+  });
+}
+if(document.fonts && document.fonts.ready){ document.fonts.ready.then(setupMythFolds); }
+else { window.addEventListener("load", setupMythFolds); }
+
+// initial paint
+renderStandings();
+onScroll();
+</script>
+</body>
+</html>
